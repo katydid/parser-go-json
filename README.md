@@ -1,6 +1,5 @@
-## parser-go
+## parser-go-json
 
-Parser interface for Go.
+Parser for JSON in Go
 
-This includes tools for developing implementations of the parser interface, for example the `debug` package.
 
