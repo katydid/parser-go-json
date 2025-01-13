@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	"github.com/katydid/parser-go/parser/debug"
-	sjson "github.com/katydid/parser-go/parser/json"
+	sjson "github.com/katydid/parser-go-json/json"
 )
 
 func TestDebug(t *testing.T) {
