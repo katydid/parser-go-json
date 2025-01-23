@@ -5,7 +5,7 @@ Parser for JSON in Go
 We can parse json without unmarshaling it into a Go `struct` using the [Parser interface](https://github.com/katydid/parser-go):
 
 ```go
-import "github.com/katydid/parser-go/parser/json"
+import "github.com/katydid/parser-go-json/json"
 
 func main() {
     jsonString := `{"otherfield": 123, "myfield": "myvalue"}`
