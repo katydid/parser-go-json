@@ -45,9 +45,9 @@ func getValue(p parser.Interface) interface{} {
 	if err == nil {
 		return v
 	}
-	v, err = p.Bytes()
+	bs, err := p.Bytes()
 	if err == nil {
-		return v
+		return string(bs)
 	}
 	return nil
 }

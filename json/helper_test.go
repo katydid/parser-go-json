@@ -18,7 +18,6 @@ import (
 	"testing"
 
 	sjson "github.com/katydid/parser-go-json/json"
-	"github.com/katydid/parser-go/parser/debug"
 )
 
 func testValue(t *testing.T, input, output string) {
@@ -27,7 +26,10 @@ func testValue(t *testing.T, input, output string) {
 	if err := parser.Init([]byte(input)); err != nil {
 		t.Errorf("init error: %v", err)
 	}
-	jout := debug.Walk(parser)
+	jout, err := walk(parser)
+	if err != nil {
+		t.Errorf("walk error: %v", err)
+	}
 	if len(jout) != 1 {
 		t.Errorf("expected one node")
 	}

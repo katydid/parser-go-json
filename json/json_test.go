@@ -108,6 +108,27 @@ func TestIntWithExponent(t *testing.T) {
 	}
 }
 
+func TestTooLargeNumber(t *testing.T) {
+	input := `123456789.123456789e+123456789`
+	parser := sjson.NewJsonParser()
+	if err := parser.Init([]byte(input)); err != nil {
+		t.Fatalf("init error: %v", err)
+	}
+	if err := parser.Next(); err != nil {
+		t.Fatalf("Next err = %v", err)
+	}
+	if _, err := parser.Double(); err == nil {
+		t.Fatal("expected number to be too large")
+	}
+	bs, err := parser.Bytes()
+	if err != nil {
+		t.Fatalf("expected bytes to return anyway, but got error = %v", err)
+	}
+	if string(bs) != input {
+		t.Fatalf("expected %v, but got %v", input, string(bs))
+	}
+}
+
 func TestValues(t *testing.T) {
 	testValue(t, "0", "0")
 	testValue(t, "1", "1")
@@ -125,7 +146,7 @@ func TestValues(t *testing.T) {
 	testValue(t, `"\b"`, "\b")
 	testValue(t, `true`, "true")
 	testValue(t, `false`, "false")
-	testValue(t, `null`, "<nil>")
+	testValue(t, `null`, "null")
 }
 
 func testWalk(t *testing.T, s string) {

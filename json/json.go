@@ -450,13 +450,13 @@ func (s *jsonParser) IsLeaf() bool {
 	return s.isLeaf
 }
 
-func (s *jsonParser) Value() []byte {
+func (s *jsonParser) value() []byte {
 	return s.buf[s.startValueOffset:s.endValueOffset]
 }
 
 func (s *jsonParser) Double() (float64, error) {
 	if s.isLeaf {
-		v := string(s.Value())
+		v := string(s.value())
 		i, err := strconv.ParseFloat(v, 64)
 		return i, err
 	}
@@ -465,7 +465,7 @@ func (s *jsonParser) Double() (float64, error) {
 
 func (s *jsonParser) Int() (int64, error) {
 	if s.isLeaf {
-		v := string(s.Value())
+		v := string(s.value())
 		i, err := strconv.ParseInt(v, 10, 64)
 		if err != nil {
 			f, ferr := strconv.ParseFloat(v, 64)
@@ -486,7 +486,7 @@ func (s *jsonParser) Int() (int64, error) {
 
 func (s *jsonParser) Uint() (uint64, error) {
 	if s.isLeaf {
-		v := string(s.Value())
+		v := string(s.value())
 		i, err := strconv.ParseUint(v, 10, 64)
 		return uint64(i), err
 	}
@@ -495,7 +495,7 @@ func (s *jsonParser) Uint() (uint64, error) {
 
 func (s *jsonParser) Bool() (bool, error) {
 	if s.isLeaf {
-		v := s.Value()
+		v := s.value()
 		if bytes.Equal(v, trueBytes) {
 			return true, nil
 		}
@@ -508,7 +508,7 @@ func (s *jsonParser) Bool() (bool, error) {
 
 func (s *jsonParser) String() (string, error) {
 	if s.isLeaf {
-		v := s.Value()
+		v := s.value()
 		if v[0] != '"' {
 			return "", parser.ErrNotString
 		}
@@ -525,7 +525,7 @@ func (s *jsonParser) String() (string, error) {
 }
 
 func (s *jsonParser) Bytes() ([]byte, error) {
-	return nil, parser.ErrNotBytes
+	return s.value(), nil
 }
 
 // JsonParser is a parser for JSON
