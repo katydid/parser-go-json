@@ -18,8 +18,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/katydid/parser-go/parser/debug"
 	sjson "github.com/katydid/parser-go-json/json"
+	"github.com/katydid/parser-go/parser/debug"
 )
 
 func TestDebug(t *testing.T) {
@@ -108,23 +108,6 @@ func TestIntWithExponent(t *testing.T) {
 	}
 }
 
-func testValue(t *testing.T, input, output string) {
-	parser := sjson.NewJsonParser()
-	if err := parser.Init([]byte(input)); err != nil {
-		t.Fatalf("init error: %v", err)
-	}
-	jout := debug.Walk(parser)
-	if len(jout) != 1 {
-		t.Fatalf("expected one node")
-	}
-	if len(jout[0].Children) != 0 {
-		t.Fatalf("did not expected any children")
-	}
-	if jout[0].Label != output {
-		t.Fatalf("expected %s got %s", output, jout[0].Label)
-	}
-}
-
 func TestValues(t *testing.T) {
 	testValue(t, "0", "0")
 	testValue(t, "1", "1")
@@ -145,7 +128,8 @@ func TestValues(t *testing.T) {
 	testValue(t, `null`, "<nil>")
 }
 
-func testArray(t *testing.T, s string) {
+func testWalk(t *testing.T, s string) {
+	t.Helper()
 	parser := sjson.NewJsonParser()
 	if err := parser.Init([]byte(s)); err != nil {
 		t.Fatal(err)
@@ -155,9 +139,9 @@ func testArray(t *testing.T, s string) {
 }
 
 func TestArray(t *testing.T) {
-	testArray(t, `[1]`)
-	testArray(t, `[1,2.3e5]`)
-	testArray(t, `[1,"a"]`)
-	testArray(t, `[true, false, null]`)
-	testArray(t, `[{"a": true, "b": [1,2]}]`)
+	testWalk(t, `[1]`)
+	testWalk(t, `[1,2.3e5]`)
+	testWalk(t, `[1,"a"]`)
+	testWalk(t, `[true, false, null]`)
+	testWalk(t, `[{"a": true, "b": [1,2]}]`)
 }

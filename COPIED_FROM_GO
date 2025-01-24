@@ -1,4 +1,4 @@
-Parts of the code in the json folder have been copied from the go standard library
+Parts of the code in the json folder have been copied from the go standard library and github.com/go-json-experiment/json
 
 Copyright (c) 2012 The Go Authors. All rights reserved.
 

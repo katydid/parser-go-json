@@ -75,7 +75,7 @@ func scanString(buf []byte) (int, error) {
 			return 0, errInString(buf)
 		}
 	}
-	panic("unreachable")
+	return 0, errInString(buf)
 }
 
 func isNumber(c byte) bool {
@@ -125,7 +125,7 @@ func (s *jsonParser) scanString() error {
 	}
 	s.offset += n
 	if s.offset >= len(s.buf) {
-		s.offset = len(s.buf)
+		s.offset = len(s.buf) // TODO: WAT?
 	}
 	s.endValueOffset = s.offset
 	return s.skipSpace()
@@ -406,6 +406,9 @@ func (s *jsonParser) nextValueInObject() error {
 			}
 		}
 	}
+	if s.offset >= len(s.buf) {
+		return io.ErrShortBuffer
+	}
 	if isString(s.buf[s.offset:]) {
 		if err := s.scanName(); err != nil {
 			return err
@@ -551,6 +554,9 @@ func (s *jsonParser) Init(buf []byte) error {
 	s.stack = s.stack[:0]
 	if err := s.skipSpace(); err != nil {
 		return err
+	}
+	if s.offset >= len(s.buf) {
+		return io.ErrShortBuffer
 	}
 	if s.buf[s.offset] == '{' {
 		//do nothing
