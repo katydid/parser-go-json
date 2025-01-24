@@ -22,8 +22,9 @@ func TestMoreValues(t *testing.T) {
 	testSame(t, `0.123456789`)
 	testValue(t, `0e0`, "0")
 	testValue(t, `0e+0`, "0")
-	// testSame(t, `0e123456789`)
-	// testSame(t, `0e+123456789`)
+	testValue(t, `0e123456789`, "0") // 0 * 10^123 = 0
+	testValue(t, `0e+123456789`, "0")
+	testValue(t, `123.123e+123`, `1.23123e+125`) // 1.23123 x 10^125
 	// testSame(t, `123456789.123456789e+123456789`)
 	testValue(t, `-0`, "0")
 	testSame(t, `-123456789`)
@@ -31,8 +32,8 @@ func TestMoreValues(t *testing.T) {
 	testSame(t, `-0.123456789`)
 	testValue(t, `-0e0`, "0")
 	testValue(t, `-0e-0`, "0")
-	// testSame(t, `-0e123456789`)
-	// testSame(t, `-0e-123456789`)
+	testValue(t, `-0e123456789`, "0")
+	testValue(t, `-0e-123456789`, "0")
 	// testSame(t, `-123456789.123456789e-123456789`)
 	testValue(t, `""`, "")
 	testValue(t, `"a"`, "a")
