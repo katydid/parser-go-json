@@ -99,9 +99,19 @@ func (s *jsonParser) expected(expected string) error {
 	return fmt.Errorf("katydid/json/parser: expected '%s' at offset %d, but got '%c'", expected, s.offset, s.buf[s.offset])
 }
 
+func (s *jsonParser) incOffset() error {
+	s.offset++
+	if s.offset > len(s.buf) {
+		return io.ErrShortBuffer
+	}
+	return nil
+}
+
 func (s *jsonParser) scanOpenObject() error {
 	if s.buf[s.offset] == '{' {
-		s.offset++
+		if err := s.incOffset(); err != nil {
+			return err
+		}
 	} else {
 		return s.expected("{")
 	}
@@ -110,7 +120,9 @@ func (s *jsonParser) scanOpenObject() error {
 
 func (s *jsonParser) scanOpenArray() error {
 	if s.buf[s.offset] == '[' {
-		s.offset++
+		if err := s.incOffset(); err != nil {
+			return err
+		}
 	} else {
 		return s.expected("[")
 	}
@@ -257,58 +269,49 @@ func isDigit19(c byte) bool {
 func (s *jsonParser) scanNumber() error {
 	s.startValueOffset = s.offset
 	if s.buf[s.offset] == '-' {
-		s.offset++
-		if s.offset >= len(s.buf) {
-			return io.ErrShortBuffer
+		if err := s.incOffset(); err != nil {
+			return err
 		}
 	}
 	if s.buf[s.offset] == '0' {
-		s.offset++
-		if s.offset > len(s.buf) {
-			return io.ErrShortBuffer
+		if err := s.incOffset(); err != nil {
+			return err
 		}
 	} else if isDigit19(s.buf[s.offset]) {
-		s.offset++
-		if s.offset > len(s.buf) {
-			return io.ErrShortBuffer
+		if err := s.incOffset(); err != nil {
+			return err
 		}
 		for s.offset < len(s.buf) && isDigit(s.buf[s.offset]) {
-			s.offset++
-			if s.offset > len(s.buf) {
-				return io.ErrShortBuffer
+			if err := s.incOffset(); err != nil {
+				return err
 			}
 		}
 	}
 	if s.offset < len(s.buf) && s.buf[s.offset] == '.' {
-		s.offset++
-		if s.offset > len(s.buf) {
-			return io.ErrShortBuffer
+		if err := s.incOffset(); err != nil {
+			return err
 		}
 		for s.offset < len(s.buf) && isDigit(s.buf[s.offset]) {
-			s.offset++
-			if s.offset > len(s.buf) {
-				return io.ErrShortBuffer
+			if err := s.incOffset(); err != nil {
+				return err
 			}
 		}
 	}
 	if s.offset < len(s.buf) &&
 		(s.buf[s.offset] == 'e' || s.buf[s.offset] == 'E') {
-		s.offset++
-		if s.offset > len(s.buf) {
-			return io.ErrShortBuffer
+		if err := s.incOffset(); err != nil {
+			return err
 		}
 		if s.offset < len(s.buf) {
 			if s.buf[s.offset] == '+' || s.buf[s.offset] == '-' {
-				s.offset++
-				if s.offset > len(s.buf) {
-					return io.ErrShortBuffer
+				if err := s.incOffset(); err != nil {
+					return err
 				}
 			}
 		}
 		for s.offset < len(s.buf) && isDigit(s.buf[s.offset]) {
-			s.offset++
-			if s.offset > len(s.buf) {
-				return io.ErrShortBuffer
+			if err := s.incOffset(); err != nil {
+				return err
 			}
 		}
 	}
@@ -342,7 +345,9 @@ func (s *jsonParser) scanColon() error {
 	if s.buf[s.offset] != ':' {
 		return s.expected(":")
 	}
-	s.offset++
+	if err := s.incOffset(); err != nil {
+		return err
+	}
 	return s.skipSpace()
 }
 
@@ -364,7 +369,9 @@ func (s *jsonParser) scanComma() error {
 	if s.buf[s.offset] != ',' {
 		return s.expected(",")
 	}
-	s.offset++
+	if err := s.incOffset(); err != nil {
+		return err
+	}
 	return s.skipSpace()
 }
 
