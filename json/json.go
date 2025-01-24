@@ -135,9 +135,8 @@ func (s *jsonParser) scanString() error {
 	if err != nil {
 		return err
 	}
-	s.offset += n
-	if s.offset >= len(s.buf) {
-		s.offset = len(s.buf) // TODO: WAT?
+	if err := s.incOffset(n); err != nil {
+		return err
 	}
 	s.endValueOffset = s.offset
 	return s.skipSpace()
