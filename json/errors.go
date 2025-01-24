@@ -21,17 +21,17 @@ var errUnquote = errors.New("error unquoting string")
 
 var errScanString = errors.New("error scanning string")
 
-var errExpectedOpenCurly = errors.New("expected {")
+var errExpectedOpenCurly = errors.New("expected '{'")
 
-var errExpectedOpenBracket = errors.New("expected [")
+var errExpectedOpenBracket = errors.New("expected '['")
 
-var errExpectedCloseBracket = errors.New("expected ]")
+var errExpectedCloseBracket = errors.New("expected ']'")
 
-var errExpectedComma = errors.New("expected ,")
+var errExpectedComma = errors.New("expected ','")
 
-var errExpectedCloseCurly = errors.New("expected }")
+var errExpectedCloseCurly = errors.New("expected '}'")
 
-var errExpectedColon = errors.New("expected :")
+var errExpectedColon = errors.New("expected ':'")
 
 var errExpectedValue = errors.New("expected a json value")
 
