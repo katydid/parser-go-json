@@ -25,16 +25,20 @@ func testValue(t *testing.T, input, output string) {
 	parser := sjson.NewJsonParser()
 	if err := parser.Init([]byte(input)); err != nil {
 		t.Errorf("init error: %v", err)
+		return
 	}
 	jout, err := walk(parser)
 	if err != nil {
 		t.Errorf("walk error: %v", err)
+		return
 	}
 	if len(jout) != 1 {
 		t.Errorf("expected one node")
+		return
 	}
 	if len(jout[0].Children) != 0 {
 		t.Errorf("did not expected any children")
+		return
 	}
 	if jout[0].Label != output {
 		t.Errorf("expected %s got %s", output, jout[0].Label)
