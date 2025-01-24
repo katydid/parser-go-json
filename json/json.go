@@ -23,10 +23,6 @@ import (
 	"github.com/katydid/parser-go/parser"
 )
 
-func isString(buf []byte) bool {
-	return buf[0] == '"'
-}
-
 func scanString(buf []byte) (int, error) {
 	escaped := false
 	udigits := -1
@@ -98,16 +94,35 @@ func unquote(s []byte) (string, error) {
 	return t, nil
 }
 
-func isDigit(c byte) bool {
-	return c >= '0' && c <= '9'
-}
-
-func isDigit19(c byte) bool {
-	return c >= '1' && c <= '9'
+func (s *jsonParser) look() (byte, error) {
+	if s.offset < len(s.buf) {
+		return s.buf[s.offset], nil
+	}
+	return 0, io.ErrShortBuffer
 }
 
 func (s *jsonParser) isNext(c byte) bool {
 	return s.offset < len(s.buf) && s.buf[s.offset] == c
+}
+
+func (s *jsonParser) isNextDigit() bool {
+	return s.offset < len(s.buf) && s.buf[s.offset] >= '0' && s.buf[s.offset] <= '9'
+}
+
+func (s *jsonParser) isNextDigit19() bool {
+	return s.offset < len(s.buf) && s.buf[s.offset] >= '1' && s.buf[s.offset] <= '9'
+}
+
+func (s *jsonParser) isNextOneOf(cs ...byte) bool {
+	if s.offset >= len(s.buf) {
+		return false
+	}
+	for _, c := range cs {
+		if s.buf[s.offset] == c {
+			return true
+		}
+	}
+	return false
 }
 
 func (s *jsonParser) incOffset(o int) error {
@@ -119,6 +134,9 @@ func (s *jsonParser) incOffset(o int) error {
 }
 
 func (s *jsonParser) skipSpace() error {
+	if s.offset >= len(s.buf) {
+		return nil
+	}
 	n := skipSpace(s.buf[s.offset:])
 	if err := s.incOffset(n); err != nil {
 		return err
@@ -259,6 +277,18 @@ func (s *jsonParser) scanObject() error {
 	return s.skipSpace()
 }
 
+func (s *jsonParser) scanDigits() error {
+	if s.offset >= len(s.buf) {
+		return io.ErrShortBuffer
+	}
+	for s.isNextDigit() {
+		if err := s.incOffset(1); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (s *jsonParser) scanNumber() error {
 	s.startValueOffset = s.offset
 	if s.isNext('-') {
@@ -270,42 +300,30 @@ func (s *jsonParser) scanNumber() error {
 		if err := s.incOffset(1); err != nil {
 			return err
 		}
-	} else if isDigit19(s.buf[s.offset]) {
-		if err := s.incOffset(1); err != nil {
+	} else if s.isNextDigit19() {
+		if err := s.scanDigits(); err != nil {
 			return err
-		}
-		for s.offset < len(s.buf) && isDigit(s.buf[s.offset]) {
-			if err := s.incOffset(1); err != nil {
-				return err
-			}
 		}
 	}
 	if s.isNext('.') {
 		if err := s.incOffset(1); err != nil {
 			return err
 		}
-		for s.offset < len(s.buf) && isDigit(s.buf[s.offset]) {
-			if err := s.incOffset(1); err != nil {
-				return err
-			}
+		if err := s.scanDigits(); err != nil {
+			return err
 		}
 	}
-	if s.offset < len(s.buf) &&
-		(s.buf[s.offset] == 'e' || s.buf[s.offset] == 'E') {
+	if s.isNextOneOf('e', 'E') {
 		if err := s.incOffset(1); err != nil {
 			return err
 		}
-		if s.offset < len(s.buf) {
-			if s.buf[s.offset] == '+' || s.buf[s.offset] == '-' {
-				if err := s.incOffset(1); err != nil {
-					return err
-				}
-			}
-		}
-		for s.offset < len(s.buf) && isDigit(s.buf[s.offset]) {
+		if s.isNextOneOf('+', '-') {
 			if err := s.incOffset(1); err != nil {
 				return err
 			}
+		}
+		if err := s.scanDigits(); err != nil {
+			return err
 		}
 	}
 	s.endValueOffset = s.offset
@@ -313,7 +331,10 @@ func (s *jsonParser) scanNumber() error {
 }
 
 func (s *jsonParser) scanValue() error {
-	c := s.buf[s.offset]
+	c, err := s.look()
+	if err != nil {
+		return err
+	}
 	if isNumber(c) {
 		return s.scanNumber()
 	}
@@ -409,7 +430,7 @@ func (s *jsonParser) nextValueInObject() error {
 	if s.offset >= len(s.buf) {
 		return io.ErrShortBuffer
 	}
-	if isString(s.buf[s.offset:]) {
+	if s.isNext('"') {
 		if err := s.scanName(); err != nil {
 			return err
 		}
@@ -566,7 +587,7 @@ func (s *jsonParser) Init(buf []byte) error {
 		}
 		s.inArray = true
 		s.firstArrayValue = true
-		s.buf = s.buf[s.startValueOffset:s.endValueOffset]
+		s.buf = s.value()
 		s.offset = 0
 	} else {
 		if err := s.scanValue(); err != nil {
@@ -615,13 +636,13 @@ func (s *jsonParser) Down() {
 	if s.isValueObject {
 		s.stack = append(s.stack, s.state)
 		s.state = state{
-			buf:              s.buf[s.startValueOffset:s.endValueOffset],
+			buf:              s.value(),
 			firstObjectValue: true,
 		}
 	} else if s.isValueArray {
 		s.stack = append(s.stack, s.state)
 		s.state = state{
-			buf:             s.buf[s.startValueOffset:s.endValueOffset],
+			buf:             s.value(),
 			firstArrayValue: true,
 			inArray:         true,
 		}
