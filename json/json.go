@@ -98,6 +98,18 @@ func unquote(s []byte) (string, error) {
 	return t, nil
 }
 
+func isDigit(c byte) bool {
+	return c >= '0' && c <= '9'
+}
+
+func isDigit19(c byte) bool {
+	return c >= '1' && c <= '9'
+}
+
+func (s *jsonParser) isNext(c byte) bool {
+	return s.offset < len(s.buf) && s.buf[s.offset] == c
+}
+
 func (s *jsonParser) incOffset(o int) error {
 	s.offset = s.offset + o
 	if s.offset > len(s.buf) {
@@ -106,24 +118,30 @@ func (s *jsonParser) incOffset(o int) error {
 	return nil
 }
 
+func (s *jsonParser) skipSpace() error {
+	n := skipSpace(s.buf[s.offset:])
+	if err := s.incOffset(n); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *jsonParser) scanOpenObject() error {
-	if s.buf[s.offset] == '{' {
-		if err := s.incOffset(1); err != nil {
-			return err
-		}
-	} else {
+	if !s.isNext('{') {
 		return errExpectedOpenCurly
+	}
+	if err := s.incOffset(1); err != nil {
+		return err
 	}
 	return s.skipSpace()
 }
 
 func (s *jsonParser) scanOpenArray() error {
-	if s.buf[s.offset] == '[' {
-		if err := s.incOffset(1); err != nil {
-			return err
-		}
-	} else {
+	if !s.isNext('[') {
 		return errExpectedOpenBracket
+	}
+	if err := s.incOffset(1); err != nil {
+		return err
 	}
 	return s.skipSpace()
 }
@@ -155,14 +173,6 @@ func (s *jsonParser) scanName() error {
 		return err
 	}
 	return s.skipSpace()
-}
-
-func (s *jsonParser) skipSpace() error {
-	n := skipSpace(s.buf[s.offset:])
-	if err := s.incOffset(n); err != nil {
-		return err
-	}
-	return nil
 }
 
 func (s *jsonParser) scanConst(valBytes []byte, err error) error {
@@ -249,22 +259,14 @@ func (s *jsonParser) scanObject() error {
 	return s.skipSpace()
 }
 
-func isDigit(c byte) bool {
-	return c >= '0' && c <= '9'
-}
-
-func isDigit19(c byte) bool {
-	return c >= '1' && c <= '9'
-}
-
 func (s *jsonParser) scanNumber() error {
 	s.startValueOffset = s.offset
-	if s.buf[s.offset] == '-' {
+	if s.isNext('-') {
 		if err := s.incOffset(1); err != nil {
 			return err
 		}
 	}
-	if s.buf[s.offset] == '0' {
+	if s.isNext('0') {
 		if err := s.incOffset(1); err != nil {
 			return err
 		}
@@ -278,7 +280,7 @@ func (s *jsonParser) scanNumber() error {
 			}
 		}
 	}
-	if s.offset < len(s.buf) && s.buf[s.offset] == '.' {
+	if s.isNext('.') {
 		if err := s.incOffset(1); err != nil {
 			return err
 		}
@@ -333,7 +335,7 @@ func (s *jsonParser) scanValue() error {
 }
 
 func (s *jsonParser) scanColon() error {
-	if s.buf[s.offset] != ':' {
+	if !s.isNext(':') {
 		return errExpectedColon
 	}
 	if err := s.incOffset(1); err != nil {
@@ -343,21 +345,21 @@ func (s *jsonParser) scanColon() error {
 }
 
 func (s *jsonParser) scanCloseObject() error {
-	if s.buf[s.offset] == '}' {
-		return io.EOF
+	if !s.isNext('}') {
+		return errExpectedCloseCurly
 	}
-	return errExpectedCloseCurly
+	return io.EOF
 }
 
 func (s *jsonParser) scanCloseArray() error {
-	if s.buf[s.offset] == ']' {
-		return io.EOF
+	if !s.isNext(']') {
+		return errExpectedCloseBracket
 	}
-	return errExpectedCloseBracket
+	return io.EOF
 }
 
 func (s *jsonParser) scanComma() error {
-	if s.buf[s.offset] != ',' {
+	if !s.isNext(',') {
 		return errExpectedComma
 	}
 	if err := s.incOffset(1); err != nil {
@@ -373,7 +375,7 @@ func (s *jsonParser) nextValueInArray() error {
 		}
 		s.firstArrayValue = false
 	} else {
-		if s.buf[s.offset] == ',' {
+		if s.isNext(',') {
 			if err := s.scanComma(); err != nil {
 				return err
 			}
@@ -381,7 +383,7 @@ func (s *jsonParser) nextValueInArray() error {
 			return s.scanCloseArray()
 		}
 	}
-	if s.buf[s.offset] == ']' {
+	if s.isNext(']') {
 		return s.scanCloseArray()
 	}
 	return s.scanValue()
@@ -394,7 +396,7 @@ func (s *jsonParser) nextValueInObject() error {
 		}
 		s.firstObjectValue = false
 	} else {
-		if s.buf[s.offset] == ',' {
+		if s.isNext(',') {
 			if err := s.scanComma(); err != nil {
 				return err
 			}
@@ -493,11 +495,11 @@ func (s *jsonParser) Uint() (uint64, error) {
 
 func (s *jsonParser) Bool() (bool, error) {
 	if s.isLeaf {
-		v := string(s.Value())
-		if v == "true" {
+		v := s.Value()
+		if bytes.Equal(v, trueBytes) {
 			return true, nil
 		}
-		if v == "false" {
+		if bytes.Equal(v, falseBytes) {
 			return false, nil
 		}
 	}
@@ -556,9 +558,9 @@ func (s *jsonParser) Init(buf []byte) error {
 	if s.offset >= len(s.buf) {
 		return io.ErrShortBuffer
 	}
-	if s.buf[s.offset] == '{' {
+	if s.isNext('{') {
 		//do nothing
-	} else if s.buf[s.offset] == '[' {
+	} else if s.isNext('[') {
 		if err := s.scanValue(); err != nil {
 			return err
 		}
