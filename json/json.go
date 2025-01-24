@@ -165,49 +165,34 @@ func (s *jsonParser) skipSpace() error {
 	return nil
 }
 
+func (s *jsonParser) scanConst(valBytes []byte, err error) error {
+	s.startValueOffset = s.offset
+	if orr := s.incOffset(len(valBytes)); orr != nil {
+		return err
+	}
+	s.endValueOffset = s.offset
+	if !bytes.Equal(s.buf[s.startValueOffset:s.offset], valBytes) {
+		return err
+	}
+	return s.skipSpace()
+}
+
 var trueBytes = []byte{'t', 'r', 'u', 'e'}
 
 func (s *jsonParser) scanTrue() error {
-	if s.offset+4 > len(s.buf) {
-		return io.ErrShortBuffer
-	}
-	if !bytes.Equal(s.buf[s.offset:s.offset+4], trueBytes) {
-		return errExpectedTrue
-	}
-	s.startValueOffset = s.offset
-	s.endValueOffset = s.offset + 4
-	s.offset += 4
-	return s.skipSpace()
+	return s.scanConst(trueBytes, errExpectedTrue)
 }
 
 var falseBytes = []byte{'f', 'a', 'l', 's', 'e'}
 
 func (s *jsonParser) scanFalse() error {
-	if s.offset+5 > len(s.buf) {
-		return io.ErrShortBuffer
-	}
-	if !bytes.Equal(s.buf[s.offset:s.offset+5], falseBytes) {
-		return errExpectedFalse
-	}
-	s.startValueOffset = s.offset
-	s.endValueOffset = s.offset + 5
-	s.offset += 5
-	return s.skipSpace()
+	return s.scanConst(falseBytes, errExpectedFalse)
 }
 
 var nullBytes = []byte{'n', 'u', 'l', 'l'}
 
 func (s *jsonParser) scanNull() error {
-	if s.offset+4 > len(s.buf) {
-		return io.ErrShortBuffer
-	}
-	if !bytes.Equal(s.buf[s.offset:s.offset+4], nullBytes) {
-		return errExpectedNull
-	}
-	s.startValueOffset = s.offset
-	s.endValueOffset = s.offset + 4
-	s.offset += 4
-	return s.skipSpace()
+	return s.scanConst(nullBytes, errExpectedNull)
 }
 
 func (s *jsonParser) scanArray() error {
