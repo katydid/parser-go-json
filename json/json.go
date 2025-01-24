@@ -148,7 +148,9 @@ func (s *jsonParser) scanName() error {
 	if err != nil {
 		return err
 	}
-	s.offset += n
+	if err := s.incOffset(n); err != nil {
+		return err
+	}
 	var ok bool
 	s.name, ok = unquote(s.buf[startOffset:s.offset])
 	if !ok {
@@ -158,12 +160,9 @@ func (s *jsonParser) scanName() error {
 }
 
 func (s *jsonParser) skipSpace() error {
-	if s.offset > len(s.buf) {
-		return io.ErrShortBuffer
-	}
-	s.offset += skipSpace(s.buf[s.offset:])
-	if s.offset > len(s.buf) {
-		return io.ErrShortBuffer
+	n := skipSpace(s.buf[s.offset:])
+	if err := s.incOffset(n); err != nil {
+		return err
 	}
 	return nil
 }
@@ -227,7 +226,9 @@ func (s *jsonParser) scanArray() error {
 	}
 	s.startValueOffset = s.offset
 	s.endValueOffset = s.offset + index + 1
-	s.offset += index + 1
+	if err := s.incOffset(index + 1); err != nil {
+		return err
+	}
 	s.isValueArray = true
 	return s.skipSpace()
 }
@@ -252,7 +253,9 @@ func (s *jsonParser) scanObject() error {
 	}
 	s.startValueOffset = s.offset
 	s.endValueOffset = s.offset + index + 1
-	s.offset += index + 1
+	if err := s.incOffset(index + 1); err != nil {
+		return err
+	}
 	s.isValueObject = true
 	return s.skipSpace()
 }
