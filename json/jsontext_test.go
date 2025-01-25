@@ -5,7 +5,9 @@
 // Original these tests were copied from https://github.com/go-json-experiment/json/blob/master/jsontext/decode_test.go
 package json_test
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestWalk(t *testing.T) {
 	testWalk(t, `{"0":0,"1":1} `)
@@ -41,11 +43,8 @@ func TestMoreValues(t *testing.T) {
 	testValue(t, `"ab"`, "ab")
 	testValue(t, `"abc"`, "abc")
 	testValue(t, `"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"`, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
-	// testSame(t, `"\"\\\/\b\f\n\r\t"`)
-	// testSame(t, `"\u0022\u005c\u002f\u0008\u000c\u000a\u000d\u0009"`)
-	// testSame(t, `"\ud800\udead"`)
+	testValue(t, `"\"\\\/\b\f\n\r\t"`, "\"\\/\b\f\n\r\t")
 	testValue(t, "\"\u0080\u00f6\u20ac\ud799\ue000\ufb33\ufffd\U0001f602\"", "\u0080\u00f6\u20ac\ud799\ue000\ufb33\ufffd\U0001f602")
-	// testSame(t, `"\u0080\u00f6\u20ac\ud799\ue000\ufb33\ufffd\ud83d\ude02"`)
 }
 
 func TestErrors(t *testing.T) {
@@ -99,24 +98,26 @@ func TestErrors(t *testing.T) {
 	testError(t, `["",`)
 }
 
-func DisabledTestInvalidUTF8(t *testing.T) {
-	testError(t, "\"living\xde\xad\xbe\xef\"")
-	testError(t, ` "a`+"\xff"+`0" `)
-	testError(t, ` [ "a`+"\xff"+`1" ] `)
-	testError(t, ` [ "a1" , "b`+"\xff"+`1" ] `)
-	testError(t, ` [ [ "a`+"\xff"+`2" ] ] `)
-	testError(t, ` [ "a1" , [ "a`+"\xff"+`2" ] ] `)
-	testError(t, ` [ [ "a2" , "b`+"\xff"+`2" ] ] `)
-	testError(t, ` [ "a1" , [ "a2" , "b`+"\xff"+`2" ] ] `)
-	testError(t, ` { "a`+"\xff"+`1" : "b1" } `)
-	testError(t, ` { "a1" : "b`+"\xff"+`1" } `)
-	testError(t, ` { "a1" : "b1" , "c`+"\xff"+`1" : "d1" } `)
-	testError(t, ` { "a1" : "b1" , "c1" : "d`+"\xff"+`1" } `)
-	testError(t, ` { "a1" : { "a`+"\xff"+`2" : "b2" } } `)
-	testError(t, ` { "a1" : { "a2" : "b`+"\xff"+`2" } } `)
-	testError(t, ` { "a1" : { "a2" : "b2" , "c`+"\xff"+`2" : "d2" } } `)
-	testError(t, ` { "a1" : { "a2" : "b2" , "c2" : "d`+"\xff"+`2" } } `)
-	testError(t, ` [ "a1" , { "a2" : "b`+"\xff"+`2" } ] `)
-	testError(t, ` { "a1" : "b1" , "c1" : [ "a2" , "b`+"\xff"+`2" ] } `)
-	testError(t, ` [ { "a1" : [ "a2" , { "a3" : "b3" , "c3" : [ "a4" , "b`+"\xff"+`4" ] } ] } ] `)
+// Test that JSON parser doesn't break with invalid UTF8
+// This might not be the behaviour we want and future we might expect an error.
+func TestInvalidUTF8(t *testing.T) {
+	testWalk(t, "\"living\xde\xad\xbe\xef\"")
+	testWalk(t, ` "a`+"\xff"+`0" `)
+	testWalk(t, ` [ "a`+"\xff"+`1" ] `)
+	testWalk(t, ` [ "a1" , "b`+"\xff"+`1" ] `)
+	testWalk(t, ` [ [ "a`+"\xff"+`2" ] ] `)
+	testWalk(t, ` [ "a1" , [ "a`+"\xff"+`2" ] ] `)
+	testWalk(t, ` [ [ "a2" , "b`+"\xff"+`2" ] ] `)
+	testWalk(t, ` [ "a1" , [ "a2" , "b`+"\xff"+`2" ] ] `)
+	testWalk(t, ` { "a`+"\xff"+`1" : "b1" } `)
+	testWalk(t, ` { "a1" : "b`+"\xff"+`1" } `)
+	testWalk(t, ` { "a1" : "b1" , "c`+"\xff"+`1" : "d1" } `)
+	testWalk(t, ` { "a1" : "b1" , "c1" : "d`+"\xff"+`1" } `)
+	testWalk(t, ` { "a1" : { "a`+"\xff"+`2" : "b2" } } `)
+	testWalk(t, ` { "a1" : { "a2" : "b`+"\xff"+`2" } } `)
+	testWalk(t, ` { "a1" : { "a2" : "b2" , "c`+"\xff"+`2" : "d2" } } `)
+	testWalk(t, ` { "a1" : { "a2" : "b2" , "c2" : "d`+"\xff"+`2" } } `)
+	testWalk(t, ` [ "a1" , { "a2" : "b`+"\xff"+`2" } ] `)
+	testWalk(t, ` { "a1" : "b1" , "c1" : [ "a2" , "b`+"\xff"+`2" ] } `)
+	testWalk(t, ` [ { "a1" : [ "a2" , { "a3" : "b3" , "c3" : [ "a4" , "b`+"\xff"+`4" ] } ] } ] `)
 }
