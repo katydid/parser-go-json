@@ -144,6 +144,16 @@ func (s *jsonParser) skipSpace() error {
 	return nil
 }
 
+func (s *jsonParser) eof() error {
+	if err := s.skipSpace(); err != nil {
+		return err
+	}
+	if s.offset != len(s.buf) {
+		return errLongBuffer
+	}
+	return io.EOF
+}
+
 func (s *jsonParser) scanOpenObject() error {
 	if !s.isNext('{') {
 		return errExpectedOpenCurly
@@ -369,14 +379,20 @@ func (s *jsonParser) scanCloseObject() error {
 	if !s.isNext('}') {
 		return errExpectedCloseCurly
 	}
-	return io.EOF
+	if err := s.incOffset(1); err != nil {
+		return err
+	}
+	return s.eof()
 }
 
 func (s *jsonParser) scanCloseArray() error {
 	if !s.isNext(']') {
 		return errExpectedCloseBracket
 	}
-	return io.EOF
+	if err := s.incOffset(1); err != nil {
+		return err
+	}
+	return s.eof()
 }
 
 func (s *jsonParser) scanComma() error {
@@ -451,7 +467,7 @@ func (s *jsonParser) Next() error {
 			s.firstObjectValue = false
 			return nil
 		}
-		return io.EOF
+		return s.eof()
 	}
 	s.isValueObject = false
 	s.isValueArray = false
@@ -477,7 +493,7 @@ func (s *jsonParser) value() []byte {
 
 func (s *jsonParser) Double() (float64, error) {
 	if s.isLeaf {
-		v := string(s.value())
+		v := string(s.buf)
 		i, err := strconv.ParseFloat(v, 64)
 		return i, err
 	}
@@ -486,7 +502,7 @@ func (s *jsonParser) Double() (float64, error) {
 
 func (s *jsonParser) Int() (int64, error) {
 	if s.isLeaf {
-		v := string(s.value())
+		v := string(s.buf)
 		i, err := strconv.ParseInt(v, 10, 64)
 		if err != nil {
 			f, ferr := strconv.ParseFloat(v, 64)
@@ -507,7 +523,7 @@ func (s *jsonParser) Int() (int64, error) {
 
 func (s *jsonParser) Uint() (uint64, error) {
 	if s.isLeaf {
-		v := string(s.value())
+		v := string(s.buf)
 		i, err := strconv.ParseUint(v, 10, 64)
 		return uint64(i), err
 	}
@@ -516,7 +532,7 @@ func (s *jsonParser) Uint() (uint64, error) {
 
 func (s *jsonParser) Bool() (bool, error) {
 	if s.isLeaf {
-		v := s.value()
+		v := s.buf
 		if bytes.Equal(v, trueBytes) {
 			return true, nil
 		}
@@ -529,7 +545,7 @@ func (s *jsonParser) Bool() (bool, error) {
 
 func (s *jsonParser) String() (string, error) {
 	if s.isLeaf {
-		v := s.value()
+		v := s.buf
 		if v[0] != '"' {
 			return "", parser.ErrNotString
 		}
@@ -648,7 +664,11 @@ func (s *jsonParser) Down() {
 		}
 	} else {
 		s.stack = append(s.stack, s.state)
-		s.state.isLeaf = true
-		s.state.firstObjectValue = true
+		s.state = state{
+			buf:              s.value(),
+			isLeaf:           true,
+			firstObjectValue: true,
+			offset:           s.endValueOffset - s.startValueOffset,
+		}
 	}
 }

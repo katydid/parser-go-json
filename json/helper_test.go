@@ -41,7 +41,7 @@ func testValue(t *testing.T, input, output string) {
 		return
 	}
 	if jout[0].Label != output {
-		t.Errorf("expected %s got %s", output, jout[0].Label)
+		t.Errorf("expected %q got %q", output, jout[0].Label)
 	}
 }
 

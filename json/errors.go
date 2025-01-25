@@ -16,10 +16,12 @@ package json
 
 import "errors"
 
-// errUnquote returns an error that resulted from trying to unquote a string.
-var errUnquote = errors.New("error unquoting string")
+var errLongBuffer = errors.New("json is complete, but buffer is still has more to read")
 
-var errScanString = errors.New("error scanning string")
+// errUnquote returns an error that resulted from trying to unquote a string.
+var errUnquote = errors.New("unable to unquote string")
+
+var errScanString = errors.New("unable to scan string")
 
 var errExpectedOpenCurly = errors.New("expected '{'")
 

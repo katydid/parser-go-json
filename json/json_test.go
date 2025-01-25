@@ -66,7 +66,10 @@ func TestEscapedChar(t *testing.T) {
 	if err := parser.Init(data); err != nil {
 		t.Fatal(err)
 	}
-	m := debug.Walk(parser)
+	m, err := walk(parser)
+	if err != nil {
+		t.Fatal(err)
+	}
 	name := m[0].Label
 	if name != `a\"` {
 		t.Fatalf("wrong escaped name %s", name)
@@ -81,8 +84,11 @@ func TestMultiLineArray(t *testing.T) {
 	if err := parser.Init([]byte(s)); err != nil {
 		t.Fatal(err)
 	}
-	jout := debug.Walk(parser)
-	t.Logf("%v", jout)
+	m, err := walk(parser)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%v", m)
 }
 
 func TestIntWithExponent(t *testing.T) {
@@ -153,10 +159,15 @@ func testWalk(t *testing.T, s string) {
 	t.Helper()
 	parser := sjson.NewJsonParser()
 	if err := parser.Init([]byte(s)); err != nil {
-		t.Fatal(err)
+		t.Error(err)
+		return
 	}
-	jout := debug.Walk(parser)
-	t.Logf("%v", jout)
+	m, err := walk(parser)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Logf("%v", m)
 }
 
 func TestArray(t *testing.T) {
