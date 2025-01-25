@@ -75,7 +75,7 @@ func TestErrors(t *testing.T) {
 	testError(t, ` { "fizz" : "buzz" : "gazz" } `)
 	testError(t, ` { "fizz" : "buzz" # "gazz" } `)
 	testError(t, ` { , } `)
-	// testError(t, ` { "fizz" : "buzz" , } `)
+	testError(t, ` { "fizz" : "buzz" , } `)
 	testError(t, ` { null : null } `)
 	testError(t, ` { false : false } `)
 	testError(t, ` { true : true } `)

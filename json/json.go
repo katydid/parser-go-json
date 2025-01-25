@@ -426,6 +426,19 @@ func (s *jsonParser) nextValueInArray() error {
 	return s.scanValue()
 }
 
+func (s *jsonParser) scanKeyValue() error {
+	if err := s.scanName(); err != nil {
+		return err
+	}
+	if err := s.scanColon(); err != nil {
+		return err
+	}
+	if err := s.scanValue(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *jsonParser) nextValueInObject() error {
 	if s.firstObjectValue {
 		if err := s.scanOpenObject(); err != nil {
@@ -437,26 +450,18 @@ func (s *jsonParser) nextValueInObject() error {
 			if err := s.scanComma(); err != nil {
 				return err
 			}
+			if !s.isNext('"') {
+				return errScanString
+			}
+			return s.scanKeyValue()
 		} else {
 			if err := s.scanCloseObject(); err != nil {
 				return err
 			}
 		}
 	}
-	if s.offset >= len(s.buf) {
-		return io.ErrShortBuffer
-	}
 	if s.isNext('"') {
-		if err := s.scanName(); err != nil {
-			return err
-		}
-		if err := s.scanColon(); err != nil {
-			return err
-		}
-		if err := s.scanValue(); err != nil {
-			return err
-		}
-		return nil
+		return s.scanKeyValue()
 	}
 	return s.scanCloseObject()
 }
