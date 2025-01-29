@@ -44,10 +44,6 @@ func rangeError(fn, str string) *NumError {
 	return &NumError{fn, ErrRange}
 }
 
-func BaseError(fn, str string, base int) *NumError {
-	return &NumError{fn, errors.New("invalid base " + Itoa(base))}
-}
-
 func BitSizeError(fn, str string, bitSize int) *NumError {
 	return &NumError{fn, errors.New("invalid bit size " + Itoa(bitSize))}
 }

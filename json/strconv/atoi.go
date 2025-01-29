@@ -22,8 +22,9 @@ const maxUint64 = 1<<64 - 1
 // ParseUint is like [ParseInt] but for unsigned numbers.
 //
 // A sign prefix is not permitted.
-func ParseUint(s string, base int, bitSize int) (uint64, error) {
+func ParseUint(s string, bitSize int) (uint64, error) {
 	const fnParseUint = "ParseUint"
+	base := 10
 
 	if s == "" {
 		return 0, syntaxError(fnParseUint, s)
@@ -57,7 +58,7 @@ func ParseUint(s string, base int, bitSize int) (uint64, error) {
 		}
 
 	default:
-		return 0, BaseError(fnParseUint, s0, base)
+		panic("unreachable")
 	}
 
 	if bitSize == 0 {
@@ -146,7 +147,7 @@ func ParseUint(s string, base int, bitSize int) (uint64, error) {
 // appropriate bitSize and sign.
 //
 // [integer literals]: https://go.dev/ref/spec#Integer_literals
-func ParseInt(s string, base int, bitSize int) (i int64, err error) {
+func ParseInt(s string, bitSize int) (i int64, err error) {
 	const fnParseInt = "ParseInt"
 
 	if s == "" {
@@ -165,7 +166,7 @@ func ParseInt(s string, base int, bitSize int) (i int64, err error) {
 
 	// Convert unsigned and check range.
 	var un uint64
-	un, err = ParseUint(s, base, bitSize)
+	un, err = ParseUint(s, bitSize)
 	if err != nil && err.(*NumError).Err != ErrRange {
 		err.(*NumError).Func = fnParseInt
 		return 0, err
@@ -220,7 +221,7 @@ func Atoi(s string) (int, error) {
 	}
 
 	// Slow path for invalid, big, or underscored integers.
-	i64, err := ParseInt(s, 10, 0)
+	i64, err := ParseInt(s, 0)
 	if nerr, ok := err.(*NumError); ok {
 		nerr.Func = fnAtoi
 	}
