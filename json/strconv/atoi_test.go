@@ -361,7 +361,7 @@ func init() {
 func TestParseUint64(t *testing.T) {
 	for i := range parseUint64Tests {
 		test := &parseUint64Tests[i]
-		out, err := ParseUint(test.in)
+		out, err := ParseUint([]byte(test.in))
 		if test.out != out || !reflect.DeepEqual(test.err, err) {
 			t.Errorf("ParseUint(%q, 10, 64) = %v, %v want %v, %v",
 				test.in, out, err, test.out, test.err)
@@ -372,7 +372,7 @@ func TestParseUint64(t *testing.T) {
 func TestParseInt64(t *testing.T) {
 	for i := range parseInt64Tests {
 		test := &parseInt64Tests[i]
-		out, err := ParseInt(test.in)
+		out, err := ParseInt([]byte(test.in))
 		if test.out != out || !reflect.DeepEqual(test.err, err) {
 			t.Errorf("ParseInt(%q, 10, 64) = %v, %v want %v, %v",
 				test.in, out, err, test.out, test.err)
@@ -383,7 +383,7 @@ func TestParseInt64(t *testing.T) {
 func TestParseUint(t *testing.T) {
 	for i := range parseUint64Tests {
 		test := &parseUint64Tests[i]
-		out, err := ParseUint(test.in)
+		out, err := ParseUint([]byte(test.in))
 		if test.out != out || !reflect.DeepEqual(test.err, err) {
 			t.Errorf("ParseUint(%q, 10, 0) = %v, %v want %v, %v",
 				test.in, out, err, test.out, test.err)
@@ -394,7 +394,7 @@ func TestParseUint(t *testing.T) {
 func TestParseInt(t *testing.T) {
 	for i := range parseInt64Tests {
 		test := &parseInt64Tests[i]
-		out, err := ParseInt(test.in)
+		out, err := ParseInt([]byte(test.in))
 		if test.out != out || !reflect.DeepEqual(test.err, err) {
 			t.Errorf("ParseInt(%q, 10, 0) = %v, %v want %v, %v",
 				test.in, out, err, test.out, test.err)
@@ -405,7 +405,7 @@ func TestParseInt(t *testing.T) {
 func TestAtoi(t *testing.T) {
 	for i := range parseInt64Tests {
 		test := &parseInt64Tests[i]
-		out, err := Atoi(test.in)
+		out, err := Atoi([]byte(test.in))
 		var testErr error
 		if test.err != nil {
 			testErr = &NumError{"Atoi", test.err.(*NumError).Err}
@@ -417,10 +417,6 @@ func TestAtoi(t *testing.T) {
 	}
 }
 
-func bitSizeErrStub(name string, bitSize int) error {
-	return BitSizeError(name, "0", bitSize)
-}
-
 func noErrStub(name string, arg int) error {
 	return nil
 }
@@ -428,13 +424,6 @@ func noErrStub(name string, arg int) error {
 type parseErrorTest struct {
 	arg     int
 	errStub func(name string, arg int) error
-}
-
-var parseBitSizeTests = []parseErrorTest{
-	{-1, bitSizeErrStub},
-	{0, noErrStub},
-	{64, noErrStub},
-	{65, bitSizeErrStub},
 }
 
 func equalError(a, b error) bool {
@@ -490,7 +479,7 @@ func benchmarkParseInt(b *testing.B, neg int) {
 	}
 	for _, cs := range cases {
 		b.Run(cs.name, func(b *testing.B) {
-			s := fmt.Sprintf("%d", cs.num*int64(neg))
+			s := []byte(fmt.Sprintf("%d", cs.num*int64(neg)))
 			for i := 0; i < b.N; i++ {
 				out, _ := ParseInt(s)
 				BenchSink += int(out)
@@ -520,7 +509,7 @@ func benchmarkAtoi(b *testing.B, neg int) {
 	}...)
 	for _, cs := range cases {
 		b.Run(cs.name, func(b *testing.B) {
-			s := fmt.Sprintf("%d", cs.num*int64(neg))
+			s := []byte(fmt.Sprintf("%d", cs.num*int64(neg)))
 			for i := 0; i < b.N; i++ {
 				out, _ := Atoi(s)
 				BenchSink += out

@@ -17,15 +17,15 @@ const maxUint64 = 1<<64 - 1
 // ParseUint is like [ParseInt] but for unsigned numbers.
 //
 // A sign prefix is not permitted.
-func ParseUint(s string) (uint64, error) {
+func ParseUint(s []byte) (uint64, error) {
 	return parseUint(s, 64)
 }
 
-func parseUint(s string, bitSize int) (uint64, error) {
+func parseUint(s []byte, bitSize int) (uint64, error) {
 	const fnParseUint = "ParseUint"
 	base := 10
 
-	if s == "" {
+	if len(s) == 0 {
 		return 0, syntaxError(fnParseUint, s)
 	}
 
@@ -144,14 +144,14 @@ func parseUint(s string, bitSize int) (uint64, error) {
 // appropriate bitSize and sign.
 //
 // [integer literals]: https://go.dev/ref/spec#Integer_literals
-func ParseInt(s string) (i int64, err error) {
+func ParseInt(s []byte) (i int64, err error) {
 	return parseInt(s, 64)
 }
 
-func parseInt(s string, bitSize int) (i int64, err error) {
+func parseInt(s []byte, bitSize int) (i int64, err error) {
 	const fnParseInt = "ParseInt"
 
-	if s == "" {
+	if len(s) == 0 {
 		return 0, syntaxError(fnParseInt, s)
 	}
 
@@ -192,7 +192,7 @@ func parseInt(s string, bitSize int) (i int64, err error) {
 }
 
 // Atoi is equivalent to ParseInt(s, 10, 0), converted to type int.
-func Atoi(s string) (int, error) {
+func Atoi(s []byte) (int, error) {
 	const fnAtoi = "Atoi"
 
 	sLen := len(s)
@@ -231,7 +231,7 @@ func Atoi(s string) (int, error) {
 // underscoreOK reports whether the underscores in s are allowed.
 // Checking them in this one function lets all the parsers skip over them simply.
 // Underscore must appear only between digits or between a base prefix and a digit.
-func underscoreOK(s string) bool {
+func underscoreOK(s []byte) bool {
 	// saw tracks the last character (class) we saw:
 	// ^ for beginning of number,
 	// 0 for a digit or base prefix,

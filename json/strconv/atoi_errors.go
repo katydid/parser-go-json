@@ -36,14 +36,10 @@ func (e *NumError) Error() string {
 
 func (e *NumError) Unwrap() error { return e.Err }
 
-func syntaxError(fn, str string) *NumError {
+func syntaxError(fn string, str []byte) *NumError {
 	return &NumError{fn, ErrSyntax}
 }
 
-func rangeError(fn, str string) *NumError {
+func rangeError(fn string, str []byte) *NumError {
 	return &NumError{fn, ErrRange}
-}
-
-func BitSizeError(fn, str string, bitSize int) *NumError {
-	return &NumError{fn, errors.New("invalid bit size " + Itoa(bitSize))}
 }
