@@ -17,17 +17,17 @@ package json_test
 import (
 	"testing"
 
-	sjson "github.com/katydid/parser-go-json/json"
+	jsonparser "github.com/katydid/parser-go-json/json"
 )
 
 func testValue(t *testing.T, input, output string) {
 	t.Helper()
-	parser := sjson.NewJsonParser()
+	parser := jsonparser.NewJsonParser()
 	if err := parser.Init([]byte(input)); err != nil {
 		t.Errorf("init error: %v", err)
 		return
 	}
-	jout, err := walk(parser)
+	jout, err := parse(parser)
 	if err != nil {
 		t.Errorf("walk error: %v", err)
 		return
@@ -52,12 +52,12 @@ func testSame(t *testing.T, input string) {
 
 func testError(t *testing.T, s string) {
 	t.Helper()
-	parser := sjson.NewJsonParser()
+	parser := jsonparser.NewJsonParser()
 	if err := parser.Init([]byte(s)); err != nil {
 		t.Logf("PASS: given <%s> error: %v", s, err)
 		return
 	}
-	parsed, err := walk(parser)
+	parsed, err := parse(parser)
 	if err != nil {
 		t.Logf("PASS: given <%s> error: %v", s, err)
 		return

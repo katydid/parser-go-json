@@ -52,7 +52,7 @@ func getValue(p parser.Interface) interface{} {
 	return nil
 }
 
-func walk(p parser.Interface) (debug.Nodes, error) {
+func parse(p parser.Interface) (debug.Nodes, error) {
 	a := make(debug.Nodes, 0)
 	for {
 		if err := p.Next(); err != nil {
@@ -68,7 +68,7 @@ func walk(p parser.Interface) (debug.Nodes, error) {
 		} else {
 			name := fmt.Sprintf("%v", value)
 			p.Down()
-			v, err := walk(p)
+			v, err := parse(p)
 			if err != nil {
 				return nil, err
 			}
@@ -77,4 +77,47 @@ func walk(p parser.Interface) (debug.Nodes, error) {
 		}
 	}
 	return a, nil
+}
+
+func walkValue(p parser.Interface) {
+	if _, err := p.Int(); err == nil {
+		return
+	}
+	if _, err := p.Uint(); err == nil {
+		return
+	}
+	if _, err := p.Double(); err == nil {
+		return
+	}
+	if _, err := p.Bool(); err == nil {
+		return
+	}
+	if _, err := p.String(); err == nil {
+		return
+	}
+	if _, err := p.Bytes(); err == nil {
+		return
+	}
+	return
+}
+
+func walk(p parser.Interface) error {
+	for {
+		if err := p.Next(); err != nil {
+			if err == io.EOF {
+				break
+			} else {
+				return err
+			}
+		}
+		walkValue(p)
+		if !p.IsLeaf() {
+			p.Down()
+			if err := walk(p); err != nil {
+				return err
+			}
+			p.Up()
+		}
+	}
+	return nil
 }

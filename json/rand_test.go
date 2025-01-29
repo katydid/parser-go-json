@@ -1,0 +1,111 @@
+//  Copyright 2025 Walter Schulze
+//
+//  Licensed under the Apache License, Version 2.0 (the "License");
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+
+package json_test
+
+import (
+	"encoding/json"
+	"math/rand"
+)
+
+func randJsons(r *rand.Rand, num int) [][]byte {
+	js := make([][]byte, num)
+	for i := 0; i < num; i++ {
+		js[i] = randJson(r)
+	}
+	return js
+}
+
+func randJson(r *rand.Rand) []byte {
+	val := randValue(r, 5)
+	data, err := json.Marshal(val)
+	if err != nil {
+		panic(err)
+	}
+	return data
+}
+
+func randObject(r *rand.Rand, level int) map[string]interface{} {
+	l := r.Intn(10)
+	ms := make(map[string]interface{})
+	for i := 0; i < l; i++ {
+		ms[randName(r)] = randValue(r, level)
+	}
+	return ms
+}
+
+func randArray(r *rand.Rand, level int) []interface{} {
+	l := r.Intn(10)
+	as := make([]interface{}, l)
+	for i := 0; i < l; i++ {
+		as[i] = randValue(r, level)
+	}
+	return as
+}
+
+func randValue(r *rand.Rand, level int) interface{} {
+	maxN := 9
+	if level <= 0 {
+		// do not generate arrays or objects,
+		// since we have generated a deep enough structure and
+		// we do not want to endlessly recurse.
+		maxN = 7
+	}
+	switch r.Intn(maxN) {
+	case 0:
+		return nil
+	case 1:
+		return bool(r.Intn(2) == 0)
+	case 2:
+		return int64(r.Int63())
+	case 3:
+		return uint64(r.Uint64())
+	case 4:
+		return float64(r.Float64())
+	case 5:
+		return randString(r)
+	case 6:
+		return randBytes(r)
+	case 7:
+		return randArray(r, level-1)
+	case 8:
+		return randObject(r, level-1)
+	}
+	panic("unreachable")
+}
+
+func randBytes(r *rand.Rand) []byte {
+	bs := make([]byte, int(r.Intn(100)))
+	for i := range bs {
+		bs[i] = byte(r.Intn(255))
+	}
+	return bs
+}
+
+// TODO: Look at JSON BNF and generate more possible strings outside of just ascii
+func randString(r *rand.Rand) string {
+	ss := make([]byte, int(r.Intn(100)))
+	for i := range ss {
+		ss[i] = byte(65 + r.Intn(26))
+	}
+	return string(ss)
+}
+
+func randName(r *rand.Rand) string {
+	ss := make([]byte, int(r.Intn(100)))
+	for i := range ss {
+		ss[i] = byte(65 + r.Intn(26))
+	}
+	return string(ss)
+}
