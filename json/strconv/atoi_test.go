@@ -361,7 +361,7 @@ func init() {
 func TestParseUint64(t *testing.T) {
 	for i := range parseUint64Tests {
 		test := &parseUint64Tests[i]
-		out, err := ParseUint(test.in, 64)
+		out, err := ParseUint(test.in)
 		if test.out != out || !reflect.DeepEqual(test.err, err) {
 			t.Errorf("ParseUint(%q, 10, 64) = %v, %v want %v, %v",
 				test.in, out, err, test.out, test.err)
@@ -372,7 +372,7 @@ func TestParseUint64(t *testing.T) {
 func TestParseInt64(t *testing.T) {
 	for i := range parseInt64Tests {
 		test := &parseInt64Tests[i]
-		out, err := ParseInt(test.in, 64)
+		out, err := ParseInt(test.in)
 		if test.out != out || !reflect.DeepEqual(test.err, err) {
 			t.Errorf("ParseInt(%q, 10, 64) = %v, %v want %v, %v",
 				test.in, out, err, test.out, test.err)
@@ -381,78 +381,38 @@ func TestParseInt64(t *testing.T) {
 }
 
 func TestParseUint(t *testing.T) {
-	switch IntSize {
-	case 32:
-		for i := range parseUint32Tests {
-			test := &parseUint32Tests[i]
-			out, err := ParseUint(test.in, 0)
-			if uint64(test.out) != out || !reflect.DeepEqual(test.err, err) {
-				t.Errorf("ParseUint(%q, 10, 0) = %v, %v want %v, %v",
-					test.in, out, err, test.out, test.err)
-			}
-		}
-	case 64:
-		for i := range parseUint64Tests {
-			test := &parseUint64Tests[i]
-			out, err := ParseUint(test.in, 0)
-			if test.out != out || !reflect.DeepEqual(test.err, err) {
-				t.Errorf("ParseUint(%q, 10, 0) = %v, %v want %v, %v",
-					test.in, out, err, test.out, test.err)
-			}
+	for i := range parseUint64Tests {
+		test := &parseUint64Tests[i]
+		out, err := ParseUint(test.in)
+		if test.out != out || !reflect.DeepEqual(test.err, err) {
+			t.Errorf("ParseUint(%q, 10, 0) = %v, %v want %v, %v",
+				test.in, out, err, test.out, test.err)
 		}
 	}
 }
 
 func TestParseInt(t *testing.T) {
-	switch IntSize {
-	case 32:
-		for i := range parseInt32Tests {
-			test := &parseInt32Tests[i]
-			out, err := ParseInt(test.in, 0)
-			if int64(test.out) != out || !reflect.DeepEqual(test.err, err) {
-				t.Errorf("ParseInt(%q, 10, 0) = %v, %v want %v, %v",
-					test.in, out, err, test.out, test.err)
-			}
-		}
-	case 64:
-		for i := range parseInt64Tests {
-			test := &parseInt64Tests[i]
-			out, err := ParseInt(test.in, 0)
-			if test.out != out || !reflect.DeepEqual(test.err, err) {
-				t.Errorf("ParseInt(%q, 10, 0) = %v, %v want %v, %v",
-					test.in, out, err, test.out, test.err)
-			}
+	for i := range parseInt64Tests {
+		test := &parseInt64Tests[i]
+		out, err := ParseInt(test.in)
+		if test.out != out || !reflect.DeepEqual(test.err, err) {
+			t.Errorf("ParseInt(%q, 10, 0) = %v, %v want %v, %v",
+				test.in, out, err, test.out, test.err)
 		}
 	}
 }
 
 func TestAtoi(t *testing.T) {
-	switch IntSize {
-	case 32:
-		for i := range parseInt32Tests {
-			test := &parseInt32Tests[i]
-			out, err := Atoi(test.in)
-			var testErr error
-			if test.err != nil {
-				testErr = &NumError{"Atoi", test.err.(*NumError).Err}
-			}
-			if int(test.out) != out || !reflect.DeepEqual(testErr, err) {
-				t.Errorf("Atoi(%q) = %v, %v want %v, %v",
-					test.in, out, err, test.out, testErr)
-			}
+	for i := range parseInt64Tests {
+		test := &parseInt64Tests[i]
+		out, err := Atoi(test.in)
+		var testErr error
+		if test.err != nil {
+			testErr = &NumError{"Atoi", test.err.(*NumError).Err}
 		}
-	case 64:
-		for i := range parseInt64Tests {
-			test := &parseInt64Tests[i]
-			out, err := Atoi(test.in)
-			var testErr error
-			if test.err != nil {
-				testErr = &NumError{"Atoi", test.err.(*NumError).Err}
-			}
-			if test.out != int64(out) || !reflect.DeepEqual(testErr, err) {
-				t.Errorf("Atoi(%q) = %v, %v want %v, %v",
-					test.in, out, err, test.out, testErr)
-			}
+		if test.out != int64(out) || !reflect.DeepEqual(testErr, err) {
+			t.Errorf("Atoi(%q) = %v, %v want %v, %v",
+				test.in, out, err, test.out, testErr)
 		}
 	}
 }
@@ -485,30 +445,6 @@ func equalError(a, b error) bool {
 		return a == nil
 	}
 	return a.Error() == b.Error()
-}
-
-func TestParseIntBitSize(t *testing.T) {
-	for i := range parseBitSizeTests {
-		test := &parseBitSizeTests[i]
-		testErr := test.errStub("ParseInt", test.arg)
-		_, err := ParseInt("0", test.arg)
-		if !equalError(testErr, err) {
-			t.Errorf("ParseInt(\"0\", 0, %v) = 0, %v want 0, %v",
-				test.arg, err, testErr)
-		}
-	}
-}
-
-func TestParseUintBitSize(t *testing.T) {
-	for i := range parseBitSizeTests {
-		test := &parseBitSizeTests[i]
-		testErr := test.errStub("ParseUint", test.arg)
-		_, err := ParseUint("0", test.arg)
-		if !equalError(testErr, err) {
-			t.Errorf("ParseUint(\"0\", 0, %v) = 0, %v want 0, %v",
-				test.arg, err, testErr)
-		}
-	}
 }
 
 func TestNumError(t *testing.T) {
@@ -556,7 +492,7 @@ func benchmarkParseInt(b *testing.B, neg int) {
 		b.Run(cs.name, func(b *testing.B) {
 			s := fmt.Sprintf("%d", cs.num*int64(neg))
 			for i := 0; i < b.N; i++ {
-				out, _ := ParseInt(s, 64)
+				out, _ := ParseInt(s)
 				BenchSink += int(out)
 			}
 		})
@@ -578,12 +514,10 @@ func benchmarkAtoi(b *testing.B, neg int) {
 		{"26bit", 1<<26 - 1},
 		{"31bit", 1<<31 - 1},
 	}
-	if IntSize == 64 {
-		cases = append(cases, []benchCase{
-			{"56bit", 1<<56 - 1},
-			{"63bit", 1<<63 - 1},
-		}...)
-	}
+	cases = append(cases, []benchCase{
+		{"56bit", 1<<56 - 1},
+		{"63bit", 1<<63 - 1},
+	}...)
 	for _, cs := range cases {
 		b.Run(cs.name, func(b *testing.B) {
 			s := fmt.Sprintf("%d", cs.num*int64(neg))

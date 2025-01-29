@@ -12,17 +12,16 @@ func lower(c byte) byte {
 	return c | ('x' - 'X')
 }
 
-const intSize = 32 << (^uint(0) >> 63)
-
-// IntSize is the size in bits of an int or uint value.
-const IntSize = intSize
-
 const maxUint64 = 1<<64 - 1
 
 // ParseUint is like [ParseInt] but for unsigned numbers.
 //
 // A sign prefix is not permitted.
-func ParseUint(s string, bitSize int) (uint64, error) {
+func ParseUint(s string) (uint64, error) {
+	return parseUint(s, 64)
+}
+
+func parseUint(s string, bitSize int) (uint64, error) {
 	const fnParseUint = "ParseUint"
 	base := 10
 
@@ -62,9 +61,7 @@ func ParseUint(s string, bitSize int) (uint64, error) {
 	}
 
 	if bitSize == 0 {
-		bitSize = IntSize
-	} else if bitSize < 0 || bitSize > 64 {
-		return 0, BitSizeError(fnParseUint, s0, bitSize)
+		bitSize = 64
 	}
 
 	// Cutoff is the smallest number such that cutoff*base > maxUint64.
@@ -147,7 +144,11 @@ func ParseUint(s string, bitSize int) (uint64, error) {
 // appropriate bitSize and sign.
 //
 // [integer literals]: https://go.dev/ref/spec#Integer_literals
-func ParseInt(s string, bitSize int) (i int64, err error) {
+func ParseInt(s string) (i int64, err error) {
+	return parseInt(s, 64)
+}
+
+func parseInt(s string, bitSize int) (i int64, err error) {
 	const fnParseInt = "ParseInt"
 
 	if s == "" {
@@ -166,14 +167,14 @@ func ParseInt(s string, bitSize int) (i int64, err error) {
 
 	// Convert unsigned and check range.
 	var un uint64
-	un, err = ParseUint(s, bitSize)
+	un, err = parseUint(s, bitSize)
 	if err != nil && err.(*NumError).Err != ErrRange {
 		err.(*NumError).Func = fnParseInt
 		return 0, err
 	}
 
 	if bitSize == 0 {
-		bitSize = IntSize
+		bitSize = 64
 	}
 
 	cutoff := uint64(1 << uint(bitSize-1))
@@ -195,8 +196,7 @@ func Atoi(s string) (int, error) {
 	const fnAtoi = "Atoi"
 
 	sLen := len(s)
-	if intSize == 32 && (0 < sLen && sLen < 10) ||
-		intSize == 64 && (0 < sLen && sLen < 19) {
+	if 0 < sLen && sLen < 19 {
 		// Fast path for small integers that fit int type.
 		s0 := s
 		if s[0] == '-' || s[0] == '+' {
@@ -221,7 +221,7 @@ func Atoi(s string) (int, error) {
 	}
 
 	// Slow path for invalid, big, or underscored integers.
-	i64, err := ParseInt(s, 0)
+	i64, err := parseInt(s, 0)
 	if nerr, ok := err.(*NumError); ok {
 		nerr.Func = fnAtoi
 	}
