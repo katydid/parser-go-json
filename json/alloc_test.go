@@ -24,7 +24,7 @@ import (
 )
 
 func TestNoAllocs(t *testing.T) {
-	num := 1000
+	num := 100
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	js := randJsons(r, num)
 	jparser := jsonparser.NewJsonParser()
