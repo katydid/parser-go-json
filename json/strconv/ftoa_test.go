@@ -204,15 +204,8 @@ func TestFtoaPowersOfTwo(t *testing.T) {
 		f := math.Ldexp(1, exp)
 		if !math.IsInf(f, 0) {
 			s := FormatFloat(f, 'e', -1, 64)
-			if x, _ := ParseFloat(s, 64); x != f {
+			if x, _ := ParseFloat(s); x != f {
 				t.Errorf("failed roundtrip %v => %s => %v", f, s, x)
-			}
-		}
-		f32 := float32(f)
-		if !math.IsInf(float64(f32), 0) {
-			s := FormatFloat(float64(f32), 'e', -1, 32)
-			if x, _ := ParseFloat(s, 32); float32(x) != f32 {
-				t.Errorf("failed roundtrip %v => %s => %v", f32, s, float32(x))
 			}
 		}
 	}
