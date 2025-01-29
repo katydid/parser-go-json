@@ -204,7 +204,7 @@ func TestFtoaPowersOfTwo(t *testing.T) {
 		f := math.Ldexp(1, exp)
 		if !math.IsInf(f, 0) {
 			s := FormatFloat(f, 'e', -1, 64)
-			if x, _ := ParseFloat(s); x != f {
+			if x, _ := ParseFloat([]byte(s)); x != f {
 				t.Errorf("failed roundtrip %v => %s => %v", f, s, x)
 			}
 		}

@@ -438,8 +438,8 @@ type atofSimpleTest struct {
 var (
 	atofOnce               sync.Once
 	atofRandomTests        []atofSimpleTest
-	benchmarksRandomBits   [1024]string
-	benchmarksRandomNormal [1024]string
+	benchmarksRandomBits   [1024][]byte
+	benchmarksRandomNormal [1024][]byte
 )
 
 func initAtof() {
@@ -478,12 +478,12 @@ func initAtofOnce() {
 	for i := range benchmarksRandomBits {
 		bits := uint64(rand.Uint32())<<32 | uint64(rand.Uint32())
 		x := math.Float64frombits(bits)
-		benchmarksRandomBits[i] = FormatFloat(x, 'g', -1, 64)
+		benchmarksRandomBits[i] = []byte(FormatFloat(x, 'g', -1, 64))
 	}
 
 	for i := range benchmarksRandomNormal {
 		x := rand.NormFloat64()
-		benchmarksRandomNormal[i] = FormatFloat(x, 'g', -1, 64)
+		benchmarksRandomNormal[i] = []byte(FormatFloat(x, 'g', -1, 64))
 	}
 }
 
@@ -492,7 +492,7 @@ func testAtof(t *testing.T, opt bool) {
 	oldopt := SetOptimize(opt)
 	for i := 0; i < len(atoftests); i++ {
 		test := &atoftests[i]
-		out, err := ParseFloat(test.in)
+		out, err := ParseFloat([]byte(test.in))
 		outs := FormatFloat(out, 'g', -1, 64)
 		if outs != test.out || !reflect.DeepEqual(err, test.err) {
 			t.Errorf("ParseFloat(%v, 64) = %v, %v want %v, %v",
@@ -509,7 +509,7 @@ func TestAtofSlow(t *testing.T) { testAtof(t, false) }
 func TestAtofRandom(t *testing.T) {
 	initAtof()
 	for _, test := range atofRandomTests {
-		x, _ := ParseFloat(test.s)
+		x, _ := ParseFloat([]byte(test.s))
 		switch {
 		default:
 			t.Errorf("number %s badly parsed as %b (expected %b)", test.s, x, test.x)
@@ -541,7 +541,7 @@ func TestRoundTrip(t *testing.T) {
 		if s != tt.s {
 			t.Errorf("no-opt FormatFloat(%b) = %s, want %s", tt.f, s, tt.s)
 		}
-		f, err := ParseFloat(tt.s)
+		f, err := ParseFloat([]byte(tt.s))
 		if f != tt.f || err != nil {
 			t.Errorf("no-opt ParseFloat(%s) = %b, %v want %b, nil", tt.s, f, err, tt.f)
 		}
@@ -550,7 +550,7 @@ func TestRoundTrip(t *testing.T) {
 		if s != tt.s {
 			t.Errorf("opt FormatFloat(%b) = %s, want %s", tt.f, s, tt.s)
 		}
-		f, err = ParseFloat(tt.s)
+		f, err = ParseFloat([]byte(tt.s))
 		if f != tt.f || err != nil {
 			t.Errorf("opt ParseFloat(%s) = %b, %v want %b, nil", tt.s, f, err, tt.f)
 		}
@@ -559,26 +559,30 @@ func TestRoundTrip(t *testing.T) {
 }
 
 func BenchmarkAtof64Decimal(b *testing.B) {
+	bs := []byte("33909")
 	for i := 0; i < b.N; i++ {
-		ParseFloat("33909")
+		ParseFloat(bs)
 	}
 }
 
 func BenchmarkAtof64Float(b *testing.B) {
+	bs := []byte("339.7784")
 	for i := 0; i < b.N; i++ {
-		ParseFloat("339.7784")
+		ParseFloat(bs)
 	}
 }
 
 func BenchmarkAtof64FloatExp(b *testing.B) {
+	bs := []byte("-5.09e75")
 	for i := 0; i < b.N; i++ {
-		ParseFloat("-5.09e75")
+		ParseFloat(bs)
 	}
 }
 
 func BenchmarkAtof64Big(b *testing.B) {
+	bs := []byte("123456789123456789123456789")
 	for i := 0; i < b.N; i++ {
-		ParseFloat("123456789123456789123456789")
+		ParseFloat(bs)
 	}
 }
 
@@ -600,9 +604,9 @@ func BenchmarkAtof64RandomFloats(b *testing.B) {
 
 func BenchmarkAtof64RandomLongFloats(b *testing.B) {
 	initAtof()
-	samples := make([]string, len(atofRandomTests))
+	samples := make([][]byte, len(atofRandomTests))
 	for i, t := range atofRandomTests {
-		samples[i] = FormatFloat(t.x, 'g', 20, 64)
+		samples[i] = []byte(FormatFloat(t.x, 'g', 20, 64))
 	}
 	b.ResetTimer()
 	idx := 0
