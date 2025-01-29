@@ -18,8 +18,8 @@ package json
 import (
 	"bytes"
 	"io"
-	"strconv"
 
+	"github.com/katydid/parser-go-json/json/strconv"
 	"github.com/katydid/parser-go/parser"
 )
 
@@ -498,8 +498,7 @@ func (s *jsonParser) value() []byte {
 
 func (s *jsonParser) Double() (float64, error) {
 	if s.isLeaf {
-		v := string(s.buf)
-		i, err := strconv.ParseFloat(v, 64)
+		i, err := strconv.ParseFloat(s.buf)
 		return i, err
 	}
 	return 0, parser.ErrNotDouble
@@ -507,10 +506,9 @@ func (s *jsonParser) Double() (float64, error) {
 
 func (s *jsonParser) Int() (int64, error) {
 	if s.isLeaf {
-		v := string(s.buf)
-		i, err := strconv.ParseInt(v, 10, 64)
+		i, err := strconv.ParseInt(s.buf)
 		if err != nil {
-			f, ferr := strconv.ParseFloat(v, 64)
+			f, ferr := strconv.ParseFloat(s.buf)
 			if ferr != nil {
 				return i, err
 			}
@@ -528,8 +526,7 @@ func (s *jsonParser) Int() (int64, error) {
 
 func (s *jsonParser) Uint() (uint64, error) {
 	if s.isLeaf {
-		v := string(s.buf)
-		i, err := strconv.ParseUint(v, 10, 64)
+		i, err := strconv.ParseUint(s.buf)
 		return uint64(i), err
 	}
 	return 0, parser.ErrNotUint
