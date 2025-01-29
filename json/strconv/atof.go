@@ -547,7 +547,7 @@ func atofHex(s []byte, flt *floatInfo, mantissa uint64, exp int, neg, trunc bool
 	if exp > maxExp { // infinity and range error
 		mantissa = 1 << flt.mantbits
 		exp = maxExp + 1
-		err = rangeError(fnParseFloat, s)
+		err = errRangeParseFloat
 	}
 
 	bits := mantissa & (1<<flt.mantbits - 1)
@@ -561,8 +561,6 @@ func atofHex(s []byte, flt *floatInfo, mantissa uint64, exp int, neg, trunc bool
 	return math.Float64frombits(bits), err
 }
 
-const fnParseFloat = "ParseFloat"
-
 func atof32(s []byte) (f float32, n int, err error) {
 	if val, n, ok := special(s); ok {
 		return float32(val), n, nil
@@ -570,7 +568,7 @@ func atof32(s []byte) (f float32, n int, err error) {
 
 	mantissa, exp, neg, trunc, hex, n, ok := readFloat(s)
 	if !ok {
-		return 0, n, syntaxError(fnParseFloat, s)
+		return 0, n, errSyntaxParseFloat
 	}
 
 	if hex {
@@ -604,12 +602,12 @@ func atof32(s []byte) (f float32, n int, err error) {
 	// Slow fallback.
 	var d decimal
 	if !d.set(s[:n]) {
-		return 0, n, syntaxError(fnParseFloat, s)
+		return 0, n, errSyntaxParseFloat
 	}
 	b, ovf := d.floatBits(&float32info)
 	f = math.Float32frombits(uint32(b))
 	if ovf {
-		err = rangeError(fnParseFloat, s)
+		err = errRangeParseFloat
 	}
 	return f, n, err
 }
@@ -621,7 +619,7 @@ func atof64(s []byte) (f float64, n int, err error) {
 
 	mantissa, exp, neg, trunc, hex, n, ok := readFloat(s)
 	if !ok {
-		return 0, n, syntaxError(fnParseFloat, s)
+		return 0, n, errSyntaxParseFloat
 	}
 
 	if hex {
@@ -655,12 +653,12 @@ func atof64(s []byte) (f float64, n int, err error) {
 	// Slow fallback.
 	var d decimal
 	if !d.set(s[:n]) {
-		return 0, n, syntaxError(fnParseFloat, s)
+		return 0, n, errSyntaxParseFloat
 	}
 	b, ovf := d.floatBits(&float64info)
 	f = math.Float64frombits(b)
 	if ovf {
-		err = rangeError(fnParseFloat, s)
+		err = errRangeParseFloat
 	}
 	return f, n, err
 }
@@ -695,7 +693,7 @@ func atof64(s []byte) (f float64, n int, err error) {
 func ParseFloat(s []byte) (float64, error) {
 	f, n, err := atof64(s)
 	if n != len(s) && (err == nil || err.(*NumError).Err != ErrSyntax) {
-		return 0, syntaxError(fnParseFloat, s)
+		return 0, errSyntaxParseFloat
 	}
 	return f, err
 }
