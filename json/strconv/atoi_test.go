@@ -312,9 +312,9 @@ type numErrorTest struct {
 }
 
 var numErrorTests = []numErrorTest{
-	{"0", `strconv.ParseFloat: parsing "0": failed`},
-	{"`", "strconv.ParseFloat: parsing \"`\": failed"},
-	{"1\x00.2", `strconv.ParseFloat: parsing "1\x00.2": failed`},
+	{"0", `strconv.ParseFloat: failed`},
+	{"`", "strconv.ParseFloat: failed"},
+	{"1\x00.2", `strconv.ParseFloat: failed`},
 }
 
 func init() {
@@ -323,37 +323,37 @@ func init() {
 	for i := range parseUint64Tests {
 		test := &parseUint64Tests[i]
 		if test.err != nil {
-			test.err = &NumError{"ParseUint", test.in, test.err}
+			test.err = &NumError{"ParseUint", test.err}
 		}
 	}
 	for i := range parseUint64BaseTests {
 		test := &parseUint64BaseTests[i]
 		if test.err != nil {
-			test.err = &NumError{"ParseUint", test.in, test.err}
+			test.err = &NumError{"ParseUint", test.err}
 		}
 	}
 	for i := range parseInt64Tests {
 		test := &parseInt64Tests[i]
 		if test.err != nil {
-			test.err = &NumError{"ParseInt", test.in, test.err}
+			test.err = &NumError{"ParseInt", test.err}
 		}
 	}
 	for i := range parseInt64BaseTests {
 		test := &parseInt64BaseTests[i]
 		if test.err != nil {
-			test.err = &NumError{"ParseInt", test.in, test.err}
+			test.err = &NumError{"ParseInt", test.err}
 		}
 	}
 	for i := range parseUint32Tests {
 		test := &parseUint32Tests[i]
 		if test.err != nil {
-			test.err = &NumError{"ParseUint", test.in, test.err}
+			test.err = &NumError{"ParseUint", test.err}
 		}
 	}
 	for i := range parseInt32Tests {
 		test := &parseInt32Tests[i]
 		if test.err != nil {
-			test.err = &NumError{"ParseInt", test.in, test.err}
+			test.err = &NumError{"ParseInt", test.err}
 		}
 	}
 }
@@ -478,7 +478,7 @@ func TestAtoi(t *testing.T) {
 			out, err := Atoi(test.in)
 			var testErr error
 			if test.err != nil {
-				testErr = &NumError{"Atoi", test.in, test.err.(*NumError).Err}
+				testErr = &NumError{"Atoi", test.err.(*NumError).Err}
 			}
 			if int(test.out) != out || !reflect.DeepEqual(testErr, err) {
 				t.Errorf("Atoi(%q) = %v, %v want %v, %v",
@@ -491,7 +491,7 @@ func TestAtoi(t *testing.T) {
 			out, err := Atoi(test.in)
 			var testErr error
 			if test.err != nil {
-				testErr = &NumError{"Atoi", test.in, test.err.(*NumError).Err}
+				testErr = &NumError{"Atoi", test.err.(*NumError).Err}
 			}
 			if test.out != int64(out) || !reflect.DeepEqual(testErr, err) {
 				t.Errorf("Atoi(%q) = %v, %v want %v, %v",
@@ -596,7 +596,6 @@ func TestNumError(t *testing.T) {
 	for _, test := range numErrorTests {
 		err := &NumError{
 			Func: "ParseFloat",
-			Num:  test.num,
 			Err:  errors.New("failed"),
 		}
 		if got := err.Error(); got != test.want {

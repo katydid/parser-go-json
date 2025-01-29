@@ -4,8 +4,6 @@
 
 package strconv
 
-import "strings"
-
 // lower(c) is a lower-case letter if and only if
 // c is either that lower-case letter or the equivalent upper-case letter.
 // Instead of writing c == 'x' || c == 'X' one can write lower(c) == 'x'.
@@ -170,7 +168,6 @@ func ParseInt(s string, base int, bitSize int) (i int64, err error) {
 	un, err = ParseUint(s, base, bitSize)
 	if err != nil && err.(*NumError).Err != ErrRange {
 		err.(*NumError).Func = fnParseInt
-		err.(*NumError).Num = strings.Clone(s0)
 		return 0, err
 	}
 
