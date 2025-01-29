@@ -87,7 +87,7 @@ func unquote(s []byte) (string, error) {
 	var ok bool
 	var t string
 	s, ok = unquoteBytes(s)
-	t = string(s)
+	t = castToString(s)
 	if !ok {
 		return "", errUnquote
 	}
