@@ -40,7 +40,7 @@ bench:
 memprofile:
 	rm mem.out || true
 	rm profile*.* || true
-	go test -test.v -test.run=XXX -test.bench=. -test.memprofile=mem.out ./...
+	go test -test.v -test.run=XXX -test.bench=. -test.memprofile=mem.out ./json
 	go tool pprof -alloc_space -png mem.out
 
 gofmt:
