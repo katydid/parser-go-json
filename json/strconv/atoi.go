@@ -22,11 +22,10 @@ func ParseUint(s []byte) (uint64, error) {
 }
 
 func parseUint(s []byte, bitSize int) (uint64, error) {
-	const fnParseUint = "ParseUint"
 	base := 10
 
 	if len(s) == 0 {
-		return 0, syntaxError(fnParseUint, s)
+		return 0, errSyntaxParseUint
 	}
 
 	base0 := base == 0
@@ -91,29 +90,29 @@ func parseUint(s []byte, bitSize int) (uint64, error) {
 		case 'a' <= lower(c) && lower(c) <= 'z':
 			d = lower(c) - 'a' + 10
 		default:
-			return 0, syntaxError(fnParseUint, s0)
+			return 0, errSyntaxParseUint
 		}
 
 		if d >= byte(base) {
-			return 0, syntaxError(fnParseUint, s0)
+			return 0, errSyntaxParseUint
 		}
 
 		if n >= cutoff {
 			// n*base overflows
-			return maxVal, rangeError(fnParseUint, s0)
+			return maxVal, errRangeParseUint
 		}
 		n *= uint64(base)
 
 		n1 := n + uint64(d)
 		if n1 < n || n1 > maxVal {
 			// n+d overflows
-			return maxVal, rangeError(fnParseUint, s0)
+			return maxVal, errRangeParseUint
 		}
 		n = n1
 	}
 
 	if underscores && !underscoreOK(s0) {
-		return 0, syntaxError(fnParseUint, s0)
+		return 0, errSyntaxParseUint
 	}
 
 	return n, nil
@@ -149,14 +148,12 @@ func ParseInt(s []byte) (i int64, err error) {
 }
 
 func parseInt(s []byte, bitSize int) (i int64, err error) {
-	const fnParseInt = "ParseInt"
 
 	if len(s) == 0 {
-		return 0, syntaxError(fnParseInt, s)
+		return 0, errSyntaxParseInt
 	}
 
 	// Pick off leading sign.
-	s0 := s
 	neg := false
 	if s[0] == '+' {
 		s = s[1:]
@@ -169,8 +166,7 @@ func parseInt(s []byte, bitSize int) (i int64, err error) {
 	var un uint64
 	un, err = parseUint(s, bitSize)
 	if err != nil && err.(*NumError).Err != ErrRange {
-		err.(*NumError).Func = fnParseInt
-		return 0, err
+		return 0, errSyntaxParseInt
 	}
 
 	if bitSize == 0 {
@@ -179,10 +175,10 @@ func parseInt(s []byte, bitSize int) (i int64, err error) {
 
 	cutoff := uint64(1 << uint(bitSize-1))
 	if !neg && un >= cutoff {
-		return int64(cutoff - 1), rangeError(fnParseInt, s0)
+		return int64(cutoff - 1), errRangeParseInt
 	}
 	if neg && un > cutoff {
-		return -int64(cutoff), rangeError(fnParseInt, s0)
+		return -int64(cutoff), errRangeParseInt
 	}
 	n := int64(un)
 	if neg {
@@ -193,7 +189,6 @@ func parseInt(s []byte, bitSize int) (i int64, err error) {
 
 // Atoi is equivalent to ParseInt(s, 10, 0), converted to type int.
 func Atoi(s []byte) (int, error) {
-	const fnAtoi = "Atoi"
 
 	sLen := len(s)
 	if 0 < sLen && sLen < 19 {
@@ -202,7 +197,7 @@ func Atoi(s []byte) (int, error) {
 		if s[0] == '-' || s[0] == '+' {
 			s = s[1:]
 			if len(s) < 1 {
-				return 0, syntaxError(fnAtoi, s0)
+				return 0, errSyntaxAtoi
 			}
 		}
 
@@ -210,7 +205,7 @@ func Atoi(s []byte) (int, error) {
 		for _, ch := range []byte(s) {
 			ch -= '0'
 			if ch > 9 {
-				return 0, syntaxError(fnAtoi, s0)
+				return 0, errSyntaxAtoi
 			}
 			n = n*10 + int(ch)
 		}
@@ -223,7 +218,7 @@ func Atoi(s []byte) (int, error) {
 	// Slow path for invalid, big, or underscored integers.
 	i64, err := parseInt(s, 0)
 	if nerr, ok := err.(*NumError); ok {
-		nerr.Func = fnAtoi
+		nerr.Func = "Atoi"
 	}
 	return int(i64), err
 }

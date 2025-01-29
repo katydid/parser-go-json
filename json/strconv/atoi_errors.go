@@ -36,10 +36,12 @@ func (e *NumError) Error() string {
 
 func (e *NumError) Unwrap() error { return e.Err }
 
-func syntaxError(fn string, str []byte) *NumError {
-	return &NumError{fn, ErrSyntax}
-}
+var errSyntaxAtoi = &NumError{"Atoi", ErrSyntax}
+var errSyntaxParseInt = &NumError{"ParseInt", ErrSyntax}
+var errSyntaxParseUint = &NumError{"ParseUint", ErrSyntax}
+var errSyntaxParseFloat = &NumError{"ParseFloat", ErrSyntax}
 
-func rangeError(fn string, str []byte) *NumError {
-	return &NumError{fn, ErrRange}
-}
+var errRangeAtoi = &NumError{"Atoi", ErrRange}
+var errRangeParseInt = &NumError{"ParseInt", ErrRange}
+var errRangeParseUint = &NumError{"ParseUint", ErrRange}
+var errRangeParseFloat = &NumError{"ParseFloat", ErrRange}
