@@ -41,7 +41,6 @@ var errSyntaxParseInt = &NumError{"ParseInt", ErrSyntax}
 var errSyntaxParseUint = &NumError{"ParseUint", ErrSyntax}
 var errSyntaxParseFloat = &NumError{"ParseFloat", ErrSyntax}
 
-var errRangeAtoi = &NumError{"Atoi", ErrRange}
 var errRangeParseInt = &NumError{"ParseInt", ErrRange}
 var errRangeParseUint = &NumError{"ParseUint", ErrRange}
 var errRangeParseFloat = &NumError{"ParseFloat", ErrRange}
