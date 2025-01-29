@@ -693,17 +693,9 @@ func atof64(s string) (f float64, n int, err error) {
 //
 // [floating-point literals]: https://go.dev/ref/spec#Floating-point_literals
 func ParseFloat(s string) (float64, error) {
-	f, n, err := parseFloatPrefix(s, 64)
+	f, n, err := atof64(s)
 	if n != len(s) && (err == nil || err.(*NumError).Err != ErrSyntax) {
 		return 0, syntaxError(fnParseFloat, s)
 	}
 	return f, err
-}
-
-func parseFloatPrefix(s string, bitSize int) (float64, int, error) {
-	if bitSize == 32 {
-		f, n, err := atof32(s)
-		return float64(f), n, err
-	}
-	return atof64(s)
 }

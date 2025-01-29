@@ -18,10 +18,6 @@ func SetOptimize(b bool) bool {
 	return old
 }
 
-func ParseFloatPrefix(s string, bitSize int) (float64, int, error) {
-	return parseFloatPrefix(s, bitSize)
-}
-
 func MulByLog2Log10(x int) int {
 	return mulByLog2Log10(x)
 }
