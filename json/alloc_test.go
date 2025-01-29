@@ -15,12 +15,38 @@
 package json_test
 
 import (
+	"fmt"
 	"math/rand"
 	"testing"
 	"time"
 
 	jsonparser "github.com/katydid/parser-go-json/json"
 )
+
+func TestNoAllocs(t *testing.T) {
+	num := 1000
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	js := randJsons(r, num)
+	jparser := jsonparser.NewJsonParser()
+
+	const runsPerTest = 100
+	checkNoAllocs := func(f func()) func(t *testing.T) {
+		return func(t *testing.T) {
+			t.Helper()
+			if allocs := testing.AllocsPerRun(runsPerTest, f); allocs != 0 {
+				t.Errorf("got %v allocs, want 0 allocs", allocs)
+			}
+		}
+	}
+	for i := 0; i < num; i++ {
+		t.Run(fmt.Sprintf("%d", i), checkNoAllocs(func() {
+			if err := jparser.Init(js[i]); err != nil {
+				t.Fatal(err)
+			}
+			walk(jparser)
+		}))
+	}
+}
 
 func BenchmarkAlloc(b *testing.B) {
 	num := 1000
