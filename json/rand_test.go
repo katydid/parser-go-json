@@ -17,6 +17,7 @@ package json_test
 import (
 	"encoding/json"
 	"math/rand"
+	"strings"
 )
 
 func randJsons(r *rand.Rand, num int) [][]byte {
@@ -93,13 +94,73 @@ func randBytes(r *rand.Rand) []byte {
 	return bs
 }
 
-// TODO: Look at JSON BNF and generate more possible strings outside of just ascii
+// string := '"' characters '"'
+// characters := "" | character characters
 func randString(r *rand.Rand) string {
-	ss := make([]byte, int(r.Intn(100)))
+	ss := make([]string, int(r.Intn(100)))
 	for i := range ss {
-		ss[i] = byte(65 + r.Intn(26))
+		ss[i] = randChar(r)
 	}
-	return string(ss)
+	return strings.Join(ss, "")
+}
+
+// character := '0020' . '10FFFF' - '"' - '\' | '\' escape
+func randChar(r *rand.Rand) string {
+	switch r.Intn(2) {
+	case 0:
+		max := '\U0010FFFF'
+		min := '\u0020'
+		ran := max - min
+		random := rune(r.Intn(int(ran)-2) + int(min))
+		if random == '"' || random == '\\' {
+			random += 1
+		}
+		return string([]rune{random})
+	case 1:
+		return randEscape(r)
+	}
+	panic("unreachable")
+}
+
+// escape := '"' | '\' | '/' | 'b' | 'f' | 'n' | 'r' | 't' | 'u' hex hex hex hex
+func randEscape(r *rand.Rand) string {
+	switch r.Intn(9) {
+	case 0:
+		return "\""
+	case 1:
+		return "\\"
+	case 2:
+		return "/"
+	case 3:
+		return "b"
+	case 4:
+		return "f"
+	case 5:
+		return "n"
+	case 6:
+		return "r"
+	case 7:
+		return "t"
+	case 8:
+		return "u" + string([]rune{randHex(r), randHex(r), randHex(r), randHex(r)})
+	}
+	panic("unreachable")
+}
+
+// hex := digit | 'A' . 'F' | 'a' . 'f'
+func randHex(r *rand.Rand) rune {
+	switch r.Intn(3) {
+	case 0:
+		// digit
+		return '0' + rune(r.Intn(10))
+	case 1:
+		// upper
+		return 'A' + rune(r.Intn(6))
+	case 2:
+		// lower
+		return 'a' + rune(r.Intn(6))
+	}
+	panic("unreachable")
 }
 
 func randName(r *rand.Rand) string {
