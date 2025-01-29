@@ -692,8 +692,8 @@ func atof64(s string) (f float64, n int, err error) {
 // as their respective special floating point values. It ignores case when matching.
 //
 // [floating-point literals]: https://go.dev/ref/spec#Floating-point_literals
-func ParseFloat(s string, bitSize int) (float64, error) {
-	f, n, err := parseFloatPrefix(s, bitSize)
+func ParseFloat(s string) (float64, error) {
+	f, n, err := parseFloatPrefix(s, 64)
 	if n != len(s) && (err == nil || err.(*NumError).Err != ErrSyntax) {
 		return 0, syntaxError(fnParseFloat, s)
 	}

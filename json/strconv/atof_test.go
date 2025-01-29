@@ -514,38 +514,11 @@ func testAtof(t *testing.T, opt bool) {
 	oldopt := SetOptimize(opt)
 	for i := 0; i < len(atoftests); i++ {
 		test := &atoftests[i]
-		out, err := ParseFloat(test.in, 64)
+		out, err := ParseFloat(test.in)
 		outs := FormatFloat(out, 'g', -1, 64)
 		if outs != test.out || !reflect.DeepEqual(err, test.err) {
 			t.Errorf("ParseFloat(%v, 64) = %v, %v want %v, %v",
 				test.in, out, err, test.out, test.err)
-		}
-
-		if float64(float32(out)) == out {
-			out, err := ParseFloat(test.in, 32)
-			out32 := float32(out)
-			if float64(out32) != out {
-				t.Errorf("ParseFloat(%v, 32) = %v, not a float32 (closest is %v)", test.in, out, float64(out32))
-				continue
-			}
-			outs := FormatFloat(float64(out32), 'g', -1, 32)
-			if outs != test.out || !reflect.DeepEqual(err, test.err) {
-				t.Errorf("ParseFloat(%v, 32) = %v, %v want %v, %v  # %v",
-					test.in, out32, err, test.out, test.err, out)
-			}
-		}
-	}
-	for _, test := range atof32tests {
-		out, err := ParseFloat(test.in, 32)
-		out32 := float32(out)
-		if float64(out32) != out {
-			t.Errorf("ParseFloat(%v, 32) = %v, not a float32 (closest is %v)", test.in, out, float64(out32))
-			continue
-		}
-		outs := FormatFloat(float64(out32), 'g', -1, 32)
-		if outs != test.out || !reflect.DeepEqual(err, test.err) {
-			t.Errorf("ParseFloat(%v, 32) = %v, %v want %v, %v  # %v",
-				test.in, out32, err, test.out, test.err, out)
 		}
 	}
 	SetOptimize(oldopt)
@@ -558,7 +531,7 @@ func TestAtofSlow(t *testing.T) { testAtof(t, false) }
 func TestAtofRandom(t *testing.T) {
 	initAtof()
 	for _, test := range atofRandomTests {
-		x, _ := ParseFloat(test.s, 64)
+		x, _ := ParseFloat(test.s)
 		switch {
 		default:
 			t.Errorf("number %s badly parsed as %b (expected %b)", test.s, x, test.x)
@@ -590,7 +563,7 @@ func TestRoundTrip(t *testing.T) {
 		if s != tt.s {
 			t.Errorf("no-opt FormatFloat(%b) = %s, want %s", tt.f, s, tt.s)
 		}
-		f, err := ParseFloat(tt.s, 64)
+		f, err := ParseFloat(tt.s)
 		if f != tt.f || err != nil {
 			t.Errorf("no-opt ParseFloat(%s) = %b, %v want %b, nil", tt.s, f, err, tt.f)
 		}
@@ -599,7 +572,7 @@ func TestRoundTrip(t *testing.T) {
 		if s != tt.s {
 			t.Errorf("opt FormatFloat(%b) = %s, want %s", tt.f, s, tt.s)
 		}
-		f, err = ParseFloat(tt.s, 64)
+		f, err = ParseFloat(tt.s)
 		if f != tt.f || err != nil {
 			t.Errorf("opt ParseFloat(%s) = %b, %v want %b, nil", tt.s, f, err, tt.f)
 		}
@@ -607,73 +580,27 @@ func TestRoundTrip(t *testing.T) {
 	}
 }
 
-// TestRoundTrip32 tries a fraction of all finite positive float32 values.
-func TestRoundTrip32(t *testing.T) {
-	step := uint32(997)
-	if testing.Short() {
-		step = 99991
-	}
-	count := 0
-	for i := uint32(0); i < 0xff<<23; i += step {
-		f := math.Float32frombits(i)
-		if i&1 == 1 {
-			f = -f // negative
-		}
-		s := FormatFloat(float64(f), 'g', -1, 32)
-
-		parsed, err := ParseFloat(s, 32)
-		parsed32 := float32(parsed)
-		switch {
-		case err != nil:
-			t.Errorf("ParseFloat(%q, 32) gave error %s", s, err)
-		case float64(parsed32) != parsed:
-			t.Errorf("ParseFloat(%q, 32) = %v, not a float32 (nearest is %v)", s, parsed, parsed32)
-		case parsed32 != f:
-			t.Errorf("ParseFloat(%q, 32) = %b (expected %b)", s, parsed32, f)
-		}
-		count++
-	}
-	t.Logf("tested %d float32's", count)
-}
-
-// Issue 42297: a lot of code in the wild accidentally calls ParseFloat(s, 10)
-// or ParseFloat(s, 0), so allow bitSize values other than 32 and 64.
-func TestParseFloatIncorrectBitSize(t *testing.T) {
-	const s = "1.5e308"
-	const want = 1.5e308
-
-	for _, bitSize := range []int{0, 10, 100, 128} {
-		f, err := ParseFloat(s, bitSize)
-		if err != nil {
-			t.Fatalf("ParseFloat(%q, %d) gave error %s", s, bitSize, err)
-		}
-		if f != want {
-			t.Fatalf("ParseFloat(%q, %d) = %g (expected %g)", s, bitSize, f, want)
-		}
-	}
-}
-
 func BenchmarkAtof64Decimal(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		ParseFloat("33909", 64)
+		ParseFloat("33909")
 	}
 }
 
 func BenchmarkAtof64Float(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		ParseFloat("339.7784", 64)
+		ParseFloat("339.7784")
 	}
 }
 
 func BenchmarkAtof64FloatExp(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		ParseFloat("-5.09e75", 64)
+		ParseFloat("-5.09e75")
 	}
 }
 
 func BenchmarkAtof64Big(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		ParseFloat("123456789123456789123456789", 64)
+		ParseFloat("123456789123456789123456789")
 	}
 }
 
@@ -681,7 +608,7 @@ func BenchmarkAtof64RandomBits(b *testing.B) {
 	initAtof()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		ParseFloat(benchmarksRandomBits[i%1024], 64)
+		ParseFloat(benchmarksRandomBits[i%1024])
 	}
 }
 
@@ -689,7 +616,7 @@ func BenchmarkAtof64RandomFloats(b *testing.B) {
 	initAtof()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		ParseFloat(benchmarksRandomNormal[i%1024], 64)
+		ParseFloat(benchmarksRandomNormal[i%1024])
 	}
 }
 
@@ -702,54 +629,10 @@ func BenchmarkAtof64RandomLongFloats(b *testing.B) {
 	b.ResetTimer()
 	idx := 0
 	for i := 0; i < b.N; i++ {
-		ParseFloat(samples[idx], 64)
+		ParseFloat(samples[idx])
 		idx++
 		if idx == len(samples) {
 			idx = 0
 		}
-	}
-}
-
-func BenchmarkAtof32Decimal(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		ParseFloat("33909", 32)
-	}
-}
-
-func BenchmarkAtof32Float(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		ParseFloat("339.778", 32)
-	}
-}
-
-func BenchmarkAtof32FloatExp(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		ParseFloat("12.3456e32", 32)
-	}
-}
-
-func BenchmarkAtof32Random(b *testing.B) {
-	n := uint32(997)
-	var float32strings [4096]string
-	for i := range float32strings {
-		n = (99991*n + 42) % (0xff << 23)
-		float32strings[i] = FormatFloat(float64(math.Float32frombits(n)), 'g', -1, 32)
-	}
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		ParseFloat(float32strings[i%4096], 32)
-	}
-}
-
-func BenchmarkAtof32RandomLong(b *testing.B) {
-	n := uint32(997)
-	var float32strings [4096]string
-	for i := range float32strings {
-		n = (99991*n + 42) % (0xff << 23)
-		float32strings[i] = FormatFloat(float64(math.Float32frombits(n)), 'g', 20, 32)
-	}
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		ParseFloat(float32strings[i%4096], 32)
 	}
 }
