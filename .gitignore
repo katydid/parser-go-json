@@ -1,2 +1,5 @@
 *.test
 _*
+mem.out
+profile*.svg
+profile*.png

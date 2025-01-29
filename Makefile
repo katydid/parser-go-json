@@ -37,6 +37,12 @@ install:
 bench:
 	go test -test.v -test.run=XXX -test.bench=. ./...
 
+memprofile:
+	rm mem.out || true
+	rm profile*.* || true
+	go test -test.v -test.run=XXX -test.bench=. -test.memprofile=mem.out ./...
+	go tool pprof -alloc_space -png mem.out
+
 gofmt:
 	gofmt -l -s -w .
 
