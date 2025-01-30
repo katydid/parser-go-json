@@ -46,3 +46,7 @@ func (p *pool) Alloc(size int) []byte {
 	p.busy = append(p.busy, buf)
 	return buf[:size]
 }
+
+func (p *pool) Size() int {
+	return len(p.free) + len(p.busy)
+}

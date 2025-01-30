@@ -17,4 +17,5 @@ package pool
 type Pool interface {
 	FreeAll()
 	Alloc(size int) []byte
+	Size() int
 }

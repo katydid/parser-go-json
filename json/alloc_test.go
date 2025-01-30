@@ -19,6 +19,8 @@ import (
 	"math/rand"
 	"testing"
 	"time"
+
+	"github.com/katydid/parser-go-json/json/pool"
 )
 
 func TestNoAllocsOnAverage(t *testing.T) {
@@ -50,7 +52,9 @@ func TestNotASingleAllocAfterWarmUp(t *testing.T) {
 	num := 100
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	js := randJsons(r, num)
+	pool := pool.New()
 	jparser := NewJsonParser()
+	jparser.(*jsonParser).pool = pool
 
 	// warm up buffer pool
 	for i := 0; i < num; i++ {
@@ -59,13 +63,15 @@ func TestNotASingleAllocAfterWarmUp(t *testing.T) {
 		}
 		walk(jparser)
 	}
+	poolsize := pool.Size()
+	t.Logf("pool size after warmup = %v", poolsize)
 
 	const runsPerTest = 1
 	checkNoAllocs := func(f func()) func(t *testing.T) {
 		return func(t *testing.T) {
 			t.Helper()
 			if allocs := testing.AllocsPerRun(runsPerTest, f); allocs != 0 {
-				t.Errorf("got %v allocs, want 0 allocs", allocs)
+				t.Errorf("got %v allocs, want 0 allocs, poolsize = %v", allocs, pool.Size())
 			}
 		}
 	}

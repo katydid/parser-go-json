@@ -25,3 +25,7 @@ func (p *none) FreeAll() {}
 func (p *none) Alloc(size int) []byte {
 	return make([]byte, size)
 }
+
+func (p *none) Size() int {
+	return 0
+}
