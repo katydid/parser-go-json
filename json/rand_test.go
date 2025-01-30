@@ -101,64 +101,54 @@ func randString(r *rand.Rand) string {
 	for i := range ss {
 		ss[i] = randChar(r)
 	}
-	return strings.Join(ss, "")
+	s := strings.Join(ss, "")
+	return s
 }
 
 // character := '0020' . '10FFFF' - '"' - '\' | '\' escape
 func randChar(r *rand.Rand) string {
 	switch r.Intn(2) {
 	case 0:
-		max := '\U0010FFFF'
-		min := '\u0020'
-		ran := max - min
-		random := rune(r.Intn(int(ran)-2) + int(min))
-		if random == '"' || random == '\\' {
+		max := int('\U0010FFFF') + 1
+		min := int('\u0020')
+		ran := int((max - min) - 2)
+		random := rune(r.Intn(ran) + min)
+		if random >= '"' {
+			random += 1
+		}
+		if random >= '\\' {
 			random += 1
 		}
 		return string([]rune{random})
 	case 1:
-		return randEscape(r)
+		return string([]rune{randEscape(r)})
 	}
 	panic("unreachable")
 }
 
 // escape := '"' | '\' | '/' | 'b' | 'f' | 'n' | 'r' | 't' | 'u' hex hex hex hex
-func randEscape(r *rand.Rand) string {
+// hex := digit | 'A' . 'F' | 'a' . 'f'
+func randEscape(r *rand.Rand) rune {
 	switch r.Intn(9) {
 	case 0:
-		return "\""
+		return '"'
 	case 1:
-		return "\\"
+		return '\\'
 	case 2:
-		return "/"
+		return '/'
 	case 3:
-		return "b"
+		return '\b'
 	case 4:
-		return "f"
+		return '\f'
 	case 5:
-		return "n"
+		return '\n'
 	case 6:
-		return "r"
+		return '\r'
 	case 7:
-		return "t"
+		return '\t'
 	case 8:
-		return "u" + string([]rune{randHex(r), randHex(r), randHex(r), randHex(r)})
-	}
-	panic("unreachable")
-}
-
-// hex := digit | 'A' . 'F' | 'a' . 'f'
-func randHex(r *rand.Rand) rune {
-	switch r.Intn(3) {
-	case 0:
-		// digit
-		return '0' + rune(r.Intn(10))
-	case 1:
-		// upper
-		return 'A' + rune(r.Intn(6))
-	case 2:
-		// lower
-		return 'a' + rune(r.Intn(6))
+		// TODO generate better \u characters
+		return '\u01aB'
 	}
 	panic("unreachable")
 }
