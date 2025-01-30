@@ -63,15 +63,14 @@ func TestNotASingleAllocAfterWarmUp(t *testing.T) {
 		}
 		walk(jparser)
 	}
-	poolsize := pool.Size()
-	t.Logf("pool size after warmup = %v", poolsize)
+	originalPoolSize := pool.Size()
 
 	const runsPerTest = 1
 	checkNoAllocs := func(f func()) func(t *testing.T) {
 		return func(t *testing.T) {
 			t.Helper()
 			if allocs := testing.AllocsPerRun(runsPerTest, f); allocs != 0 {
-				t.Errorf("got %v allocs, want 0 allocs, poolsize = %v", allocs, pool.Size())
+				t.Errorf("got %v allocs, want 0 allocs, pool allocs = %v", allocs, pool.Size()-originalPoolSize)
 			}
 		}
 	}
