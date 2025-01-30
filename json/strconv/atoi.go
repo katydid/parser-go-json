@@ -218,7 +218,11 @@ func Atoi(s []byte) (int, error) {
 	// Slow path for invalid, big, or underscored integers.
 	i64, err := parseInt(s, 0)
 	if nerr, ok := err.(*NumError); ok {
-		nerr.Func = "Atoi"
+		if nerr.Err == ErrRange {
+			return int(i64), errRangeAtoi
+		} else {
+			return int(i64), errSyntaxAtoi
+		}
 	}
 	return int(i64), err
 }
