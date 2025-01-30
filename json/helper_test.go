@@ -12,17 +12,15 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package json_test
+package json
 
 import (
 	"testing"
-
-	jsonparser "github.com/katydid/parser-go-json/json"
 )
 
 func testValue(t *testing.T, input, output string) {
 	t.Helper()
-	parser := jsonparser.NewJsonParser()
+	parser := NewJsonParser()
 	if err := parser.Init([]byte(input)); err != nil {
 		t.Errorf("init error: %v", err)
 		return
@@ -52,7 +50,7 @@ func testSame(t *testing.T, input string) {
 
 func testError(t *testing.T, s string) {
 	t.Helper()
-	parser := jsonparser.NewJsonParser()
+	parser := NewJsonParser()
 	if err := parser.Init([]byte(s)); err != nil {
 		t.Logf("PASS: given <%s> error: %v", s, err)
 		return

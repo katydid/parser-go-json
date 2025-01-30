@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"io"
 
+	"github.com/katydid/parser-go-json/json/pool"
 	"github.com/katydid/parser-go-json/json/strconv"
 	"github.com/katydid/parser-go/parser"
 )
@@ -83,10 +84,10 @@ func skipSpace(buf []byte) int {
 	return len(buf)
 }
 
-func unquote(s []byte) (string, error) {
+func unquote(pool pool.Pool, s []byte) (string, error) {
 	var ok bool
 	var t string
-	s, ok = unquoteBytes(s)
+	s, ok = unquoteBytes(pool, s)
 	t = castToString(s)
 	if !ok {
 		return "", errUnquote
@@ -196,7 +197,7 @@ func (s *jsonParser) scanName() error {
 	if err := s.incOffset(n); err != nil {
 		return err
 	}
-	s.name, err = unquote(s.buf[startOffset:s.offset])
+	s.name, err = unquote(s.pool, s.buf[startOffset:s.offset])
 	if err != nil {
 		return err
 	}
@@ -551,7 +552,7 @@ func (s *jsonParser) String() (string, error) {
 		if v[0] != '"' {
 			return "", parser.ErrNotString
 		}
-		res, err := unquote(v)
+		res, err := unquote(s.pool, v)
 		if err != nil {
 			return "", err
 		}
@@ -578,6 +579,7 @@ type JsonParser interface {
 // NewJsonParser returns a new JSON parser.
 func NewJsonParser() JsonParser {
 	return &jsonParser{
+		pool: pool.New(),
 		state: state{
 			firstObjectValue: true,
 		},
@@ -591,6 +593,7 @@ func (s *jsonParser) Init(buf []byte) error {
 		buf:              buf,
 	}
 	s.stack = s.stack[:0]
+	s.pool.FreeAll()
 	if err := s.skipSpace(); err != nil {
 		return err
 	}
@@ -627,6 +630,7 @@ func (s *jsonParser) Reset() error {
 type jsonParser struct {
 	state
 	stack []state
+	pool  pool.Pool
 }
 
 type state struct {

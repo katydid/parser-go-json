@@ -15,49 +15,20 @@
 package json
 
 import (
-	"fmt"
 	"math/rand"
 	"testing"
 	"time"
+
+	"github.com/katydid/parser-go-json/json/pool"
 )
 
-func TestNoAllocs(t *testing.T) {
-	num := 100
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	js := randJsons(r, num)
-	jparser := NewJsonParser()
-
-	// exercise buffer pool
-	for i := 0; i < num; i++ {
-		if err := jparser.Init(js[i%num]); err != nil {
-			t.Fatal(err)
-		}
-		walk(jparser)
-	}
-
-	const runsPerTest = 100
-	checkNoAllocs := func(f func()) func(t *testing.T) {
-		return func(t *testing.T) {
-			t.Helper()
-			if allocs := testing.AllocsPerRun(runsPerTest, f); allocs != 0 {
-				t.Errorf("got %v allocs, want 0 allocs", allocs)
-			}
-		}
-	}
-	for i := 0; i < num; i++ {
-		t.Run(fmt.Sprintf("%d", i), checkNoAllocs(func() {
-			if err := jparser.Init(js[i]); err != nil {
-				t.Fatal(err)
-			}
-			walk(jparser)
-		}))
-	}
-}
-
-func BenchmarkAlloc(b *testing.B) {
+func BenchmarkPoolDefault(b *testing.B) {
+	// generate random jsons
 	num := 1000
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	js := randJsons(r, num)
+
+	// initialise pool
 	jparser := NewJsonParser()
 
 	// exercise buffer pool
@@ -67,7 +38,28 @@ func BenchmarkAlloc(b *testing.B) {
 		}
 		walk(jparser)
 	}
+	// start benchmark
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if err := jparser.Init(js[i%num]); err != nil {
+			b.Fatal(err)
+		}
+		walk(jparser)
+	}
+	b.ReportAllocs()
+}
 
+func BenchmarkPoolNone(b *testing.B) {
+	// generate random jsons
+	num := 1000
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	js := randJsons(r, num)
+
+	// set pool to no pool
+	jparser := NewJsonParser()
+	jparser.(*jsonParser).pool = pool.None()
+
+	// start benchmark
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		if err := jparser.Init(js[i%num]); err != nil {

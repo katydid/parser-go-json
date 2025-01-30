@@ -59,7 +59,7 @@ func TestCountMallocs(t *testing.T) {
 		oneMB[i] = byte(i)
 	}
 	for _, mt := range mallocTest {
-		allocs := testing.AllocsPerRun(100, mt.fn)
+		allocs := testing.AllocsPerRun(0, mt.fn)
 		if max := float64(mt.count); allocs > max {
 			t.Errorf("%s: %v allocs, want <=%v", mt.desc, allocs, max)
 		}

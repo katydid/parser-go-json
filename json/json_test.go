@@ -12,18 +12,17 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package json_test
+package json
 
 import (
 	"encoding/json"
 	"testing"
 
-	jsonparser "github.com/katydid/parser-go-json/json"
 	"github.com/katydid/parser-go/parser/debug"
 )
 
 func TestDebug(t *testing.T) {
-	p := jsonparser.NewJsonParser()
+	p := NewJsonParser()
 	data, err := json.Marshal(debug.Input)
 	if err != nil {
 		t.Fatal(err)
@@ -38,7 +37,7 @@ func TestDebug(t *testing.T) {
 }
 
 func TestRandomDebug(t *testing.T) {
-	p := jsonparser.NewJsonParser()
+	p := NewJsonParser()
 	data, err := json.Marshal(debug.Input)
 	if err != nil {
 		t.Fatal(err)
@@ -62,7 +61,7 @@ func TestEscapedChar(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("%s", string(data))
-	parser := jsonparser.NewJsonParser()
+	parser := NewJsonParser()
 	if err := parser.Init(data); err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +79,7 @@ func TestMultiLineArray(t *testing.T) {
 	s := `{
 		"A":[1]
 	}`
-	parser := jsonparser.NewJsonParser()
+	parser := NewJsonParser()
 	if err := parser.Init([]byte(s)); err != nil {
 		t.Fatal(err)
 	}
@@ -93,7 +92,7 @@ func TestMultiLineArray(t *testing.T) {
 
 func TestIntWithExponent(t *testing.T) {
 	s := `{"A":1e+08}`
-	parser := jsonparser.NewJsonParser()
+	parser := NewJsonParser()
 	if err := parser.Init([]byte(s)); err != nil {
 		t.Fatal(err)
 	}
@@ -116,7 +115,7 @@ func TestIntWithExponent(t *testing.T) {
 
 func TestTooLargeNumber(t *testing.T) {
 	input := `123456789.123456789e+123456789`
-	parser := jsonparser.NewJsonParser()
+	parser := NewJsonParser()
 	if err := parser.Init([]byte(input)); err != nil {
 		t.Fatalf("init error: %v", err)
 	}
@@ -157,7 +156,7 @@ func TestValues(t *testing.T) {
 
 func testWalk(t *testing.T, s string) {
 	t.Helper()
-	parser := jsonparser.NewJsonParser()
+	parser := NewJsonParser()
 	if err := parser.Init([]byte(s)); err != nil {
 		t.Error(err)
 		return
