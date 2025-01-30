@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Original these tests were copied from https://github.com/go-json-experiment/json/blob/master/jsontext/decode_test.go
-package json_test
+package json
 
 import (
 	"testing"
