@@ -66,7 +66,7 @@ func unquoteBytes(pool pool.Pool, s []byte) (t []byte, ok bool) {
 		return s, true
 	}
 
-	b := pool.Alloc((len(s) + 2*utf8.UTFMax + utf8.UTFMax) * 2)
+	b := pool.Alloc(len(s) * utf8.UTFMax)
 	w := copy(b, s[0:r])
 	for r < len(s) {
 		switch c := s[r]; {

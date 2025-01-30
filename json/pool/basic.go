@@ -42,7 +42,7 @@ func (p *pool) Alloc(size int) []byte {
 		}
 	}
 	// always allocate a big buffer, so hits when searching are very likely
-	buf := make([]byte, min(size*2, 1000))
+	buf := make([]byte, max(size*2, 1000))
 	p.busy = append(p.busy, buf)
 	return buf[:size]
 }
