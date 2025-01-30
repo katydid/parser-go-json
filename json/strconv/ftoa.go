@@ -488,6 +488,11 @@ func fmtB(dst []byte, neg bool, mant uint64, exp int, flt *floatInfo) []byte {
 	return dst
 }
 
+const (
+	lowerhex = "0123456789abcdef"
+	upperhex = "0123456789ABCDEF"
+)
+
 // %x: -0x1.yyyyyyyyp±ddd or -0x0p+0. (y is hex digit, d is decimal digit)
 func fmtX(dst []byte, prec int, fmt byte, neg bool, mant uint64, exp int, flt *floatInfo) []byte {
 	if mant == 0 {

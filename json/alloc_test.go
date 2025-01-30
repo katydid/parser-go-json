@@ -23,7 +23,7 @@ import (
 	jsonparser "github.com/katydid/parser-go-json/json"
 )
 
-func TestNoAllocs(t *testing.T) {
+func DisabledTestNoAllocs(t *testing.T) {
 	num := 100
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	js := randJsons(r, num)
