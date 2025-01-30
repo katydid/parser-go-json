@@ -21,13 +21,38 @@ import (
 	"time"
 )
 
-func TestNoAllocs(t *testing.T) {
+func TestNoAllocsOnAverage(t *testing.T) {
 	num := 100
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	js := randJsons(r, num)
 	jparser := NewJsonParser()
 
-	// exercise buffer pool
+	const runsPerTest = 100
+	checkNoAllocs := func(f func()) func(t *testing.T) {
+		return func(t *testing.T) {
+			t.Helper()
+			if allocs := testing.AllocsPerRun(runsPerTest, f); allocs != 0 {
+				t.Errorf("got %v allocs, want 0 allocs", allocs)
+			}
+		}
+	}
+	for i := 0; i < num; i++ {
+		t.Run(fmt.Sprintf("%d", i), checkNoAllocs(func() {
+			if err := jparser.Init(js[i]); err != nil {
+				t.Fatal(err)
+			}
+			walk(jparser)
+		}))
+	}
+}
+
+func TestNotASingleAllocAfterWarmUp(t *testing.T) {
+	num := 100
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	js := randJsons(r, num)
+	jparser := NewJsonParser()
+
+	// warm up buffer pool
 	for i := 0; i < num; i++ {
 		if err := jparser.Init(js[i%num]); err != nil {
 			t.Fatal(err)
@@ -35,7 +60,7 @@ func TestNoAllocs(t *testing.T) {
 		walk(jparser)
 	}
 
-	const runsPerTest = 100
+	const runsPerTest = 1
 	checkNoAllocs := func(f func()) func(t *testing.T) {
 		return func(t *testing.T) {
 			t.Helper()
