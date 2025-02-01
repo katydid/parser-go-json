@@ -33,7 +33,7 @@ func (p *pool) FreeAll() {
 
 func (p *pool) Alloc(size int) []byte {
 	for i := 0; i < len(p.free); i++ {
-		if len(p.free[i]) >= size {
+		if cap(p.free[i]) >= size {
 			buf := p.free[i]
 			p.free[i] = p.free[len(p.free)-1]
 			p.free = p.free[:len(p.free)-1]
