@@ -24,7 +24,6 @@ import (
 
 func TestParseRandom(t *testing.T) {
 	seed := time.Now().UnixNano()
-	seed = 1738425704510828000 // TODO remove this line
 	num := 10000
 	r := rand.New(rand.NewSource(seed))
 	js := randJsons(r, num)
@@ -264,13 +263,13 @@ func randWs(r *rand.Rand) string {
 func randW(r *rand.Rand) rune {
 	switch r.Intn(4) {
 	case 0:
-		return '\u0020'
+		return '\u0020' // space
 	case 1:
-		return '\u000A'
+		return '\u000A' // \n
 	case 2:
-		return '\u000D'
+		return '\u000D' // \r
 	case 3:
-		return '\u0009'
+		return '\u0009' // \t
 	}
 	panic("unreachable")
 }

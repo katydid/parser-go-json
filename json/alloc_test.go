@@ -61,28 +61,30 @@ func TestNotASingleAllocAfterWarmUp(t *testing.T) {
 	// warm up buffer pool
 	for i := 0; i < num; i++ {
 		if err := jparser.Init(js[i%num]); err != nil {
-			t.Fatalf("seed = %v, err = %v", seed, err)
+			t.Fatalf("seed = %v, err = %v value = %v", seed, err, string(js[i%num]))
 		}
 		walk(jparser)
 	}
 	originalPoolSize := pool.Size()
 
 	const runsPerTest = 1
-	checkNoAllocs := func(f func()) func(t *testing.T) {
-		return func(t *testing.T) {
-			t.Helper()
-			if allocs := testing.AllocsPerRun(runsPerTest, f); allocs != 0 {
-				t.Errorf("seed = %v, got %v allocs, want 0 allocs, pool allocs = %v", seed, allocs, pool.Size()-originalPoolSize)
-			}
-		}
-	}
 	for i := 0; i < num; i++ {
-		t.Run(fmt.Sprintf("%d", i), checkNoAllocs(func() {
+		f := func() {
 			if err := jparser.Init(js[i]); err != nil {
 				t.Fatalf("seed = %v, err = %v", seed, err)
 			}
 			walk(jparser)
-		}))
+		}
+		allocs := testing.AllocsPerRun(runsPerTest, f)
+		if allocs != 0 {
+			poolallocs := pool.Size() - originalPoolSize
+			// there are sometimes allocations made by the testing framework
+			// retry to make sure that the allocation is the parser's fault.
+			allocs2 := testing.AllocsPerRun(runsPerTest, f)
+			if allocs2 != 0 {
+				t.Errorf("seed = %v, got %v allocs, want 0 allocs, pool allocs = %v", seed, allocs, poolallocs)
+			}
+		}
 	}
 }
 
