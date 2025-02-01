@@ -38,6 +38,7 @@ func scanString(buf []byte) (int, error) {
 				continue
 			case 'u':
 				udigits = 0
+				escaped = false
 				continue
 			}
 			return 0, errScanString
