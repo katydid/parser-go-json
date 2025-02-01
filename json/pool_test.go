@@ -23,9 +23,10 @@ import (
 )
 
 func BenchmarkPoolDefault(b *testing.B) {
+	seed := time.Now().UnixNano()
 	// generate random jsons
 	num := 1000
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	r := rand.New(rand.NewSource(seed))
 	js := randJsons(r, num)
 
 	// initialise pool
@@ -34,7 +35,7 @@ func BenchmarkPoolDefault(b *testing.B) {
 	// exercise buffer pool
 	for i := 0; i < num; i++ {
 		if err := jparser.Init(js[i%num]); err != nil {
-			b.Fatal(err)
+			b.Fatalf("seed = %v, err = %v", seed, err)
 		}
 		walk(jparser)
 	}
@@ -42,7 +43,7 @@ func BenchmarkPoolDefault(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		if err := jparser.Init(js[i%num]); err != nil {
-			b.Fatal(err)
+			b.Fatalf("seed = %v, err = %v", seed, err)
 		}
 		walk(jparser)
 	}
@@ -50,9 +51,10 @@ func BenchmarkPoolDefault(b *testing.B) {
 }
 
 func BenchmarkPoolNone(b *testing.B) {
+	seed := time.Now().UnixNano()
 	// generate random jsons
 	num := 1000
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	r := rand.New(rand.NewSource(seed))
 	js := randJsons(r, num)
 
 	// set pool to no pool
@@ -63,7 +65,7 @@ func BenchmarkPoolNone(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		if err := jparser.Init(js[i%num]); err != nil {
-			b.Fatal(err)
+			b.Fatalf("seed = %v, err = %v", seed, err)
 		}
 		walk(jparser)
 	}

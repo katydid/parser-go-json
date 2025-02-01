@@ -24,8 +24,9 @@ import (
 )
 
 func TestNoAllocsOnAverage(t *testing.T) {
+	seed := time.Now().UnixNano()
 	num := 100
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	r := rand.New(rand.NewSource(seed))
 	js := randJsons(r, num)
 	jparser := NewJsonParser()
 
@@ -34,14 +35,14 @@ func TestNoAllocsOnAverage(t *testing.T) {
 		return func(t *testing.T) {
 			t.Helper()
 			if allocs := testing.AllocsPerRun(runsPerTest, f); allocs != 0 {
-				t.Errorf("got %v allocs, want 0 allocs", allocs)
+				t.Errorf("seed = %v, got %v allocs, want 0 allocs", seed, allocs)
 			}
 		}
 	}
 	for i := 0; i < num; i++ {
 		t.Run(fmt.Sprintf("%d", i), checkNoAllocs(func() {
 			if err := jparser.Init(js[i]); err != nil {
-				t.Fatal(err)
+				t.Fatalf("seed = %v, err = %v", seed, err)
 			}
 			walk(jparser)
 		}))
@@ -49,8 +50,9 @@ func TestNoAllocsOnAverage(t *testing.T) {
 }
 
 func TestNotASingleAllocAfterWarmUp(t *testing.T) {
+	seed := time.Now().UnixNano()
 	num := 100
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	r := rand.New(rand.NewSource(seed))
 	js := randJsons(r, num)
 	pool := pool.New()
 	jparser := NewJsonParser()
@@ -59,7 +61,7 @@ func TestNotASingleAllocAfterWarmUp(t *testing.T) {
 	// warm up buffer pool
 	for i := 0; i < num; i++ {
 		if err := jparser.Init(js[i%num]); err != nil {
-			t.Fatal(err)
+			t.Fatalf("seed = %v, err = %v", seed, err)
 		}
 		walk(jparser)
 	}
@@ -70,14 +72,14 @@ func TestNotASingleAllocAfterWarmUp(t *testing.T) {
 		return func(t *testing.T) {
 			t.Helper()
 			if allocs := testing.AllocsPerRun(runsPerTest, f); allocs != 0 {
-				t.Errorf("got %v allocs, want 0 allocs, pool allocs = %v", allocs, pool.Size()-originalPoolSize)
+				t.Errorf("seed = %v, got %v allocs, want 0 allocs, pool allocs = %v", seed, allocs, pool.Size()-originalPoolSize)
 			}
 		}
 	}
 	for i := 0; i < num; i++ {
 		t.Run(fmt.Sprintf("%d", i), checkNoAllocs(func() {
 			if err := jparser.Init(js[i]); err != nil {
-				t.Fatal(err)
+				t.Fatalf("seed = %v, err = %v", seed, err)
 			}
 			walk(jparser)
 		}))
@@ -85,15 +87,16 @@ func TestNotASingleAllocAfterWarmUp(t *testing.T) {
 }
 
 func BenchmarkAlloc(b *testing.B) {
+	seed := time.Now().UnixNano()
 	num := 1000
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	r := rand.New(rand.NewSource(seed))
 	js := randJsons(r, num)
 	jparser := NewJsonParser()
 
 	// exercise buffer pool
 	for i := 0; i < num; i++ {
 		if err := jparser.Init(js[i%num]); err != nil {
-			b.Fatal(err)
+			b.Fatalf("seed = %v, err = %v", seed, err)
 		}
 		walk(jparser)
 	}
@@ -101,7 +104,7 @@ func BenchmarkAlloc(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		if err := jparser.Init(js[i%num]); err != nil {
-			b.Fatal(err)
+			b.Fatalf("seed = %v, err = %v", seed, err)
 		}
 		walk(jparser)
 	}
