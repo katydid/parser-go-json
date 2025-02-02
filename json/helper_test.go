@@ -16,49 +16,58 @@ package json
 
 import (
 	"testing"
+
+	"github.com/katydid/parser-go/parser/debug"
 )
 
-func testValue(t *testing.T, input, output string) {
-	t.Helper()
+func parseJSON(s string) (debug.Nodes, error) {
 	parser := NewJsonParser()
-	if err := parser.Init([]byte(input)); err != nil {
-		t.Errorf("init error: %v", err)
-		return
+	if err := parser.Init([]byte(s)); err != nil {
+		return nil, err
 	}
-	jout, err := parse(parser)
-	if err != nil {
-		t.Errorf("walk error: %v", err)
-		return
-	}
-	if len(jout) != 1 {
-		t.Errorf("expected one node")
-		return
-	}
-	if len(jout[0].Children) != 0 {
-		t.Errorf("did not expected any children")
-		return
-	}
-	if jout[0].Label != output {
-		t.Errorf("expected %q got %q", output, jout[0].Label)
-	}
+	return parse(parser)
+}
+
+func testWalk(t *testing.T, s string) {
+	t.Run(s, func(t *testing.T) {
+		m, err := parseJSON(s)
+		if err != nil {
+			t.Fatal(err)
+			return
+		}
+		t.Logf("%v", m)
+	})
+}
+
+func testValue(t *testing.T, input, output string) {
+	t.Run(input, func(t *testing.T) {
+		jout, err := parseJSON(input)
+		if err != nil {
+			t.Fatalf("walk error: %v", err)
+		}
+		if len(jout) != 1 {
+			t.Fatalf("expected one node")
+		}
+		if len(jout[0].Children) != 0 {
+			t.Fatalf("did not expected any children")
+		}
+		if jout[0].Label != output {
+			t.Fatalf("expected %q got %q", output, jout[0].Label)
+		}
+	})
 }
 
 func testSame(t *testing.T, input string) {
-	t.Helper()
 	testValue(t, input, input)
 }
 
 func testError(t *testing.T, s string) {
-	t.Helper()
-	parser := NewJsonParser()
-	if err := parser.Init([]byte(s)); err != nil {
-		t.Logf("PASS: given <%s> error: %v", s, err)
-		return
-	}
-	parsed, err := parse(parser)
-	if err != nil {
-		t.Logf("PASS: given <%s> error: %v", s, err)
-		return
-	}
-	t.Errorf("FAIL: expected error given: <%v> got: %v", s, parsed)
+	t.Run("ExpectError"+s, func(t *testing.T) {
+		parsed, err := parseJSON(s)
+		if err != nil {
+			t.Logf("PASS: given <%s> error: %v", s, err)
+			return
+		}
+		t.Fatalf("FAIL: expected error given: <%v> got: %v", s, parsed)
+	})
 }

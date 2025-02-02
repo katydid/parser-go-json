@@ -42,3 +42,9 @@ var errExpectedNull = errors.New("expected null")
 var errExpectedFalse = errors.New("expected false")
 
 var errExpectedTrue = errors.New("expected true")
+
+var errExpectedCommaOrCloseCurly = errors.New("expected ',' or '}'")
+
+var errExpectedCommaOrCloseBracket = errors.New("expected ',' or ']'")
+
+var errNotLeaf = errors.New("not leaf")

@@ -169,6 +169,7 @@ func randEscape(r *rand.Rand) string {
 
 // number := integer fraction exponent
 func randNumber(r *rand.Rand) string {
+	// TODO: sometimes generate edge cases, like maxint, minint, maxuint, maxfloat+1, etc.
 	return randInteger(r) + randFraction(r) + randExponent(r)
 }
 
