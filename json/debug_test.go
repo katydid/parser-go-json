@@ -15,8 +15,10 @@
 package json
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
+	"testing"
 
 	"github.com/katydid/parser-go/parser"
 	"github.com/katydid/parser-go/parser/debug"
@@ -55,23 +57,29 @@ func getValue(p parser.Interface) interface{} {
 func parse(p parser.Interface) (debug.Nodes, error) {
 	a := make(debug.Nodes, 0)
 	for {
+		fmt.Printf("Next\n")
 		if err := p.Next(); err != nil {
 			if err == io.EOF {
+				fmt.Printf("EOF\n")
 				break
 			} else {
+				fmt.Printf("err = %v\n", err)
 				return nil, err
 			}
 		}
 		value := getValue(p)
 		if p.IsLeaf() {
+			fmt.Printf("IsLeaf\n")
 			a = append(a, debug.Node{Label: fmt.Sprintf("%v", value), Children: nil})
 		} else {
 			name := fmt.Sprintf("%v", value)
+			fmt.Printf("Down\n")
 			p.Down()
 			v, err := parse(p)
 			if err != nil {
 				return nil, err
 			}
+			fmt.Printf("Up\n")
 			p.Up()
 			a = append(a, debug.Node{Label: name, Children: v})
 		}
@@ -120,4 +128,35 @@ func walk(p parser.Interface) error {
 		}
 	}
 	return nil
+}
+
+func TestDebug(t *testing.T) {
+	p := NewJsonParser()
+	data, err := json.Marshal(debug.Input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := p.Init(data); err != nil {
+		t.Fatal(err)
+	}
+	m := debug.Walk(p)
+	if !m.Equal(debug.Output) {
+		t.Fatalf("expected %s but got %s", debug.Output, m)
+	}
+}
+
+func TestRandomDebug(t *testing.T) {
+	p := NewJsonParser()
+	data, err := json.Marshal(debug.Input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 10; i++ {
+		if err := p.Init(data); err != nil {
+			t.Fatal(err)
+		}
+		//l := debug.NewLogger(p, debug.NewLineLogger())
+		debug.RandomWalk(p, debug.NewRand(), 10, 3)
+		//t.Logf("original %v vs random %v", debug.Output, m)
+	}
 }
