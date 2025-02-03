@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/katydid/parser-go-json/json/pool"
+	"github.com/katydid/parser-go-json/json/internal/pool"
 )
 
 func BenchmarkPoolDefault(b *testing.B) {

@@ -17,8 +17,6 @@ package json
 import (
 	"bytes"
 	"testing"
-
-	"github.com/katydid/parser-go-json/json/pool"
 )
 
 var unquotetests = []struct {
@@ -35,8 +33,9 @@ var unquotetests = []struct {
 }
 
 func TestUnquote(t *testing.T) {
+	alloc := func(size int) []byte { return make([]byte, size) }
 	for _, test := range unquotetests {
-		got, gotOk := unquoteBytes(pool.New(), []byte(test.in))
+		got, gotOk := unquoteBytes(alloc, []byte(test.in))
 		if !bytes.Equal(got, []byte(test.out)) || !gotOk {
 			t.Errorf("Unquote(%q) = (%q, %v), want (%q, %v)", test.in, got, gotOk, test.out, true)
 		}

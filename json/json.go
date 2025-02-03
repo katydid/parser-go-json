@@ -84,7 +84,7 @@ func skipSpace(buf []byte) int {
 func unquote(pool pool.Pool, s []byte) (string, error) {
 	var ok bool
 	var t string
-	s, ok = unquoteBytes(pool, s)
+	s, ok = unquoteBytes(pool.Alloc, s)
 	t = castToString(s)
 	if !ok {
 		return "", errUnquote
