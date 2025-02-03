@@ -25,7 +25,7 @@ func parseJSON(s string) (debug.Nodes, error) {
 	if err := parser.Init([]byte(s)); err != nil {
 		return nil, err
 	}
-	return parse(parser)
+	return debug.Parse(parser)
 }
 
 func testWalk(t *testing.T, s string) {

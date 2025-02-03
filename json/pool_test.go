@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/katydid/parser-go-json/json/internal/pool"
+	"github.com/katydid/parser-go/parser/debug"
 )
 
 func BenchmarkPoolDefault(b *testing.B) {
@@ -37,7 +38,9 @@ func BenchmarkPoolDefault(b *testing.B) {
 		if err := jparser.Init(js[i%num]); err != nil {
 			b.Fatalf("seed = %v, err = %v", seed, err)
 		}
-		walk(jparser)
+		if err := debug.Walk(jparser); err != nil {
+			b.Fatalf("seed = %v, err = %v", seed, err)
+		}
 	}
 	// start benchmark
 	b.ResetTimer()
@@ -45,7 +48,9 @@ func BenchmarkPoolDefault(b *testing.B) {
 		if err := jparser.Init(js[i%num]); err != nil {
 			b.Fatalf("seed = %v, err = %v", seed, err)
 		}
-		walk(jparser)
+		if err := debug.Walk(jparser); err != nil {
+			b.Fatalf("seed = %v, err = %v", seed, err)
+		}
 	}
 	b.ReportAllocs()
 }
@@ -67,7 +72,9 @@ func BenchmarkPoolNone(b *testing.B) {
 		if err := jparser.Init(js[i%num]); err != nil {
 			b.Fatalf("seed = %v, err = %v", seed, err)
 		}
-		walk(jparser)
+		if err := debug.Walk(jparser); err != nil {
+			b.Fatalf("seed = %v, err = %v", seed, err)
+		}
 	}
 	b.ReportAllocs()
 }

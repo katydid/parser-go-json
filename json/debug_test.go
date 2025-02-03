@@ -16,119 +16,10 @@ package json
 
 import (
 	"encoding/json"
-	"fmt"
-	"io"
 	"testing"
 
-	"github.com/katydid/parser-go/parser"
 	"github.com/katydid/parser-go/parser/debug"
 )
-
-func getValue(p parser.Interface) interface{} {
-	var v interface{}
-	var err error
-	v, err = p.Int()
-	if err == nil {
-		return v
-	}
-	v, err = p.Uint()
-	if err == nil {
-		return v
-	}
-	v, err = p.Double()
-	if err == nil {
-		return v
-	}
-	v, err = p.Bool()
-	if err == nil {
-		return v
-	}
-	v, err = p.String()
-	if err == nil {
-		return v
-	}
-	bs, err := p.Bytes()
-	if err == nil {
-		return string(bs)
-	}
-	return nil
-}
-
-func parse(p parser.Interface) (debug.Nodes, error) {
-	a := make(debug.Nodes, 0)
-	for {
-		fmt.Printf("Next\n")
-		if err := p.Next(); err != nil {
-			if err == io.EOF {
-				fmt.Printf("EOF\n")
-				break
-			} else {
-				fmt.Printf("err = %v\n", err)
-				return nil, err
-			}
-		}
-		value := getValue(p)
-		if p.IsLeaf() {
-			fmt.Printf("IsLeaf\n")
-			a = append(a, debug.Node{Label: fmt.Sprintf("%v", value), Children: nil})
-		} else {
-			name := fmt.Sprintf("%v", value)
-			fmt.Printf("Down\n")
-			p.Down()
-			v, err := parse(p)
-			if err != nil {
-				return nil, err
-			}
-			fmt.Printf("Up\n")
-			p.Up()
-			a = append(a, debug.Node{Label: name, Children: v})
-		}
-	}
-	return a, nil
-}
-
-func walkValue(p parser.Interface) {
-	if _, err := p.Int(); err == nil {
-		return
-	}
-	if _, err := p.Uint(); err == nil {
-		return
-	}
-	if _, err := p.Double(); err == nil {
-		return
-	}
-	if _, err := p.Bool(); err == nil {
-		return
-	}
-	if _, err := p.String(); err == nil {
-		return
-	}
-	if _, err := p.Bytes(); err == nil {
-		return
-	}
-	return
-}
-
-func walk(p parser.Interface) error {
-	for {
-		if err := p.Next(); err != nil {
-			if err == io.EOF {
-				break
-			} else {
-				return err
-			}
-		}
-		walkValue(p)
-		if !p.IsLeaf() {
-			p.Down()
-			if err := walk(p); err != nil {
-				return err
-			}
-			p.Up()
-		}
-	}
-	return nil
-}
 
 func TestDebug(t *testing.T) {
 	p := NewJsonParser()
@@ -139,7 +30,10 @@ func TestDebug(t *testing.T) {
 	if err := p.Init(data); err != nil {
 		t.Fatal(err)
 	}
-	m := debug.Walk(p)
+	m, err := debug.Parse(p)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if !m.Equal(debug.Output) {
 		t.Fatalf("expected %s but got %s", debug.Output, m)
 	}
@@ -156,7 +50,9 @@ func TestRandomDebug(t *testing.T) {
 			t.Fatal(err)
 		}
 		//l := debug.NewLogger(p, debug.NewLineLogger())
-		debug.RandomWalk(p, debug.NewRand(), 10, 3)
+		if err := debug.RandomWalk(p, debug.NewRand(), 10, 3); err != nil {
+			t.Fatal(err)
+		}
 		//t.Logf("original %v vs random %v", debug.Output, m)
 	}
 }
