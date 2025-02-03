@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/katydid/parser-go-json/json/pool"
+	"github.com/katydid/parser-go-json/json/internal/pool"
 )
 
 func TestNoAllocsOnAverage(t *testing.T) {

@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"testing"
 
-	. "github.com/katydid/parser-go-json/json/strconv"
+	. "github.com/katydid/parser-go-json/json/internal/strconv"
 )
 
 type parseUint64Test struct {

@@ -12,7 +12,7 @@ import (
 	"sync"
 	"testing"
 
-	. "github.com/katydid/parser-go-json/json/strconv"
+	. "github.com/katydid/parser-go-json/json/internal/strconv"
 )
 
 type atofTest struct {
