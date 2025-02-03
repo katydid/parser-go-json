@@ -29,7 +29,7 @@ func TestParseRandom(t *testing.T) {
 	num := 10000
 	r := rand.New(rand.NewSource(seed))
 	js := randJsons(r, num)
-	jparser := NewJsonParser()
+	jparser := NewParser()
 
 	// warm up buffer pool
 	for i := 0; i < num; i++ {

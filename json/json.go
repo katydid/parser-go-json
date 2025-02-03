@@ -588,16 +588,16 @@ func (s *jsonParser) Bytes() ([]byte, error) {
 	return scanned, nil
 }
 
-// JsonParser is a parser for JSON
-type JsonParser interface {
+// Interface is a parser for JSON
+type Interface interface {
 	parser.Interface
 	//Init initialises the parser with a byte buffer containing JSON.
 	Init(buf []byte) error
 	Kind() Kind
 }
 
-// NewJsonParser returns a new JSON parser.
-func NewJsonParser() JsonParser {
+// NewParser returns a new JSON parser.
+func NewParser() Interface {
 	return &jsonParser{
 		pool:  pool.New(),
 		state: state{},

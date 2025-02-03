@@ -31,7 +31,7 @@ func BenchmarkPoolDefault(b *testing.B) {
 	js := randJsons(r, num)
 
 	// initialise pool
-	jparser := NewJsonParser()
+	jparser := NewParser()
 
 	// exercise buffer pool
 	for i := 0; i < num; i++ {
@@ -63,7 +63,7 @@ func BenchmarkPoolNone(b *testing.B) {
 	js := randJsons(r, num)
 
 	// set pool to no pool
-	jparser := NewJsonParser()
+	jparser := NewParser()
 	jparser.(*jsonParser).pool = pool.None()
 
 	// start benchmark

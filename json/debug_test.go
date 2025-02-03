@@ -22,7 +22,7 @@ import (
 )
 
 func TestDebug(t *testing.T) {
-	p := NewJsonParser()
+	p := NewParser()
 	data, err := json.Marshal(debug.Input)
 	if err != nil {
 		t.Fatal(err)
@@ -40,7 +40,7 @@ func TestDebug(t *testing.T) {
 }
 
 func TestRandomDebug(t *testing.T) {
-	p := NewJsonParser()
+	p := NewParser()
 	data, err := json.Marshal(debug.Input)
 	if err != nil {
 		t.Fatal(err)
