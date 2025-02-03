@@ -21,6 +21,7 @@ import (
 
 	"github.com/katydid/parser-go-json/json/internal/pool"
 	"github.com/katydid/parser-go-json/json/internal/strconv"
+	"github.com/katydid/parser-go-json/json/internal/unquote"
 	"github.com/katydid/parser-go/parser"
 )
 
@@ -81,10 +82,10 @@ func skipSpace(buf []byte) int {
 	return len(buf)
 }
 
-func unquote(pool pool.Pool, s []byte) (string, error) {
+func unquoteBytes(pool pool.Pool, s []byte) (string, error) {
 	var ok bool
 	var t string
-	s, ok = unquoteBytes(pool.Alloc, s)
+	s, ok = unquote.Unquote(pool.Alloc, s)
 	t = castToString(s)
 	if !ok {
 		return "", errUnquote
@@ -454,7 +455,7 @@ func (s *jsonParser) String() (string, error) {
 }
 
 func (s *jsonParser) parseString(buf []byte) error {
-	res, err := unquote(s.pool, buf)
+	res, err := unquoteBytes(s.pool, buf)
 	if err != nil {
 		return err
 	}
