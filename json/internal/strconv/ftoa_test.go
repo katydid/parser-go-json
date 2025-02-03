@@ -9,7 +9,7 @@ import (
 	"math/rand"
 	"testing"
 
-	. "github.com/katydid/parser-go-json/json/strconv"
+	. "github.com/katydid/parser-go-json/json/internal/strconv"
 )
 
 type ftoaTest struct {

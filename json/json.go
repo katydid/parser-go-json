@@ -19,8 +19,8 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/katydid/parser-go-json/json/pool"
-	"github.com/katydid/parser-go-json/json/strconv"
+	"github.com/katydid/parser-go-json/json/internal/pool"
+	"github.com/katydid/parser-go-json/json/internal/strconv"
 	"github.com/katydid/parser-go/parser"
 )
 

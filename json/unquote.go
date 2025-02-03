@@ -11,7 +11,7 @@ import (
 	"unicode/utf16"
 	"unicode/utf8"
 
-	"github.com/katydid/parser-go-json/json/pool"
+	"github.com/katydid/parser-go-json/json/internal/pool"
 )
 
 // getu4 decodes \uXXXX from the beginning of s, returning the hex value,
