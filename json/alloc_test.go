@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/katydid/parser-go-json/json/internal/pool"
+	"github.com/katydid/parser-go/parser/debug"
 )
 
 func TestNoAllocsOnAverage(t *testing.T) {
@@ -44,7 +45,9 @@ func TestNoAllocsOnAverage(t *testing.T) {
 			if err := jparser.Init(js[i]); err != nil {
 				t.Fatalf("seed = %v, err = %v", seed, err)
 			}
-			walk(jparser)
+			if err := debug.Walk(jparser); err != nil {
+				t.Fatalf("seed = %v, err = %v", seed, err)
+			}
 		}))
 	}
 }
@@ -63,7 +66,9 @@ func TestNotASingleAllocAfterWarmUp(t *testing.T) {
 		if err := jparser.Init(js[i%num]); err != nil {
 			t.Fatalf("seed = %v, err = %v value = %v", seed, err, string(js[i%num]))
 		}
-		walk(jparser)
+		if err := debug.Walk(jparser); err != nil {
+			t.Fatalf("seed = %v, err = %v", seed, err)
+		}
 	}
 	originalPoolSize := pool.Size()
 
@@ -73,7 +78,9 @@ func TestNotASingleAllocAfterWarmUp(t *testing.T) {
 			if err := jparser.Init(js[i]); err != nil {
 				t.Fatalf("seed = %v, err = %v", seed, err)
 			}
-			walk(jparser)
+			if err := debug.Walk(jparser); err != nil {
+				t.Fatalf("seed = %v, err = %v", seed, err)
+			}
 		}
 		allocs := testing.AllocsPerRun(runsPerTest, f)
 		if allocs != 0 {
@@ -100,7 +107,9 @@ func BenchmarkAlloc(b *testing.B) {
 		if err := jparser.Init(js[i%num]); err != nil {
 			b.Fatalf("seed = %v, err = %v", seed, err)
 		}
-		walk(jparser)
+		if err := debug.Walk(jparser); err != nil {
+			b.Fatalf("seed = %v, err = %v", seed, err)
+		}
 	}
 
 	b.ResetTimer()
@@ -108,7 +117,9 @@ func BenchmarkAlloc(b *testing.B) {
 		if err := jparser.Init(js[i%num]); err != nil {
 			b.Fatalf("seed = %v, err = %v", seed, err)
 		}
-		walk(jparser)
+		if err := debug.Walk(jparser); err != nil {
+			b.Fatalf("seed = %v, err = %v", seed, err)
+		}
 	}
 	b.ReportAllocs()
 }

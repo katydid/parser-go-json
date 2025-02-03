@@ -20,6 +20,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/katydid/parser-go/parser/debug"
 )
 
 func TestParseRandom(t *testing.T) {
@@ -34,7 +36,9 @@ func TestParseRandom(t *testing.T) {
 		if err := jparser.Init(js[i%num]); err != nil {
 			t.Fatalf("seed = %v, err = %v, input = %v", seed, err, string(js[i%num]))
 		}
-		walk(jparser)
+		if err := debug.Walk(jparser); err != nil {
+			t.Fatalf("seed = %v, err = %v", seed, err)
+		}
 	}
 }
 
