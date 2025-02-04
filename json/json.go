@@ -91,26 +91,6 @@ func (s *jsonParser) isNext(c byte) bool {
 	return s.offset < len(s.buf) && s.buf[s.offset] == c
 }
 
-func (s *jsonParser) isNextDigit() bool {
-	return s.offset < len(s.buf) && s.buf[s.offset] >= '0' && s.buf[s.offset] <= '9'
-}
-
-func (s *jsonParser) isNextDigit19() bool {
-	return s.offset < len(s.buf) && s.buf[s.offset] >= '1' && s.buf[s.offset] <= '9'
-}
-
-func (s *jsonParser) isNextOneOf(cs ...byte) bool {
-	if s.offset >= len(s.buf) {
-		return false
-	}
-	for _, c := range cs {
-		if s.buf[s.offset] == c {
-			return true
-		}
-	}
-	return false
-}
-
 func (s *jsonParser) incOffset(o int) error {
 	s.offset = s.offset + o
 	if s.offset > len(s.buf) {
@@ -162,55 +142,15 @@ func (s *jsonParser) scanOpenArray() error {
 	return s.skipSpace()
 }
 
-func (s *jsonParser) scanDigits() error {
-	if s.offset >= len(s.buf) {
-		return io.ErrShortBuffer
-	}
-	for s.isNextDigit() {
-		if err := s.incOffset(1); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func (s *jsonParser) scanNumber() error {
-	if s.isNext('-') {
-		if err := s.incOffset(1); err != nil {
-			return err
-		}
+	n, err := scan.Number(s.buf[s.offset:])
+	if err != nil {
+		return err
 	}
-	if s.isNext('0') {
-		if err := s.incOffset(1); err != nil {
-			return err
-		}
-	} else if s.isNextDigit19() {
-		if err := s.scanDigits(); err != nil {
-			return err
-		}
+	if err := s.incOffset(n); err != nil {
+		return err
 	}
-	if s.isNext('.') {
-		if err := s.incOffset(1); err != nil {
-			return err
-		}
-		if err := s.scanDigits(); err != nil {
-			return err
-		}
-	}
-	if s.isNextOneOf('e', 'E') {
-		if err := s.incOffset(1); err != nil {
-			return err
-		}
-		if s.isNextOneOf('+', '-') {
-			if err := s.incOffset(1); err != nil {
-				return err
-			}
-		}
-		if err := s.scanDigits(); err != nil {
-			return err
-		}
-	}
-	return nil
+	return s.skipSpace()
 }
 
 func (s *jsonParser) scanColon() error {
