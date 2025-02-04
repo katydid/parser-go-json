@@ -12,7 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package conv
+package token
 
 import (
 	"github.com/katydid/parser-go-json/json/internal/fork/strconv"
@@ -20,8 +20,8 @@ import (
 	"github.com/katydid/parser-go-json/json/scan"
 )
 
-// Converter is a scanner that provides the ability to convert tokens to native Go types.
-type Converter interface {
+// Tokenizer is a scanner that provides the ability to buffers returned by the scanner into native Go types.
+type Tokenizer interface {
 	// Next returns the Kind of the token or an error.
 	Next() (scan.Kind, error)
 	// Bool attempts to convert the current token to a bool.
@@ -36,161 +36,161 @@ type Converter interface {
 	String() (string, error)
 	// Bytes returns the raw current token.
 	Bytes() ([]byte, error)
-	// Restart the converter with a new byte buffer, without allocating a new converter.
-	Restart([]byte)
+	// Init restarts the tokenizer with a new byte buffer, without allocating a new tokenizer.
+	Init([]byte)
 }
 
-type converter struct {
+type tokenizer struct {
 	scanner scan.Scanner
 	alloc   func(size int) []byte
 
 	scanToken []byte
 	scanKind  scan.Kind
 
-	converted  bool
-	convKind   Kind
-	convErr    error
-	convDouble float64
-	convInt    int64
-	convUint   uint64
-	convString string
+	tokenized   bool
+	tokenKind   Kind
+	tokenErr    error
+	tokenDouble float64
+	tokenInt    int64
+	tokenUint   uint64
+	tokenString string
 }
 
-func NewConverter(scanner scan.Scanner) Converter {
+func NewTokenizer(scanner scan.Scanner) Tokenizer {
 	alloc := func(size int) []byte {
 		return make([]byte, size)
 	}
-	return NewConverterWithCustomAllocator(scanner, alloc)
+	return NewTokenizerWithCustomAllocator(scanner, alloc)
 }
 
-func NewConverterWithCustomAllocator(scanner scan.Scanner, alloc func(int) []byte) Converter {
-	return &converter{
+func NewTokenizerWithCustomAllocator(scanner scan.Scanner, alloc func(int) []byte) Tokenizer {
+	return &tokenizer{
 		scanner: scanner,
 		alloc:   alloc,
 	}
 }
 
-// Restart the scanner with a new byte buffer, without allocating a new scanner.
-func (c *converter) Restart(buf []byte) {
-	c.scanner.Restart(buf)
+// Init restarts the tokenizer with a new byte buffer, without allocating a new tokenizer.
+func (t *tokenizer) Init(buf []byte) {
+	t.scanner.Init(buf)
 }
 
 // Next returns the Kind of the token or an error.
-func (c *converter) Next() (scan.Kind, error) {
-	c.converted = false
-	kind, token, err := c.scanner.Next()
+func (t *tokenizer) Next() (scan.Kind, error) {
+	t.tokenized = false
+	kind, token, err := t.scanner.Next()
 	if err != nil {
 		return scan.UnknownKind, err
 	}
-	c.scanKind = kind
-	c.scanToken = token
+	t.scanKind = kind
+	t.scanToken = token
 	return kind, nil
 }
 
 // Bool attempts to convert the current token to a bool.
-func (c *converter) Bool() (bool, error) {
-	if !c.scanKind.IsTrue() || c.scanKind.IsFalse() {
+func (t *tokenizer) Bool() (bool, error) {
+	if !t.scanKind.IsTrue() || t.scanKind.IsFalse() {
 		return false, ErrNotBool
 	}
-	if err := c.convert(); err != nil {
+	if err := t.tokenize(); err != nil {
 		return false, err
 	}
-	if c.convKind.IsTrue() {
+	if t.tokenKind.IsTrue() {
 		return true, nil
 	}
-	if c.convKind.IsFalse() {
+	if t.tokenKind.IsFalse() {
 		return false, nil
 	}
 	return false, ErrNotBool
 }
 
 // Int attempts to convert the current token to an int64.
-func (c *converter) Int() (int64, error) {
-	if !c.scanKind.IsNumber() {
+func (t *tokenizer) Int() (int64, error) {
+	if !t.scanKind.IsNumber() {
 		return 0, ErrNotInt
 	}
-	if err := c.convert(); err != nil {
+	if err := t.tokenize(); err != nil {
 		return 0, err
 	}
-	if !c.convKind.IsInt() {
+	if !t.tokenKind.IsInt() {
 		return 0, ErrNotInt
 	}
-	return c.convInt, nil
+	return t.tokenInt, nil
 }
 
 // Uint attempts to convert the current token to an uint64.
-func (c *converter) Uint() (uint64, error) {
-	if !c.scanKind.IsNumber() {
+func (t *tokenizer) Uint() (uint64, error) {
+	if !t.scanKind.IsNumber() {
 		return 0, ErrNotUint
 	}
-	if err := c.convert(); err != nil {
+	if err := t.tokenize(); err != nil {
 		return 0, err
 	}
-	if !c.convKind.IsUint() {
+	if !t.tokenKind.IsUint() {
 		return 0, ErrNotUint
 	}
-	return c.convUint, nil
+	return t.tokenUint, nil
 }
 
 // Double attempts to convert the current token to a float64.
-func (c *converter) Double() (float64, error) {
-	if !c.scanKind.IsNumber() {
+func (t *tokenizer) Double() (float64, error) {
+	if !t.scanKind.IsNumber() {
 		return 0, ErrNotDouble
 	}
-	if err := c.convert(); err != nil {
+	if err := t.tokenize(); err != nil {
 		return 0, err
 	}
-	if !c.convKind.IsDouble() {
+	if !t.tokenKind.IsDouble() {
 		return 0, ErrNotDouble
 	}
-	return c.convDouble, nil
+	return t.tokenDouble, nil
 }
 
 // String attempts to convert the current token to a string.
-func (c *converter) String() (string, error) {
-	if !c.scanKind.IsString() {
+func (t *tokenizer) String() (string, error) {
+	if !t.scanKind.IsString() {
 		return "", ErrNotString
 	}
-	if err := c.convert(); err != nil {
+	if err := t.tokenize(); err != nil {
 		return "", err
 	}
-	if !c.convKind.IsString() {
+	if !t.tokenKind.IsString() {
 		return "", ErrNotString
 	}
-	return c.convString, nil
+	return t.tokenString, nil
 }
 
 // Bytes returns the raw current token.
-func (c *converter) Bytes() ([]byte, error) {
-	return c.scanToken, nil
+func (t *tokenizer) Bytes() ([]byte, error) {
+	return t.scanToken, nil
 }
 
-func (c *converter) convertNumber() error {
+func (t *tokenizer) tokenizeNumber() error {
 	var err error
-	c.convDouble, err = strconv.ParseFloat(c.scanToken)
+	t.tokenDouble, err = strconv.ParseFloat(t.scanToken)
 	if err != nil {
-		c.convKind = TooLargeNumberKind
+		t.tokenKind = TooLargeNumberKind
 		// scan already passed, so we know this is a valid number.
 		// The number is just too large represent in a float.
 		return nil
 	}
-	c.convUint = uint64(c.convDouble)
-	isUint := float64(c.convUint) == c.convDouble
-	c.convInt = int64(c.convDouble)
-	isInt := float64(c.convInt) == c.convDouble
+	t.tokenUint = uint64(t.tokenDouble)
+	isUint := float64(t.tokenUint) == t.tokenDouble
+	t.tokenInt = int64(t.tokenDouble)
+	isInt := float64(t.tokenInt) == t.tokenDouble
 	if isUint && isInt {
-		c.convKind = NumberKind
+		t.tokenKind = NumberKind
 		return nil
 	}
 	if isInt {
-		c.convKind = NegativeNumberKind
+		t.tokenKind = NegativeNumberKind
 		return nil
 	}
 	if isUint {
-		c.convKind = LargePositiveNumberKind
+		t.tokenKind = LargePositiveNumberKind
 		return nil
 	}
-	c.convKind = FractionKind
+	t.tokenKind = FractionKind
 	return nil
 }
 
@@ -205,35 +205,35 @@ func unquoteBytes(alloc func(int) []byte, s []byte) (string, error) {
 	return t, nil
 }
 
-func (c *converter) convertString() error {
-	res, err := unquoteBytes(c.alloc, c.scanToken)
+func (t *tokenizer) tokenizeString() error {
+	res, err := unquoteBytes(t.alloc, t.scanToken)
 	if err != nil {
 		return err
 	}
-	c.convString = res
+	t.tokenString = res
 	return nil
 }
 
-func (c *converter) convert() error {
-	if !c.converted {
+func (t *tokenizer) tokenize() error {
+	if !t.tokenized {
 		var err error
-		switch c.scanKind {
+		switch t.scanKind {
 		case scan.StringKind:
-			err = c.convertString()
+			err = t.tokenizeString()
 		case scan.NumberKind:
-			err = c.convertNumber()
+			err = t.tokenizeNumber()
 		case scan.TrueKind:
-			c.convKind = TrueKind
+			t.tokenKind = TrueKind
 		case scan.FalseKind:
-			c.convKind = FalseKind
+			t.tokenKind = FalseKind
 		case scan.NullKind:
-			c.convKind = NullKind
+			t.tokenKind = NullKind
 		}
-		c.converted = true
+		t.tokenized = true
 		if err != nil {
-			c.convErr = err
+			t.tokenErr = err
 			return err
 		}
 	}
-	return c.convErr
+	return t.tokenErr
 }

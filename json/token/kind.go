@@ -12,7 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package conv
+package token
 
 // Kind of the token that is scanned.
 // This is represented by one for following bytes: {:}[,]"0tfn>-+.

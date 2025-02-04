@@ -12,7 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package conv
+package token
 
 import (
 	"io"
@@ -28,7 +28,7 @@ func TestRandomScan(t *testing.T) {
 	for _, value := range values {
 		name := value[:min(len(value), 10)] + "..."
 		t.Run(name, func(t *testing.T) {
-			c := NewConverter(scan.NewScanner([]byte(value)))
+			c := NewTokenizer(scan.NewScanner([]byte(value)))
 			_, err := c.Next()
 			for err == nil {
 				_, err = c.Next()
