@@ -16,6 +16,7 @@ package scan
 
 import "io"
 
+// Next returns the Kind and the end offset of the token or an error.
 func Next(buf []byte, offset int) (Kind, int, error) {
 	var err error
 	offset, err = skipSpace(buf, offset)
@@ -63,6 +64,38 @@ func Next(buf []byte, offset int) (Kind, int, error) {
 		}
 	}
 	return kind, offset, nil
+}
+
+var kindMap = map[byte]Kind{
+	'{': ObjectOpenKind,
+	'}': ObjectCloseKind,
+	':': ColonKind,
+	'[': ArrayOpenKind,
+	']': ArrayCloseKind,
+	',': CommaKind,
+	'"': StringKind,
+	't': TrueKind,
+	'f': FalseKind,
+	'n': NullKind,
+	'-': NumberKind,
+	'0': NumberKind,
+	'1': NumberKind,
+	'2': NumberKind,
+	'3': NumberKind,
+	'4': NumberKind,
+	'5': NumberKind,
+	'6': NumberKind,
+	'7': NumberKind,
+	'8': NumberKind,
+	'9': NumberKind,
+}
+
+func getKind(b byte) Kind {
+	k, ok := kindMap[b]
+	if ok {
+		return k
+	}
+	return UnknownKind
 }
 
 func scanNull(buf []byte, offset int) (int, error) {

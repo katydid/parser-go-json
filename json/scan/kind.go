@@ -14,109 +14,79 @@
 
 package scan
 
+// Kind of the token that is scanned.
+// This is represented by one for following bytes: {:}[,]"0tfn
 type Kind byte
-
-var kindMap = map[byte]Kind{
-	'{': ObjectOpenKind,
-	'}': ObjectCloseKind,
-	':': ColonKind,
-	'[': ArrayOpenKind,
-	']': ArrayCloseKind,
-	',': CommaKind,
-	'"': StringKind,
-	't': TrueKind,
-	'f': FalseKind,
-	'n': NullKind,
-	'-': NumberKind,
-	'0': NumberKind,
-	'1': NumberKind,
-	'2': NumberKind,
-	'3': NumberKind,
-	'4': NumberKind,
-	'5': NumberKind,
-	'6': NumberKind,
-	'7': NumberKind,
-	'8': NumberKind,
-	'9': NumberKind,
-}
-
-func getKind(b byte) Kind {
-	k, ok := kindMap[b]
-	if ok {
-		return k
-	}
-	return UnknownKind
-}
 
 const UnknownKind = Kind(0)
 
-func (k Kind) isUnknown() bool {
+func (k Kind) IsUnknown() bool {
 	return k == UnknownKind
 }
 
 const ObjectOpenKind = Kind('{')
 
-func (k Kind) isObjectOpen() bool {
+func (k Kind) IsObjectOpen() bool {
 	return k == ObjectOpenKind
 }
 
 const ObjectCloseKind = Kind('}')
 
-func (k Kind) isObjectClose() bool {
+func (k Kind) IsObjectClose() bool {
 	return k == ObjectCloseKind
 }
 
 const ColonKind = Kind(':')
 
-func (k Kind) isColon() bool {
+func (k Kind) IsColon() bool {
 	return k == ColonKind
 }
 
 const ArrayOpenKind = Kind('[')
 
-func (k Kind) isArrayOpen() bool {
+func (k Kind) IsArrayOpen() bool {
 	return k == ArrayOpenKind
 }
 
 const ArrayCloseKind = Kind(']')
 
-func (k Kind) isArrayClose() bool {
+func (k Kind) IsArrayClose() bool {
 	return k == ArrayCloseKind
 }
 
 const CommaKind = Kind(',')
 
-func (k Kind) isComma() bool {
+func (k Kind) IsComma() bool {
 	return k == CommaKind
 }
 
 const StringKind = Kind('"')
 
-func (k Kind) isString() bool {
+func (k Kind) IsString() bool {
 	return k == StringKind
 }
 
 const NumberKind = Kind('0')
 
-func (k Kind) isNumber() bool {
+func (k Kind) IsNumber() bool {
 	return k == NumberKind
 }
 
 const TrueKind = Kind('t')
 
-func (k Kind) isTrue() bool {
+func (k Kind) IsTrue() bool {
 	return k == TrueKind
 }
 
 const FalseKind = Kind('f')
 
-func (k Kind) isFalse() bool {
+func (k Kind) IsFalse() bool {
 	return k == FalseKind
 }
 
 const NullKind = Kind('n')
 
-func (k Kind) isNull() bool {
+func (k Kind) IsNull() bool {
 	return k == NullKind
 }
 
