@@ -18,21 +18,223 @@ package json
 import (
 	"io"
 
-	"github.com/katydid/parser-go-json/json/internal/fork/strconv"
-	"github.com/katydid/parser-go-json/json/internal/fork/unquote"
 	"github.com/katydid/parser-go-json/json/internal/pool"
 	"github.com/katydid/parser-go/parser"
 )
 
-func unquoteBytes(pool pool.Pool, s []byte) (string, error) {
-	var ok bool
-	var t string
-	s, ok = unquote.Unquote(pool.Alloc, s)
-	t = castToString(s)
-	if !ok {
-		return "", errUnquote
+// Interface is a parser for JSON
+type Interface interface {
+	parser.Interface
+	//Init initialises the parser with a byte buffer containing JSON.
+	Init(buf []byte) error
+	Kind() Kind
+}
+
+type jsonParser struct {
+	state
+	stack []state
+	pool  pool.Pool
+}
+
+type state struct {
+	buf    []byte
+	offset int
+
+	nextErr error
+
+	kind Kind
+
+	arrayIndex int
+
+	scannedValue bool
+
+	scanned    []byte
+	scannedErr error
+
+	parsed             bool
+	parsedErr          error
+	parsedKindOfNumber kindOfNumber
+	parsedDouble       float64
+	parsedInt          int64
+	parsedUint         uint64
+	parsedString       string
+}
+
+// NewParser returns a new JSON parser.
+func NewParser() Interface {
+	return &jsonParser{
+		pool:  pool.New(),
+		state: state{},
+		stack: make([]state, 0, 10),
 	}
-	return t, nil
+}
+
+func (s *jsonParser) Init(buf []byte) error {
+	s.state = state{buf: buf}
+	s.stack = s.stack[:0]
+	s.pool.FreeAll()
+	return nil
+}
+
+func (s *jsonParser) Kind() Kind {
+	return s.kind
+}
+
+func (s *jsonParser) Next() error {
+	if s.nextErr != nil {
+		return s.nextErr
+	}
+	switch s.kind {
+	case objectKind:
+		return s.scanKeyValue()
+	case arrayKind:
+		return s.scanElement()
+	case stringKind, numberKind, trueKind, falseKind, nullKind:
+		if s.scanned != nil || s.scannedErr != nil {
+			return io.EOF
+		}
+		return nil
+	default:
+		c, err := s.look()
+		if err != nil {
+			return err
+		}
+		s.kind = getKind(c)
+		switch s.kind {
+		case objectKind:
+			return s.scanKeyValue()
+		case arrayKind:
+			return s.scanElement()
+		}
+		_, err = s.scan()
+		return err
+	}
+}
+
+func (s *jsonParser) Down() {
+	if !s.kind.isArray() && !s.kind.isObject() {
+		s.nextErr = errNotLeaf
+		return
+	}
+	if s.kind.isObject() {
+		_, err := s.scan()
+		if err != nil {
+			s.nextErr = err
+		}
+		if err := s.scanColon(); err != nil {
+			s.nextErr = err
+		}
+	} else if s.kind.isArray() {
+		_, err := s.scan()
+		if err != nil {
+			s.nextErr = err
+		}
+		if s.isNext(',') {
+			if err := s.scanComma(); err != nil {
+				s.nextErr = err
+			}
+		}
+	}
+	s.stack = append(s.stack, s.state)
+	s.state = state{
+		buf: s.buf[s.offset:],
+	}
+}
+
+func (s *jsonParser) Up() {
+	err := s.Next()
+	for err == nil {
+		err = s.Next()
+	}
+	top := len(s.stack) - 1
+	s.stack[top].offset += s.offset
+	s.state = s.stack[top]
+	s.stack = s.stack[:top]
+	if err != io.EOF {
+		s.nextErr = err
+	}
+	s.state.scannedValue = true
+}
+
+func (s *jsonParser) IsLeaf() bool {
+	switch s.kind {
+	case stringKind, numberKind, trueKind, falseKind, nullKind:
+		return true
+	}
+	return false
+}
+
+func (s *jsonParser) Bool() (bool, error) {
+	if !s.kind.isTrue() || s.kind.isFalse() {
+		return false, parser.ErrNotBool
+	}
+	if err := s.parse(); err != nil {
+		return false, err
+	}
+	if s.kind.isTrue() {
+		return true, nil
+	}
+	if s.kind.isFalse() {
+		return false, nil
+	}
+	return false, parser.ErrNotBool
+}
+
+func (s *jsonParser) Int() (int64, error) {
+	if !s.kind.isNumber() && !s.kind.isArray() {
+		return 0, parser.ErrNotInt
+	}
+	if err := s.parse(); err != nil {
+		return 0, err
+	}
+	if !s.parsedKindOfNumber.isInt() {
+		return 0, parser.ErrNotInt
+	}
+	return s.parsedInt, nil
+}
+
+func (s *jsonParser) Uint() (uint64, error) {
+	if !s.kind.isNumber() {
+		return 0, parser.ErrNotUint
+	}
+	if err := s.parse(); err != nil {
+		return 0, err
+	}
+	if !s.parsedKindOfNumber.isUint() {
+		return 0, parser.ErrNotUint
+	}
+	return s.parsedUint, nil
+}
+
+func (s *jsonParser) Double() (float64, error) {
+	if !s.kind.isNumber() {
+		return 0, parser.ErrNotDouble
+	}
+	if err := s.parse(); err != nil {
+		return 0, err
+	}
+	if !s.parsedKindOfNumber.isDouble() {
+		return 0, parser.ErrNotDouble
+	}
+	return s.parsedDouble, nil
+}
+
+func (s *jsonParser) String() (string, error) {
+	if !s.kind.isString() && !s.kind.isObject() {
+		return "", parser.ErrNotString
+	}
+	if err := s.parse(); err != nil {
+		return "", err
+	}
+	return s.parsedString, nil
+}
+
+func (s *jsonParser) Bytes() ([]byte, error) {
+	scanned, err := s.scan()
+	if err != nil {
+		return nil, err
+	}
+	return scanned, nil
 }
 
 func (s *jsonParser) look() (byte, error) {
@@ -140,343 +342,7 @@ func (s *jsonParser) scanKeyValue() error {
 	return errExpectedCommaOrCloseCurly
 }
 
-func (s *jsonParser) IsLeaf() bool {
-	switch s.kind {
-	case stringKind, numberKind, trueKind, falseKind, nullKind:
-		return true
-	}
-	return false
-}
-
-func (s *jsonParser) Double() (float64, error) {
-	if !s.kind.isNumber() {
-		return 0, parser.ErrNotDouble
-	}
-	if err := s.parse(); err != nil {
-		return 0, err
-	}
-	if !s.parsedKindOfNumber.isDouble() {
-		return 0, parser.ErrNotDouble
-	}
-	return s.parsedDouble, nil
-}
-
-func (s *jsonParser) Int() (int64, error) {
-	if !s.kind.isNumber() && !s.kind.isArray() {
-		return 0, parser.ErrNotInt
-	}
-	if err := s.parse(); err != nil {
-		return 0, err
-	}
-	if !s.parsedKindOfNumber.isInt() {
-		return 0, parser.ErrNotInt
-	}
-	return s.parsedInt, nil
-}
-
-func (s *jsonParser) Uint() (uint64, error) {
-	if !s.kind.isNumber() {
-		return 0, parser.ErrNotUint
-	}
-	if err := s.parse(); err != nil {
-		return 0, err
-	}
-	if !s.parsedKindOfNumber.isUint() {
-		return 0, parser.ErrNotUint
-	}
-	return s.parsedUint, nil
-}
-
-func (s *jsonParser) Bool() (bool, error) {
-	if !s.kind.isTrue() || s.kind.isFalse() {
-		return false, parser.ErrNotBool
-	}
-	if err := s.parse(); err != nil {
-		return false, err
-	}
-	if s.kind.isTrue() {
-		return true, nil
-	}
-	if s.kind.isFalse() {
-		return false, nil
-	}
-	return false, parser.ErrNotBool
-}
-
-func (s *jsonParser) String() (string, error) {
-	if !s.kind.isString() && !s.kind.isObject() {
-		return "", parser.ErrNotString
-	}
-	if err := s.parse(); err != nil {
-		return "", err
-	}
-	return s.parsedString, nil
-}
-
-func (s *jsonParser) parseString(buf []byte) error {
-	res, err := unquoteBytes(s.pool, buf)
-	if err != nil {
-		return err
-	}
-	s.parsedString = res
-	return nil
-}
-
-func (s *jsonParser) parseArrayIndex() error {
-	s.parsedKindOfNumber = intOfNumber
-	s.parsedInt = int64(s.arrayIndex)
-	return nil
-}
-
-func (s *jsonParser) parseNumber(buf []byte) error {
-	var err error
-	s.parsedDouble, err = strconv.ParseFloat(buf)
-	if err != nil {
-		s.parsedKindOfNumber = noneOfNumber
-		// scan already passed, so we know this is a valid number.
-		// The number is just too large represent in a float.
-		return nil
-	}
-	s.parsedUint = uint64(s.parsedDouble)
-	isUint := float64(s.parsedUint) == s.parsedDouble
-	s.parsedInt = int64(s.parsedDouble)
-	isInt := float64(s.parsedInt) == s.parsedDouble
-	if isUint && isInt {
-		s.parsedKindOfNumber = anyOfNumber
-		return nil
-	}
-	if isInt {
-		s.parsedKindOfNumber = intOfNumber
-		return nil
-	}
-	if isUint {
-		s.parsedKindOfNumber = uintOfNumber
-		return nil
-	}
-	s.parsedKindOfNumber = doubleOfNumber
-	return nil
-}
-
-func (s *jsonParser) parse() error {
-	scanned, err := s.scan()
-	if err != nil {
-		return err
-	}
-	if !s.parsed {
-		var err error
-		switch s.kind {
-		case objectKind:
-			err = s.parseString(scanned)
-		case arrayKind:
-			err = s.parseArrayIndex()
-		case stringKind:
-			err = s.parseString(scanned)
-		case numberKind:
-			err = s.parseNumber(scanned)
-		case trueKind, falseKind, nullKind:
-			// do nothing, scanning is enough
-		}
-		s.parsed = true
-		if err != nil {
-			s.parsedErr = err
-			return err
-		}
-	}
-	return s.parsedErr
-}
-
 func (s *jsonParser) skip() {
 	s.Down()
 	s.Up()
-}
-
-func (s *jsonParser) scan() ([]byte, error) {
-	if s.scanned == nil && s.scannedErr == nil {
-		if err := s.skipSpace(); err != nil {
-			return nil, err
-		}
-		start := s.offset
-		switch s.kind {
-		case objectKind:
-			if err := s.scanString(); err != nil {
-				s.scannedErr = err
-				return nil, err
-			}
-		case arrayKind:
-			return nil, nil
-		case stringKind:
-			if err := s.scanString(); err != nil {
-				s.scannedErr = err
-				return nil, err
-			}
-		case numberKind:
-			if err := s.scanNumber(); err != nil {
-				s.scannedErr = err
-				return nil, err
-			}
-		case trueKind:
-			if err := s.scanTrue(); err != nil {
-				s.scannedErr = err
-				return nil, err
-			}
-		case falseKind:
-			if err := s.scanFalse(); err != nil {
-				s.scannedErr = err
-				return nil, err
-			}
-		case nullKind:
-			if err := s.scanNull(); err != nil {
-				s.scannedErr = err
-				return nil, err
-			}
-		}
-		end := s.offset
-		s.scanned = s.buf[start:end]
-		if err := s.skipSpace(); err != nil {
-			return nil, err
-		}
-	}
-	return s.scanned, s.scannedErr
-}
-
-func (s *jsonParser) Bytes() ([]byte, error) {
-	scanned, err := s.scan()
-	if err != nil {
-		return nil, err
-	}
-	return scanned, nil
-}
-
-// Interface is a parser for JSON
-type Interface interface {
-	parser.Interface
-	//Init initialises the parser with a byte buffer containing JSON.
-	Init(buf []byte) error
-	Kind() Kind
-}
-
-// NewParser returns a new JSON parser.
-func NewParser() Interface {
-	return &jsonParser{
-		pool:  pool.New(),
-		state: state{},
-		stack: make([]state, 0, 10),
-	}
-}
-
-func (s *jsonParser) Init(buf []byte) error {
-	s.state = state{buf: buf}
-	s.stack = s.stack[:0]
-	s.pool.FreeAll()
-	return nil
-}
-
-type jsonParser struct {
-	state
-	stack []state
-	pool  pool.Pool
-}
-
-type state struct {
-	buf    []byte
-	offset int
-
-	nextErr error
-
-	kind Kind
-
-	arrayIndex int
-
-	scannedValue bool
-
-	scanned    []byte
-	scannedErr error
-
-	parsed             bool
-	parsedErr          error
-	parsedKindOfNumber kindOfNumber
-	parsedDouble       float64
-	parsedInt          int64
-	parsedUint         uint64
-	parsedString       string
-}
-
-func (s *jsonParser) Kind() Kind {
-	return s.kind
-}
-
-func (s *jsonParser) Next() error {
-	if s.nextErr != nil {
-		return s.nextErr
-	}
-	switch s.kind {
-	case objectKind:
-		return s.scanKeyValue()
-	case arrayKind:
-		return s.scanElement()
-	case stringKind, numberKind, trueKind, falseKind, nullKind:
-		if s.scanned != nil || s.scannedErr != nil {
-			return io.EOF
-		}
-		return nil
-	default:
-		c, err := s.look()
-		if err != nil {
-			return err
-		}
-		s.kind = getKind(c)
-		switch s.kind {
-		case objectKind:
-			return s.scanKeyValue()
-		case arrayKind:
-			return s.scanElement()
-		}
-		_, err = s.scan()
-		return err
-	}
-}
-
-func (s *jsonParser) Up() {
-	err := s.Next()
-	for err == nil {
-		err = s.Next()
-	}
-	top := len(s.stack) - 1
-	s.stack[top].offset += s.offset
-	s.state = s.stack[top]
-	s.stack = s.stack[:top]
-	if err != io.EOF {
-		s.nextErr = err
-	}
-	s.state.scannedValue = true
-}
-
-func (s *jsonParser) Down() {
-	if !s.kind.isArray() && !s.kind.isObject() {
-		s.nextErr = errNotLeaf
-		return
-	}
-	if s.kind.isObject() {
-		_, err := s.scan()
-		if err != nil {
-			s.nextErr = err
-		}
-		if err := s.scanColon(); err != nil {
-			s.nextErr = err
-		}
-	} else if s.kind.isArray() {
-		_, err := s.scan()
-		if err != nil {
-			s.nextErr = err
-		}
-		if s.isNext(',') {
-			if err := s.scanComma(); err != nil {
-				s.nextErr = err
-			}
-		}
-	}
-	s.stack = append(s.stack, s.state)
-	s.state = state{
-		buf: s.buf[s.offset:],
-	}
 }
