@@ -21,8 +21,6 @@ var errLongBuffer = errors.New("json is complete, but buffer is still has more t
 // errUnquote returns an error that resulted from trying to unquote a string.
 var errUnquote = errors.New("unable to unquote string")
 
-var errScanString = errors.New("unable to scan string")
-
 var errExpectedOpenCurly = errors.New("expected '{'")
 
 var errExpectedOpenBracket = errors.New("expected '['")
@@ -36,12 +34,6 @@ var errExpectedCloseCurly = errors.New("expected '}'")
 var errExpectedColon = errors.New("expected ':'")
 
 var errExpectedValue = errors.New("expected a json value")
-
-var errExpectedNull = errors.New("expected null")
-
-var errExpectedFalse = errors.New("expected false")
-
-var errExpectedTrue = errors.New("expected true")
 
 var errExpectedCommaOrCloseCurly = errors.New("expected ',' or '}'")
 

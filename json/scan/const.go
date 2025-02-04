@@ -12,7 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package json
+package scan
 
 import "bytes"
 
@@ -28,51 +28,18 @@ func scanConst(buf []byte, valBytes []byte, err error) (int, error) {
 
 var trueBytes = []byte{'t', 'r', 'u', 'e'}
 
-func scanTrue(buf []byte) (int, error) {
+func True(buf []byte) (int, error) {
 	return scanConst(buf, trueBytes, errExpectedTrue)
-}
-
-func (s *jsonParser) scanTrue() error {
-	n, err := scanTrue(s.buf[s.offset:])
-	if err != nil {
-		return err
-	}
-	if err := s.incOffset(n); err != nil {
-		return err
-	}
-	return s.skipSpace()
 }
 
 var falseBytes = []byte{'f', 'a', 'l', 's', 'e'}
 
-func scanFalse(buf []byte) (int, error) {
+func False(buf []byte) (int, error) {
 	return scanConst(buf, falseBytes, errExpectedFalse)
-}
-
-func (s *jsonParser) scanFalse() error {
-	n, err := scanFalse(s.buf[s.offset:])
-	if err != nil {
-		return err
-	}
-	if err := s.incOffset(n); err != nil {
-		return err
-	}
-	return s.skipSpace()
 }
 
 var nullBytes = []byte{'n', 'u', 'l', 'l'}
 
-func scanNull(buf []byte) (int, error) {
+func Null(buf []byte) (int, error) {
 	return scanConst(buf, nullBytes, errExpectedNull)
-}
-
-func (s *jsonParser) scanNull() error {
-	n, err := scanNull(s.buf[s.offset:])
-	if err != nil {
-		return err
-	}
-	if err := s.incOffset(n); err != nil {
-		return err
-	}
-	return s.skipSpace()
 }
