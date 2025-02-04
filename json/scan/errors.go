@@ -23,3 +23,5 @@ var errExpectedFalse = errors.New("expected false")
 var errExpectedTrue = errors.New("expected true")
 
 var errScanString = errors.New("unable to scan string")
+
+var errScanNumber = errors.New("unable to scan number")
