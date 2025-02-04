@@ -14,6 +14,14 @@
 
 package scan
 
+// String returns the offset after the quoted string.
+// A string starts and ends with a double quote '"'.
+// The string BNF:
+// string := '"' characters '"'
+// characters := "" | character characters
+// character := '0020' . '10FFFF' - '"' - '\' | '\' escape
+// escape := '"' | '\' | '/' | 'b' | 'f' | 'n' | 'r' | 't' | 'u' hex hex hex hex
+// hex := digit | 'A' . 'F' | 'a' . 'f'
 func String(buf []byte) (int, error) {
 	escaped := false
 	udigits := -1
