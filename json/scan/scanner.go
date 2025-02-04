@@ -15,6 +15,7 @@
 package scan
 
 type Scanner interface {
+	// Next returns the Kind and the slice of the buffer containing the token or an error.
 	Next() (Kind, []byte, error)
 }
 
@@ -23,6 +24,7 @@ type scanner struct {
 	offset int
 }
 
+// NewScanner returns a Scanner which keeps track of the buffer and the offset.
 func NewScanner(buf []byte) Scanner {
 	return &scanner{
 		buf:    buf,
@@ -30,6 +32,7 @@ func NewScanner(buf []byte) Scanner {
 	}
 }
 
+// Next returns the Kind and the slice of the buffer containing the token or an error.
 func (s *scanner) Next() (Kind, []byte, error) {
 	kind, offset, err := Next(s.buf, s.offset)
 	if err != nil {
