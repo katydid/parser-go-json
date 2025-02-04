@@ -17,27 +17,27 @@ package scan
 type Kind byte
 
 var kindMap = map[byte]Kind{
-	'{': objectOpenKind,
-	'}': objectCloseKind,
-	':': colonKind,
-	'[': arrayOpenKind,
-	']': arrayCloseKind,
-	',': commaKind,
-	'"': stringKind,
-	't': trueKind,
-	'f': falseKind,
-	'n': nullKind,
-	'-': numberKind,
-	'0': numberKind,
-	'1': numberKind,
-	'2': numberKind,
-	'3': numberKind,
-	'4': numberKind,
-	'5': numberKind,
-	'6': numberKind,
-	'7': numberKind,
-	'8': numberKind,
-	'9': numberKind,
+	'{': ObjectOpenKind,
+	'}': ObjectCloseKind,
+	':': ColonKind,
+	'[': ArrayOpenKind,
+	']': ArrayCloseKind,
+	',': CommaKind,
+	'"': StringKind,
+	't': TrueKind,
+	'f': FalseKind,
+	'n': NullKind,
+	'-': NumberKind,
+	'0': NumberKind,
+	'1': NumberKind,
+	'2': NumberKind,
+	'3': NumberKind,
+	'4': NumberKind,
+	'5': NumberKind,
+	'6': NumberKind,
+	'7': NumberKind,
+	'8': NumberKind,
+	'9': NumberKind,
 }
 
 func getKind(b byte) Kind {
@@ -45,100 +45,100 @@ func getKind(b byte) Kind {
 	if ok {
 		return k
 	}
-	return unknownKind
+	return UnknownKind
 }
 
-const unknownKind = Kind(0)
+const UnknownKind = Kind(0)
 
 func (k Kind) isUnknown() bool {
-	return k == unknownKind
+	return k == UnknownKind
 }
 
-const objectOpenKind = Kind('{')
+const ObjectOpenKind = Kind('{')
 
 func (k Kind) isObjectOpen() bool {
-	return k == objectOpenKind
+	return k == ObjectOpenKind
 }
 
-const objectCloseKind = Kind('}')
+const ObjectCloseKind = Kind('}')
 
 func (k Kind) isObjectClose() bool {
-	return k == objectCloseKind
+	return k == ObjectCloseKind
 }
 
-const colonKind = Kind(':')
+const ColonKind = Kind(':')
 
 func (k Kind) isColon() bool {
-	return k == colonKind
+	return k == ColonKind
 }
 
-const arrayOpenKind = Kind('[')
+const ArrayOpenKind = Kind('[')
 
 func (k Kind) isArrayOpen() bool {
-	return k == arrayOpenKind
+	return k == ArrayOpenKind
 }
 
-const arrayCloseKind = Kind(']')
+const ArrayCloseKind = Kind(']')
 
 func (k Kind) isArrayClose() bool {
-	return k == arrayOpenKind
+	return k == ArrayCloseKind
 }
 
-const commaKind = Kind(',')
+const CommaKind = Kind(',')
 
 func (k Kind) isComma() bool {
-	return k == colonKind
+	return k == CommaKind
 }
 
-const stringKind = Kind('"')
+const StringKind = Kind('"')
 
 func (k Kind) isString() bool {
-	return k == stringKind
+	return k == StringKind
 }
 
-const numberKind = Kind('0')
+const NumberKind = Kind('0')
 
 func (k Kind) isNumber() bool {
-	return k == numberKind
+	return k == NumberKind
 }
 
-const trueKind = Kind('t')
+const TrueKind = Kind('t')
 
 func (k Kind) isTrue() bool {
-	return k == trueKind
+	return k == TrueKind
 }
 
-const falseKind = Kind('f')
+const FalseKind = Kind('f')
 
 func (k Kind) isFalse() bool {
-	return k == falseKind
+	return k == FalseKind
 }
 
-const nullKind = Kind('n')
+const NullKind = Kind('n')
 
 func (k Kind) isNull() bool {
-	return k == nullKind
+	return k == NullKind
 }
 
 func (k Kind) String() string {
 	switch k {
-	case unknownKind:
+	case UnknownKind:
 		return "unknown"
-	case falseKind:
+	case FalseKind:
 		return "false"
-	case trueKind:
+	case TrueKind:
 		return "true"
-	case numberKind:
+	case NumberKind:
 		return "number"
-	case stringKind:
+	case StringKind:
 		return "string"
-	case arrayOpenKind:
+	case ArrayOpenKind:
 		return "arrayOpen"
-	case arrayCloseKind:
+	case ArrayCloseKind:
 		return "arrayClose"
-	case objectOpenKind:
+	case ObjectOpenKind:
 		return "objectOpen"
-	case objectCloseKind:
+	case ObjectCloseKind:
 		return "objectClose"
 	}
 	return "other"

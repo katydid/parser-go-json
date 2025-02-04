@@ -16,128 +16,114 @@ package scan
 
 import "io"
 
-type Scanner interface {
-	Next() (Kind, []byte, error)
-}
-
-type scanner struct {
-	buf    []byte
-	offset int
-}
-
-func NewScanner(buf []byte) Scanner {
-	return &scanner{
-		buf:    buf,
-		offset: 0,
-	}
-}
-
-func (s *scanner) Next() (Kind, []byte, error) {
-	if err := s.skipSpace(); err != nil {
-		return unknownKind, nil, err
-	}
-	if s.offset == len(s.buf) {
-		return unknownKind, nil, io.EOF
-	}
-	c, err := s.look()
+func Next(buf []byte, offset int) (Kind, int, error) {
+	var err error
+	offset, err = skipSpace(buf, offset)
 	if err != nil {
-		return unknownKind, nil, err
+		return UnknownKind, offset, err
+	}
+	if offset == len(buf) {
+		return UnknownKind, offset, io.EOF
+	}
+	c, err := look(buf, offset)
+	if err != nil {
+		return UnknownKind, offset, err
 	}
 	kind := getKind(c)
-	start := s.offset
 	switch kind {
-	case objectOpenKind, objectCloseKind, arrayOpenKind, arrayCloseKind, colonKind, commaKind:
-		if err := s.incOffset(1); err != nil {
-			return unknownKind, nil, err
+	case ObjectOpenKind, ObjectCloseKind, ArrayOpenKind, ArrayCloseKind, ColonKind, CommaKind:
+		offset, err = incOffset(buf, offset, 1)
+		if err != nil {
+			return UnknownKind, offset, err
 		}
-	case stringKind:
-		if err := s.scanString(); err != nil {
-			return unknownKind, nil, err
+	case StringKind:
+		offset, err = scanString(buf, offset)
+		if err != nil {
+			return UnknownKind, offset, err
 		}
-	case numberKind:
-		if err := s.scanNumber(); err != nil {
-			return unknownKind, nil, err
+	case NumberKind:
+		offset, err = scanNumber(buf, offset)
+		if err != nil {
+			return UnknownKind, offset, err
 		}
-	case trueKind:
-		if err := s.scanTrue(); err != nil {
-			return unknownKind, nil, err
+	case TrueKind:
+		offset, err = scanTrue(buf, offset)
+		if err != nil {
+			return UnknownKind, offset, err
 		}
-	case falseKind:
-		if err := s.scanFalse(); err != nil {
-			return unknownKind, nil, err
+	case FalseKind:
+		offset, err = scanFalse(buf, offset)
+		if err != nil {
+			return UnknownKind, offset, err
 		}
-	case nullKind:
-		if err := s.scanNull(); err != nil {
-			return unknownKind, nil, err
+	case NullKind:
+		offset, err = scanNull(buf, offset)
+		if err != nil {
+			return UnknownKind, offset, err
 		}
 	}
-	end := s.offset
-	token := s.buf[start:end]
-	return kind, token, nil
+	return kind, offset, nil
 }
 
-func (s *scanner) scanNull() error {
-	n, err := Null(s.buf[s.offset:])
+func scanNull(buf []byte, offset int) (int, error) {
+	n, err := Null(buf[offset:])
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return s.incOffset(n)
+	return incOffset(buf, offset, n)
 }
 
-func (s *scanner) scanFalse() error {
-	n, err := False(s.buf[s.offset:])
+func scanFalse(buf []byte, offset int) (int, error) {
+	n, err := False(buf[offset:])
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return s.incOffset(n)
+	return incOffset(buf, offset, n)
 }
 
-func (s *scanner) scanTrue() error {
-	n, err := True(s.buf[s.offset:])
+func scanTrue(buf []byte, offset int) (int, error) {
+	n, err := True(buf[offset:])
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return s.incOffset(n)
+	return incOffset(buf, offset, n)
 }
 
-func (s *scanner) scanNumber() error {
-	n, err := Number(s.buf[s.offset:])
+func scanNumber(buf []byte, offset int) (int, error) {
+	n, err := Number(buf[offset:])
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return s.incOffset(n)
+	return incOffset(buf, offset, n)
 }
 
-func (s *scanner) scanString() error {
-	n, err := String(s.buf[s.offset:])
+func scanString(buf []byte, offset int) (int, error) {
+	n, err := String(buf[offset:])
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return s.incOffset(n)
+	return incOffset(buf, offset, n)
 }
 
-func (s *scanner) skipSpace() error {
-	if s.offset >= len(s.buf) {
-		return nil
+func skipSpace(buf []byte, offset int) (int, error) {
+	if offset >= len(buf) {
+		return offset, nil
 	}
-	n := Space(s.buf[s.offset:])
-	if err := s.incOffset(n); err != nil {
-		return err
-	}
-	return nil
+	n := Space(buf[offset:])
+	return incOffset(buf, offset, n)
 }
 
-func (s *scanner) look() (byte, error) {
-	if s.offset < len(s.buf) {
-		return s.buf[s.offset], nil
+func look(buf []byte, offset int) (byte, error) {
+	if offset < len(buf) {
+		return buf[offset], nil
 	}
 	return 0, io.ErrShortBuffer
 }
 
-func (s *scanner) incOffset(o int) error {
-	s.offset = s.offset + o
-	if s.offset > len(s.buf) {
-		return io.ErrShortBuffer
+func incOffset(buf []byte, offset int, inc int) (int, error) {
+	offset = offset + inc
+	if offset > len(buf) {
+		return 0, io.ErrShortBuffer
 	}
-	return nil
+	return offset, nil
 }
