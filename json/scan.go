@@ -141,3 +141,52 @@ func (s *jsonParser) scanString() error {
 	}
 	return s.skipSpace()
 }
+
+func (s *jsonParser) scan() ([]byte, error) {
+	if s.scanned == nil && s.scannedErr == nil {
+		if err := s.skipSpace(); err != nil {
+			return nil, err
+		}
+		start := s.offset
+		switch s.kind {
+		case objectKind:
+			if err := s.scanString(); err != nil {
+				s.scannedErr = err
+				return nil, err
+			}
+		case arrayKind:
+			return nil, nil
+		case stringKind:
+			if err := s.scanString(); err != nil {
+				s.scannedErr = err
+				return nil, err
+			}
+		case numberKind:
+			if err := s.scanNumber(); err != nil {
+				s.scannedErr = err
+				return nil, err
+			}
+		case trueKind:
+			if err := s.scanTrue(); err != nil {
+				s.scannedErr = err
+				return nil, err
+			}
+		case falseKind:
+			if err := s.scanFalse(); err != nil {
+				s.scannedErr = err
+				return nil, err
+			}
+		case nullKind:
+			if err := s.scanNull(); err != nil {
+				s.scannedErr = err
+				return nil, err
+			}
+		}
+		end := s.offset
+		s.scanned = s.buf[start:end]
+		if err := s.skipSpace(); err != nil {
+			return nil, err
+		}
+	}
+	return s.scanned, s.scannedErr
+}
