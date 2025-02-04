@@ -18,9 +18,6 @@ import "errors"
 
 var errLongBuffer = errors.New("json is complete, but buffer is still has more to read")
 
-// errUnquote returns an error that resulted from trying to unquote a string.
-var errUnquote = errors.New("unable to unquote string")
-
 var errExpectedOpenCurly = errors.New("expected '{'")
 
 var errExpectedOpenBracket = errors.New("expected '['")
