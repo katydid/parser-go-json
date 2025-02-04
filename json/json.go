@@ -21,8 +21,53 @@ import (
 	"github.com/katydid/parser-go-json/json/internal/fork/strconv"
 	"github.com/katydid/parser-go-json/json/internal/fork/unquote"
 	"github.com/katydid/parser-go-json/json/internal/pool"
+	"github.com/katydid/parser-go-json/json/scan"
 	"github.com/katydid/parser-go/parser"
 )
+
+func (s *jsonParser) scanTrue() error {
+	n, err := scan.True(s.buf[s.offset:])
+	if err != nil {
+		return err
+	}
+	if err := s.incOffset(n); err != nil {
+		return err
+	}
+	return s.skipSpace()
+}
+
+func (s *jsonParser) scanFalse() error {
+	n, err := scan.False(s.buf[s.offset:])
+	if err != nil {
+		return err
+	}
+	if err := s.incOffset(n); err != nil {
+		return err
+	}
+	return s.skipSpace()
+}
+
+func (s *jsonParser) scanNull() error {
+	n, err := scan.Null(s.buf[s.offset:])
+	if err != nil {
+		return err
+	}
+	if err := s.incOffset(n); err != nil {
+		return err
+	}
+	return s.skipSpace()
+}
+
+func (s *jsonParser) scanString() error {
+	n, err := scan.String(s.buf[s.offset:])
+	if err != nil {
+		return err
+	}
+	if err := s.incOffset(n); err != nil {
+		return err
+	}
+	return s.skipSpace()
+}
 
 func unquoteBytes(pool pool.Pool, s []byte) (string, error) {
 	var ok bool
@@ -82,7 +127,7 @@ func (s *jsonParser) skipSpace() error {
 	if s.offset >= len(s.buf) {
 		return nil
 	}
-	n := skipSpace(s.buf[s.offset:])
+	n := scan.Space(s.buf[s.offset:])
 	if err := s.incOffset(n); err != nil {
 		return err
 	}

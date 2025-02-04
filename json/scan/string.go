@@ -12,9 +12,9 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package json
+package scan
 
-func scanString(buf []byte) (int, error) {
+func String(buf []byte) (int, error) {
 	escaped := false
 	udigits := -1
 	if len(buf) == 0 || buf[0] != '"' {
@@ -56,15 +56,4 @@ func scanString(buf []byte) (int, error) {
 		}
 	}
 	return 0, errScanString
-}
-
-func (s *jsonParser) scanString() error {
-	n, err := scanString(s.buf[s.offset:])
-	if err != nil {
-		return err
-	}
-	if err := s.incOffset(n); err != nil {
-		return err
-	}
-	return s.skipSpace()
 }

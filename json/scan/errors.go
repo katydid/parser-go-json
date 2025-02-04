@@ -12,17 +12,14 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package json
+package scan
 
-func isSpace(c byte) bool {
-	return (c == ' ') || (c == '\n') || (c == '\r') || (c == '\t')
-}
+import "errors"
 
-func skipSpace(buf []byte) int {
-	for i, c := range buf {
-		if !isSpace(c) {
-			return i
-		}
-	}
-	return len(buf)
-}
+var errExpectedNull = errors.New("expected null")
+
+var errExpectedFalse = errors.New("expected false")
+
+var errExpectedTrue = errors.New("expected true")
+
+var errScanString = errors.New("unable to scan string")
