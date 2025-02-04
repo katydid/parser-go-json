@@ -23,12 +23,12 @@ import (
 // value BNF:
 // value := object | array | string | number | "true" | "false" | "null"
 func Value(r Rand, level int) string {
-	maxN := 6
+	maxN := 7
 	if level <= 0 {
 		// do not generate arrays or objects,
 		// since we have generated a deep enough structure and
 		// we do not want to endlessly recurse.
-		maxN = 4
+		maxN = 5
 	}
 	switch r.Intn(maxN) {
 	case 0:
