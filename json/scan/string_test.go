@@ -14,7 +14,11 @@
 
 package scan
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/katydid/parser-go-json/json/rand"
+)
 
 func TestString(t *testing.T) {
 	valid := map[string]int{
@@ -45,6 +49,23 @@ func TestString(t *testing.T) {
 			_, err := String([]byte(input))
 			if err == nil {
 				t.Fatalf("expected error")
+			}
+		})
+	}
+}
+
+func TestRandString(t *testing.T) {
+	r := rand.NewRand()
+	for i := 0; i < 100; i++ {
+		s := rand.String(r)
+		t.Run(s, func(t *testing.T) {
+			buf := []byte(s)
+			got, err := String(buf)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got != len(buf) {
+				t.Fatalf("expected offset = %d, but got %d", len(buf), got)
 			}
 		})
 	}

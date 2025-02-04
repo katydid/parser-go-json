@@ -26,7 +26,7 @@ import (
 func TestNoAllocsOnAverage(t *testing.T) {
 	r := rand.NewRand()
 	num := 100
-	js := randJsons(r, num)
+	js := randJSONs(r, num)
 	jparser := NewParser()
 
 	const runsPerTest = 100
@@ -53,7 +53,7 @@ func TestNoAllocsOnAverage(t *testing.T) {
 func TestNotASingleAllocAfterWarmUp(t *testing.T) {
 	r := rand.NewRand()
 	num := 100
-	js := randJsons(r, num)
+	js := randJSONs(r, num)
 	pool := pool.New()
 	jparser := NewParser()
 	jparser.(*jsonParser).pool = pool
@@ -95,7 +95,7 @@ func TestNotASingleAllocAfterWarmUp(t *testing.T) {
 func BenchmarkAlloc(b *testing.B) {
 	num := 1000
 	r := rand.NewRand()
-	js := randJsons(r, num)
+	js := randJSONs(r, num)
 	jparser := NewParser()
 
 	// exercise buffer pool
@@ -124,7 +124,7 @@ func BenchmarkPoolDefault(b *testing.B) {
 	// generate random jsons
 	num := 1000
 	r := rand.NewRand()
-	js := randJsons(r, num)
+	js := randJSONs(r, num)
 
 	// initialise pool
 	jparser := NewParser()
@@ -155,7 +155,7 @@ func BenchmarkPoolNone(b *testing.B) {
 	// generate random jsons
 	num := 1000
 	r := rand.NewRand()
-	js := randJsons(r, num)
+	js := randJSONs(r, num)
 
 	// set pool to no pool
 	jparser := NewParser()

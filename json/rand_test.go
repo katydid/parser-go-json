@@ -21,10 +21,23 @@ import (
 	"github.com/katydid/parser-go/parser/debug"
 )
 
+func randJSONs(r rand.Rand, num int) [][]byte {
+	js := make([][]byte, num)
+	for i := 0; i < num; i++ {
+		js[i] = randJSON(r)
+	}
+	return js
+}
+
+func randJSON(r rand.Rand) []byte {
+	val := rand.Value(r, 5)
+	return []byte(val)
+}
+
 func TestParseRandom(t *testing.T) {
 	r := rand.NewRand()
 	num := 10000
-	js := randJsons(r, num)
+	js := randJSONs(r, num)
 	jparser := NewParser()
 
 	// warm up buffer pool
@@ -36,17 +49,4 @@ func TestParseRandom(t *testing.T) {
 			t.Fatalf("seed = %v, err = %v", r.Seed(), err)
 		}
 	}
-}
-
-func randJsons(r rand.Rand, num int) [][]byte {
-	js := make([][]byte, num)
-	for i := 0; i < num; i++ {
-		js[i] = randJson(r)
-	}
-	return js
-}
-
-func randJson(r rand.Rand) []byte {
-	val := rand.Value(r, 5)
-	return []byte(val)
 }

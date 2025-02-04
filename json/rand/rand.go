@@ -197,7 +197,7 @@ func randExponent(r Rand) string {
 	case 1:
 		return "E" + randSign(r) + randDigits(r)
 	case 2:
-		return "3" + randSign(r) + randDigits(r)
+		return "e" + randSign(r) + randDigits(r)
 	}
 	panic("unreachable")
 }
