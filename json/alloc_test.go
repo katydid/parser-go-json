@@ -16,18 +16,16 @@ package json
 
 import (
 	"fmt"
-	"math/rand"
 	"testing"
-	"time"
 
 	"github.com/katydid/parser-go-json/json/internal/pool"
+	"github.com/katydid/parser-go-json/json/rand"
 	"github.com/katydid/parser-go/parser/debug"
 )
 
 func TestNoAllocsOnAverage(t *testing.T) {
-	seed := time.Now().UnixNano()
+	r := rand.NewRand()
 	num := 100
-	r := rand.New(rand.NewSource(seed))
 	js := randJsons(r, num)
 	jparser := NewParser()
 
@@ -36,26 +34,25 @@ func TestNoAllocsOnAverage(t *testing.T) {
 		return func(t *testing.T) {
 			t.Helper()
 			if allocs := testing.AllocsPerRun(runsPerTest, f); allocs != 0 {
-				t.Errorf("seed = %v, got %v allocs, want 0 allocs", seed, allocs)
+				t.Errorf("seed = %v, got %v allocs, want 0 allocs", r.Seed(), allocs)
 			}
 		}
 	}
 	for i := 0; i < num; i++ {
 		t.Run(fmt.Sprintf("%d", i), checkNoAllocs(func() {
 			if err := jparser.Init(js[i]); err != nil {
-				t.Fatalf("seed = %v, err = %v", seed, err)
+				t.Fatalf("seed = %v, err = %v", r.Seed(), err)
 			}
 			if err := debug.Walk(jparser); err != nil {
-				t.Fatalf("seed = %v, err = %v", seed, err)
+				t.Fatalf("seed = %v, err = %v", r.Seed(), err)
 			}
 		}))
 	}
 }
 
 func TestNotASingleAllocAfterWarmUp(t *testing.T) {
-	seed := time.Now().UnixNano()
+	r := rand.NewRand()
 	num := 100
-	r := rand.New(rand.NewSource(seed))
 	js := randJsons(r, num)
 	pool := pool.New()
 	jparser := NewParser()
@@ -64,10 +61,10 @@ func TestNotASingleAllocAfterWarmUp(t *testing.T) {
 	// warm up buffer pool
 	for i := 0; i < num; i++ {
 		if err := jparser.Init(js[i%num]); err != nil {
-			t.Fatalf("seed = %v, err = %v value = %v", seed, err, string(js[i%num]))
+			t.Fatalf("seed = %v, err = %v value = %v", r.Seed(), err, string(js[i%num]))
 		}
 		if err := debug.Walk(jparser); err != nil {
-			t.Fatalf("seed = %v, err = %v", seed, err)
+			t.Fatalf("seed = %v, err = %v", r.Seed(), err)
 		}
 	}
 	originalPoolSize := pool.Size()
@@ -76,10 +73,10 @@ func TestNotASingleAllocAfterWarmUp(t *testing.T) {
 	for i := 0; i < num; i++ {
 		f := func() {
 			if err := jparser.Init(js[i]); err != nil {
-				t.Fatalf("seed = %v, err = %v", seed, err)
+				t.Fatalf("seed = %v, err = %v", r.Seed(), err)
 			}
 			if err := debug.Walk(jparser); err != nil {
-				t.Fatalf("seed = %v, err = %v", seed, err)
+				t.Fatalf("seed = %v, err = %v", r.Seed(), err)
 			}
 		}
 		allocs := testing.AllocsPerRun(runsPerTest, f)
@@ -89,46 +86,44 @@ func TestNotASingleAllocAfterWarmUp(t *testing.T) {
 			// retry to make sure that the allocation is the parser's fault.
 			allocs2 := testing.AllocsPerRun(runsPerTest, f)
 			if allocs2 != 0 {
-				t.Errorf("seed = %v, got %v allocs, want 0 allocs, pool allocs = %v", seed, allocs, poolallocs)
+				t.Errorf("seed = %v, got %v allocs, want 0 allocs, pool allocs = %v", r.Seed(), allocs, poolallocs)
 			}
 		}
 	}
 }
 
 func BenchmarkAlloc(b *testing.B) {
-	seed := time.Now().UnixNano()
 	num := 1000
-	r := rand.New(rand.NewSource(seed))
+	r := rand.NewRand()
 	js := randJsons(r, num)
 	jparser := NewParser()
 
 	// exercise buffer pool
 	for i := 0; i < num; i++ {
 		if err := jparser.Init(js[i%num]); err != nil {
-			b.Fatalf("seed = %v, err = %v", seed, err)
+			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
 		}
 		if err := debug.Walk(jparser); err != nil {
-			b.Fatalf("seed = %v, err = %v", seed, err)
+			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
 		}
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		if err := jparser.Init(js[i%num]); err != nil {
-			b.Fatalf("seed = %v, err = %v", seed, err)
+			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
 		}
 		if err := debug.Walk(jparser); err != nil {
-			b.Fatalf("seed = %v, err = %v", seed, err)
+			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
 		}
 	}
 	b.ReportAllocs()
 }
 
 func BenchmarkPoolDefault(b *testing.B) {
-	seed := time.Now().UnixNano()
 	// generate random jsons
 	num := 1000
-	r := rand.New(rand.NewSource(seed))
+	r := rand.NewRand()
 	js := randJsons(r, num)
 
 	// initialise pool
@@ -137,30 +132,29 @@ func BenchmarkPoolDefault(b *testing.B) {
 	// exercise buffer pool
 	for i := 0; i < num; i++ {
 		if err := jparser.Init(js[i%num]); err != nil {
-			b.Fatalf("seed = %v, err = %v", seed, err)
+			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
 		}
 		if err := debug.Walk(jparser); err != nil {
-			b.Fatalf("seed = %v, err = %v", seed, err)
+			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
 		}
 	}
 	// start benchmark
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		if err := jparser.Init(js[i%num]); err != nil {
-			b.Fatalf("seed = %v, err = %v", seed, err)
+			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
 		}
 		if err := debug.Walk(jparser); err != nil {
-			b.Fatalf("seed = %v, err = %v", seed, err)
+			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
 		}
 	}
 	b.ReportAllocs()
 }
 
 func BenchmarkPoolNone(b *testing.B) {
-	seed := time.Now().UnixNano()
 	// generate random jsons
 	num := 1000
-	r := rand.New(rand.NewSource(seed))
+	r := rand.NewRand()
 	js := randJsons(r, num)
 
 	// set pool to no pool
@@ -171,10 +165,10 @@ func BenchmarkPoolNone(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		if err := jparser.Init(js[i%num]); err != nil {
-			b.Fatalf("seed = %v, err = %v", seed, err)
+			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
 		}
 		if err := debug.Walk(jparser); err != nil {
-			b.Fatalf("seed = %v, err = %v", seed, err)
+			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
 		}
 	}
 	b.ReportAllocs()
