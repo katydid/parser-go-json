@@ -28,18 +28,21 @@ func scanConst(buf []byte, valBytes []byte, err error) (int, error) {
 
 var trueBytes = []byte{'t', 'r', 'u', 'e'}
 
+// True returns 4, nil if the prefix of the bytes matches true, otherwise error.
 func True(buf []byte) (int, error) {
 	return scanConst(buf, trueBytes, errExpectedTrue)
 }
 
 var falseBytes = []byte{'f', 'a', 'l', 's', 'e'}
 
+// False returns 5, nil if the prefix of the bytes matches false, otherwise error.
 func False(buf []byte) (int, error) {
 	return scanConst(buf, falseBytes, errExpectedFalse)
 }
 
 var nullBytes = []byte{'n', 'u', 'l', 'l'}
 
+// Null returns 4, nil if the prefix of the bytes matches null, otherwise error.
 func Null(buf []byte) (int, error) {
 	return scanConst(buf, nullBytes, errExpectedNull)
 }

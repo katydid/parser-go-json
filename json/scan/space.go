@@ -18,6 +18,9 @@ func isSpace(c byte) bool {
 	return (c == ' ') || (c == '\n') || (c == '\r') || (c == '\t')
 }
 
+// Space returns the next character that is not a prefix.
+// Spaces are limited to the following characters ' ', '\n', '\r', '\t'.
+// If there are no spaces in the prefix, then Space returns 0
 func Space(buf []byte) int {
 	for i, c := range buf {
 		if !isSpace(c) {
