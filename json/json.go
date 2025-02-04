@@ -16,71 +16,13 @@
 package json
 
 import (
-	"bytes"
 	"io"
 
+	"github.com/katydid/parser-go-json/json/internal/fork/strconv"
+	"github.com/katydid/parser-go-json/json/internal/fork/unquote"
 	"github.com/katydid/parser-go-json/json/internal/pool"
-	"github.com/katydid/parser-go-json/json/internal/strconv"
-	"github.com/katydid/parser-go-json/json/internal/unquote"
 	"github.com/katydid/parser-go/parser"
 )
-
-func scanString(buf []byte) (int, error) {
-	escaped := false
-	udigits := -1
-	if buf[0] != '"' {
-		return 0, errScanString
-	}
-	for i, c := range buf[1:] {
-		if escaped {
-			switch c {
-			case 'b', 'f', 'n', 'r', 't', '\\', '/', '"':
-				escaped = false
-				continue
-			case 'u':
-				udigits = 0
-				escaped = false
-				continue
-			}
-			return 0, errScanString
-		}
-		if udigits >= 0 {
-			if '0' <= c && c <= '9' || 'a' <= c && c <= 'f' || 'A' <= c && c <= 'F' {
-				udigits++
-			} else {
-				return 0, errScanString
-			}
-			if udigits == 4 {
-				udigits = -1
-			}
-			continue
-		}
-		if c == '"' {
-			return i + 2, nil
-		}
-		if c == '\\' {
-			escaped = true
-			continue
-		}
-		if c < 0x20 {
-			return 0, errScanString
-		}
-	}
-	return 0, errScanString
-}
-
-func isSpace(c byte) bool {
-	return (c == ' ') || (c == '\n') || (c == '\r') || (c == '\t')
-}
-
-func skipSpace(buf []byte) int {
-	for i, c := range buf {
-		if !isSpace(c) {
-			return i
-		}
-	}
-	return len(buf)
-}
 
 func unquoteBytes(pool pool.Pool, s []byte) (string, error) {
 	var ok bool
@@ -173,47 +115,6 @@ func (s *jsonParser) scanOpenArray() error {
 		return err
 	}
 	return s.skipSpace()
-}
-
-func (s *jsonParser) scanString() error {
-	n, err := scanString(s.buf[s.offset:])
-	if err != nil {
-		return err
-	}
-	if err := s.incOffset(n); err != nil {
-		return err
-	}
-	return s.skipSpace()
-}
-
-func (s *jsonParser) scanConst(valBytes []byte, err error) error {
-	start := s.offset
-	if orr := s.incOffset(len(valBytes)); orr != nil {
-		return err
-	}
-	end := s.offset
-	if !bytes.Equal(s.buf[start:end], valBytes) {
-		return err
-	}
-	return s.skipSpace()
-}
-
-var trueBytes = []byte{'t', 'r', 'u', 'e'}
-
-func (s *jsonParser) scanTrue() error {
-	return s.scanConst(trueBytes, errExpectedTrue)
-}
-
-var falseBytes = []byte{'f', 'a', 'l', 's', 'e'}
-
-func (s *jsonParser) scanFalse() error {
-	return s.scanConst(falseBytes, errExpectedFalse)
-}
-
-var nullBytes = []byte{'n', 'u', 'l', 'l'}
-
-func (s *jsonParser) scanNull() error {
-	return s.scanConst(nullBytes, errExpectedNull)
 }
 
 func (s *jsonParser) scanDigits() error {
