@@ -58,7 +58,8 @@ func TestRandString(t *testing.T) {
 	r := rand.NewRand()
 	for i := 0; i < 100; i++ {
 		s := rand.String(r)
-		t.Run(s, func(t *testing.T) {
+		name := s[:min(len(s), 10)] + "..."
+		t.Run(name, func(t *testing.T) {
 			buf := []byte(s)
 			got, err := String(buf)
 			if err != nil {
