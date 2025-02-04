@@ -49,10 +49,9 @@ func TestRandomDebug(t *testing.T) {
 		if err := p.Init(data); err != nil {
 			t.Fatal(err)
 		}
-		//l := debug.NewLogger(p, debug.NewLineLogger())
-		if err := debug.RandomWalk(p, debug.NewRand(), 10, 3); err != nil {
+		l := debug.NewLogger(p, debug.NewLineLogger())
+		if err := debug.RandomWalk(l, debug.NewRand(), 10, 3); err != nil {
 			t.Fatal(err)
 		}
-		//t.Logf("original %v vs random %v", debug.Output, m)
 	}
 }

@@ -123,3 +123,59 @@ func BenchmarkAlloc(b *testing.B) {
 	}
 	b.ReportAllocs()
 }
+
+func BenchmarkPoolDefault(b *testing.B) {
+	seed := time.Now().UnixNano()
+	// generate random jsons
+	num := 1000
+	r := rand.New(rand.NewSource(seed))
+	js := randJsons(r, num)
+
+	// initialise pool
+	jparser := NewParser()
+
+	// exercise buffer pool
+	for i := 0; i < num; i++ {
+		if err := jparser.Init(js[i%num]); err != nil {
+			b.Fatalf("seed = %v, err = %v", seed, err)
+		}
+		if err := debug.Walk(jparser); err != nil {
+			b.Fatalf("seed = %v, err = %v", seed, err)
+		}
+	}
+	// start benchmark
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if err := jparser.Init(js[i%num]); err != nil {
+			b.Fatalf("seed = %v, err = %v", seed, err)
+		}
+		if err := debug.Walk(jparser); err != nil {
+			b.Fatalf("seed = %v, err = %v", seed, err)
+		}
+	}
+	b.ReportAllocs()
+}
+
+func BenchmarkPoolNone(b *testing.B) {
+	seed := time.Now().UnixNano()
+	// generate random jsons
+	num := 1000
+	r := rand.New(rand.NewSource(seed))
+	js := randJsons(r, num)
+
+	// set pool to no pool
+	jparser := NewParser()
+	jparser.(*jsonParser).pool = pool.None()
+
+	// start benchmark
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if err := jparser.Init(js[i%num]); err != nil {
+			b.Fatalf("seed = %v, err = %v", seed, err)
+		}
+		if err := debug.Walk(jparser); err != nil {
+			b.Fatalf("seed = %v, err = %v", seed, err)
+		}
+	}
+	b.ReportAllocs()
+}
