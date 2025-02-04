@@ -17,8 +17,8 @@ package scan
 type Scanner interface {
 	// Next returns the Kind and the slice of the buffer containing the token or an error.
 	Next() (Kind, []byte, error)
-	// Restart the scanner with a new byte buffer, without allocating a new scanner.
-	Restart([]byte)
+	// Init restarts the scanner with a new byte buffer, without allocating a new scanner.
+	Init([]byte)
 }
 
 type scanner struct {
@@ -34,8 +34,8 @@ func NewScanner(buf []byte) Scanner {
 	}
 }
 
-// Restart the scanner with a new byte buffer, without allocating a new scanner.
-func (s *scanner) Restart(buf []byte) {
+// Init restarts the scanner with a new byte buffer, without allocating a new scanner.
+func (s *scanner) Init(buf []byte) {
 	s.buf = buf
 	s.offset = 0
 }
