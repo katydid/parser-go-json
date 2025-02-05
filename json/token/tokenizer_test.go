@@ -15,25 +15,19 @@
 package token
 
 import (
-	"io"
 	"testing"
 
 	"github.com/katydid/parser-go-json/json/rand"
-	"github.com/katydid/parser-go-json/json/scan"
 )
 
 func TestRandomScan(t *testing.T) {
 	r := rand.NewRand()
 	values := rand.Values(r, 100)
 	for _, value := range values {
-		name := value[:min(len(value), 10)] + "..."
+		name := string(value[:min(len(value), 10)]) + "..."
 		t.Run(name, func(t *testing.T) {
-			c := NewTokenizer(scan.NewScanner([]byte(value)))
-			_, err := c.Next()
-			for err == nil {
-				_, err = c.Next()
-			}
-			if err != io.EOF {
+			tokenizer := NewTokenizer([]byte(value))
+			if err := walk(tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v", err)
 			}
 		})

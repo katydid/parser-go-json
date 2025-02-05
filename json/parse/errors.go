@@ -12,29 +12,14 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package scan
+package parse
 
-import (
-	"io"
-	"testing"
+import "errors"
 
-	"github.com/katydid/parser-go-json/json/rand"
-)
+var errUnexpectedCloseBracket = errors.New("unexpected ]")
 
-func TestRandomScan(t *testing.T) {
-	r := rand.NewRand()
-	values := rand.Values(r, 100)
-	for _, value := range values {
-		name := string(value[:min(len(value), 10)]) + "..."
-		t.Run(name, func(t *testing.T) {
-			s := NewScanner([]byte(value))
-			_, _, err := s.Next()
-			for err == nil {
-				_, _, err = s.Next()
-			}
-			if err != io.EOF {
-				t.Fatalf("expected EOF, but got %v", err)
-			}
-		})
-	}
-}
+var errUnexpectedCloseCurly = errors.New("unexpected }")
+
+var errUnexpectedComma = errors.New("unexpected ,")
+
+var errUnexpectedColon = errors.New("unexpected :")

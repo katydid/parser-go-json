@@ -48,7 +48,7 @@ type tokenizer struct {
 	scanKind  scan.Kind
 
 	tokenized   bool
-	tokenKind   Kind
+	tokenKind   kind
 	tokenErr    error
 	tokenDouble float64
 	tokenInt    int64
@@ -56,16 +56,16 @@ type tokenizer struct {
 	tokenString string
 }
 
-func NewTokenizer(scanner scan.Scanner) Tokenizer {
+func NewTokenizer(buf []byte) Tokenizer {
 	alloc := func(size int) []byte {
 		return make([]byte, size)
 	}
-	return NewTokenizerWithCustomAllocator(scanner, alloc)
+	return NewTokenizerWithCustomAllocator(buf, alloc)
 }
 
-func NewTokenizerWithCustomAllocator(scanner scan.Scanner, alloc func(int) []byte) Tokenizer {
+func NewTokenizerWithCustomAllocator(buf []byte, alloc func(int) []byte) Tokenizer {
 	return &tokenizer{
-		scanner: scanner,
+		scanner: scan.NewScanner(buf),
 		alloc:   alloc,
 	}
 }
@@ -190,7 +190,7 @@ func (t *tokenizer) tokenizeNumber() error {
 		t.tokenKind = LargePositiveNumberKind
 		return nil
 	}
-	t.tokenKind = FractionKind
+	t.tokenKind = FractionNumberKind
 	return nil
 }
 
