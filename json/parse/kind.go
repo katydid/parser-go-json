@@ -12,10 +12,12 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package scan
+package parse
 
-// Kind of the token that is scanned.
-// This is represented by one for following bytes: {:}[,]"0tfn
+import "github.com/katydid/parser-go-json/json/scan"
+
+// Kind of the token that is parsed.
+// This is represented by one for following bytes: {["0tfn
 type Kind byte
 
 const UnknownKind = Kind(0)
@@ -36,12 +38,6 @@ func (k Kind) IsObjectClose() bool {
 	return k == ObjectCloseKind
 }
 
-const ColonKind = Kind(':')
-
-func (k Kind) IsColon() bool {
-	return k == ColonKind
-}
-
 const ArrayOpenKind = Kind('[')
 
 func (k Kind) IsArrayOpen() bool {
@@ -52,12 +48,6 @@ const ArrayCloseKind = Kind(']')
 
 func (k Kind) IsArrayClose() bool {
 	return k == ArrayCloseKind
-}
-
-const CommaKind = Kind(',')
-
-func (k Kind) IsComma() bool {
-	return k == CommaKind
 }
 
 const StringKind = Kind('"')
@@ -94,8 +84,6 @@ func (k Kind) String() string {
 	switch k {
 	case UnknownKind:
 		return "unknown"
-	case NullKind:
-		return "null"
 	case FalseKind:
 		return "false"
 	case TrueKind:
@@ -106,16 +94,38 @@ func (k Kind) String() string {
 		return "string"
 	case ArrayOpenKind:
 		return "arrayOpen"
-	case CommaKind:
-		return "comma"
 	case ArrayCloseKind:
 		return "arrayClose"
 	case ObjectOpenKind:
 		return "objectOpen"
-	case ColonKind:
-		return "colonKind"
 	case ObjectCloseKind:
 		return "objectClose"
 	}
 	return "other"
+}
+
+func fromScanKind(k scan.Kind) (Kind, error) {
+	switch k {
+	case scan.UnknownKind:
+		return UnknownKind, nil
+	case scan.NullKind:
+		return UnknownKind, nil
+	case scan.FalseKind:
+		return FalseKind, nil
+	case scan.TrueKind:
+		return TrueKind, nil
+	case scan.NumberKind:
+		return NumberKind, nil
+	case scan.StringKind:
+		return StringKind, nil
+	case scan.ArrayOpenKind:
+		return ArrayOpenKind, nil
+	case scan.ArrayCloseKind:
+		return ArrayCloseKind, nil
+	case scan.ObjectOpenKind:
+		return ObjectOpenKind, nil
+	case scan.ObjectCloseKind:
+		return ObjectCloseKind, nil
+	}
+	panic("unreachable")
 }

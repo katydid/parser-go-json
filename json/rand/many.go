@@ -17,9 +17,13 @@ package rand
 // Generate generates many Values, at least one of each kind.
 // atleast specifies the minimum number to generate.
 // The kinds are object, array, number, string, true, false and null.
-func Values(r Rand, atleast int) []string {
+func Values(r Rand, atleast int) [][]byte {
 	_, vs := values(r, atleast)
-	return vs
+	bs := make([][]byte, len(vs))
+	for i := range vs {
+		bs[i] = []byte(vs[i])
+	}
+	return bs
 }
 
 func values(r Rand, atleast int) (map[byte]int, []string) {

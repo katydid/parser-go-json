@@ -15,7 +15,6 @@
 package json
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/katydid/parser-go-json/json/internal/pool"
@@ -30,23 +29,19 @@ func TestNoAllocsOnAverage(t *testing.T) {
 	jparser := NewParser()
 
 	const runsPerTest = 100
-	checkNoAllocs := func(f func()) func(t *testing.T) {
-		return func(t *testing.T) {
-			t.Helper()
-			if allocs := testing.AllocsPerRun(runsPerTest, f); allocs != 0 {
-				t.Errorf("seed = %v, got %v allocs, want 0 allocs", r.Seed(), allocs)
-			}
-		}
-	}
 	for i := 0; i < num; i++ {
-		t.Run(fmt.Sprintf("%d", i), checkNoAllocs(func() {
+		f := func() {
 			if err := jparser.Init(js[i]); err != nil {
 				t.Fatalf("seed = %v, err = %v", r.Seed(), err)
 			}
 			if err := debug.Walk(jparser); err != nil {
 				t.Fatalf("seed = %v, err = %v", r.Seed(), err)
 			}
-		}))
+		}
+		allocs := testing.AllocsPerRun(runsPerTest, f)
+		if allocs != 0 {
+			t.Errorf("seed = %v, got %v allocs, want 0 allocs", r.Seed(), allocs)
+		}
 	}
 }
 

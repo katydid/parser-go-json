@@ -14,98 +14,74 @@
 
 package token
 
-// Kind of the token that is scanned.
+// kind of the token that is tokenized.
 // This is represented by one for following bytes: {:}[,]"0tfn>-+.
-type Kind byte
+type kind byte
 
-const UnknownKind = Kind(0)
+const UnknownKind = kind(0)
 
-func (k Kind) IsUnknown() bool {
+func (k kind) IsUnknown() bool {
 	return k == UnknownKind
 }
 
-const ObjectOpenKind = Kind('{')
+const ObjectOpenKind = kind('{')
 
-func (k Kind) IsObjectOpen() bool {
+func (k kind) IsObjectOpen() bool {
 	return k == ObjectOpenKind
 }
 
-const ObjectCloseKind = Kind('}')
+const ObjectCloseKind = kind('}')
 
-func (k Kind) IsObjectClose() bool {
+func (k kind) IsObjectClose() bool {
 	return k == ObjectCloseKind
 }
 
-const ColonKind = Kind(':')
+const ColonKind = kind(':')
 
-func (k Kind) IsColon() bool {
+func (k kind) IsColon() bool {
 	return k == ColonKind
 }
 
-const ArrayOpenKind = Kind('[')
+const ArrayOpenKind = kind('[')
 
-func (k Kind) IsArrayOpen() bool {
+func (k kind) IsArrayOpen() bool {
 	return k == ArrayOpenKind
 }
 
-const ArrayCloseKind = Kind(']')
+const ArrayCloseKind = kind(']')
 
-func (k Kind) IsArrayClose() bool {
+func (k kind) IsArrayClose() bool {
 	return k == ArrayCloseKind
 }
 
-const CommaKind = Kind(',')
+const CommaKind = kind(',')
 
-func (k Kind) IsComma() bool {
+func (k kind) IsComma() bool {
 	return k == CommaKind
 }
 
-const StringKind = Kind('"')
+const StringKind = kind('"')
 
-func (k Kind) IsString() bool {
+func (k kind) IsString() bool {
 	return k == StringKind
 }
 
-const TrueKind = Kind('t')
+const TrueKind = kind('t')
 
-func (k Kind) IsTrue() bool {
+func (k kind) IsTrue() bool {
 	return k == TrueKind
 }
 
-const FalseKind = Kind('f')
+const FalseKind = kind('f')
 
-func (k Kind) IsFalse() bool {
+func (k kind) IsFalse() bool {
 	return k == FalseKind
 }
 
-const NullKind = Kind('n')
+const NullKind = kind('n')
 
-func (k Kind) IsNull() bool {
+func (k kind) IsNull() bool {
 	return k == NullKind
-}
-
-func (k Kind) String() string {
-	switch k {
-	case UnknownKind:
-		return "unknown"
-	case FalseKind:
-		return "false"
-	case TrueKind:
-		return "true"
-	case NumberKind:
-		return "number"
-	case StringKind:
-		return "string"
-	case ArrayOpenKind:
-		return "arrayOpen"
-	case ArrayCloseKind:
-		return "arrayClose"
-	case ObjectOpenKind:
-		return "objectOpen"
-	case ObjectCloseKind:
-		return "objectClose"
-	}
-	return "other"
 }
 
 // a number can be:
@@ -116,32 +92,70 @@ func (k Kind) String() string {
 // * double, but not int or uint (a fraction) represented by '.'
 // * none, since it is a number too large to fit even in double, represented by '>'
 
-const TooLargeNumberKind = Kind('>')
+const TooLargeNumberKind = kind('>')
 
-func (k Kind) IsTooLargeNumber() bool {
+func (k kind) IsTooLargeNumber() bool {
 	return k == TooLargeNumberKind
 }
 
-const NegativeNumberKind = Kind('-')
+const NegativeNumberKind = kind('-')
 
-func (k Kind) IsInt() bool {
+func (k kind) IsInt() bool {
 	return k == NumberKind || k == NegativeNumberKind
 }
 
-const LargePositiveNumberKind = Kind('+')
+const LargePositiveNumberKind = kind('+')
 
-func (k Kind) IsUint() bool {
+func (k kind) IsUint() bool {
 	return k == NumberKind || k == LargePositiveNumberKind
 }
 
-const FractionKind = Kind('.')
+const FractionNumberKind = kind('.')
 
-func (k Kind) IsDouble() bool {
-	return k == NumberKind || k == LargePositiveNumberKind || k == NegativeNumberKind || k == FractionKind
+func (k kind) IsDouble() bool {
+	return k == NumberKind || k == LargePositiveNumberKind || k == NegativeNumberKind || k == FractionNumberKind
 }
 
-const NumberKind = Kind('0')
+const NumberKind = kind('0')
 
-func (k Kind) IsNumber() bool {
-	return k == NumberKind || k == LargePositiveNumberKind || k == NegativeNumberKind || k == FractionKind || k == TooLargeNumberKind
+func (k kind) IsNumber() bool {
+	return k == NumberKind || k == LargePositiveNumberKind || k == NegativeNumberKind || k == FractionNumberKind || k == TooLargeNumberKind
+}
+
+func (k kind) String() string {
+	switch k {
+	case UnknownKind:
+		return "unknown"
+	case NullKind:
+		return "null"
+	case FalseKind:
+		return "false"
+	case TrueKind:
+		return "true"
+	case NumberKind:
+		return "number"
+	case StringKind:
+		return "string"
+	case ArrayOpenKind:
+		return "arrayOpen"
+	case CommaKind:
+		return "comma"
+	case ArrayCloseKind:
+		return "arrayClose"
+	case ObjectOpenKind:
+		return "objectOpen"
+	case ColonKind:
+		return "colon"
+	case ObjectCloseKind:
+		return "objectClose"
+	case TooLargeNumberKind:
+		return "tooLargeNumberKind"
+	case NegativeNumberKind:
+		return "negativeNumberKind"
+	case LargePositiveNumberKind:
+		return "largePositiveNumberKind"
+	case FractionNumberKind:
+		return "fractionNumberKind"
+	}
+	return "other"
 }
