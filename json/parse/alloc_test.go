@@ -18,13 +18,13 @@ import (
 	"testing"
 
 	"github.com/katydid/parser-go-json/json/internal/pool"
-	"github.com/katydid/parser-go-json/json/internal/testutil"
+	"github.com/katydid/parser-go-json/json/internal/testrun"
 )
 
 func TestNoAllocsOnAverage(t *testing.T) {
 	pool := pool.New()
 	p := NewParserWithCustomAllocator(nil, pool.Alloc)
-	testutil.NoAllocsOnAverage(t, func(input []byte) {
+	testrun.NoAllocsOnAverage(t, func(input []byte) {
 		p.Init(input)
 		if err := walk(p); err != nil {
 			t.Fatalf("expected EOF, but got %v", err)
@@ -36,7 +36,7 @@ func TestNoAllocsOnAverage(t *testing.T) {
 func TestNotASingleAllocAfterWarmUp(t *testing.T) {
 	pool := pool.New()
 	p := NewParserWithCustomAllocator(nil, pool.Alloc)
-	testutil.NotASingleAllocAfterWarmUp(t, pool, func(bs []byte) {
+	testrun.NotASingleAllocAfterWarmUp(t, pool, func(bs []byte) {
 		p.Init(bs)
 		if err := walk(p); err != nil {
 			t.Fatalf("expected EOF, but got %v", err)

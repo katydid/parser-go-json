@@ -22,7 +22,7 @@ import (
 	"github.com/katydid/parser-go/parser/debug"
 )
 
-func parse(s string) (debug.Nodes, error) {
+func parseString(s string) (debug.Nodes, error) {
 	parser := NewParser()
 	if err := parser.Init([]byte(s)); err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func TestEscapedChar(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("%s", string(data))
-	m, err := parse(string(data))
+	m, err := parseString(string(data))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func TestMultiLineArray(t *testing.T) {
 	s := `{
 		"A":[1]
 	}`
-	m, err := parse(s)
+	m, err := parseString(s)
 	if err != nil {
 		t.Fatal(err)
 	}

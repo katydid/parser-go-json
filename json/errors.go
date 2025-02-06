@@ -13,27 +13,3 @@
 //  limitations under the License.
 
 package json
-
-import "errors"
-
-var errLongBuffer = errors.New("json is complete, but buffer is still has more to read")
-
-var errExpectedOpenCurly = errors.New("expected '{'")
-
-var errExpectedOpenBracket = errors.New("expected '['")
-
-var errExpectedCloseBracket = errors.New("expected ']'")
-
-var errExpectedComma = errors.New("expected ','")
-
-var errExpectedCloseCurly = errors.New("expected '}'")
-
-var errExpectedColon = errors.New("expected ':'")
-
-var errExpectedValue = errors.New("expected a json value")
-
-var errExpectedCommaOrCloseCurly = errors.New("expected ',' or '}'")
-
-var errExpectedCommaOrCloseBracket = errors.New("expected ',' or ']'")
-
-var errNotLeaf = errors.New("not leaf")

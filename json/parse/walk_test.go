@@ -29,7 +29,7 @@ func walkValue(t Parser, kind Kind) error {
 	if _, err := t.Bool(); err == nil {
 		return nil
 	}
-	if kind == FalseKind || kind == TrueKind {
+	if kind == BoolKind {
 		return errExpectedBool
 	}
 	if _, err := t.Int(); err == nil {
@@ -57,7 +57,7 @@ func walk(t Parser) error {
 	kind, err := t.Next()
 	for err == nil {
 		switch kind {
-		case NullKind, FalseKind, TrueKind, NumberKind, StringKind:
+		case NullKind, BoolKind, NumberKind, StringKind:
 			if err := walkValue(t, kind); err != nil {
 				return err
 			}

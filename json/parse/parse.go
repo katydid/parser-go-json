@@ -12,54 +12,6 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-//	{"num":3.14,"arr":[null,false,true],"obj":{"k":"v","boring":[1,2,3]}}
-//
-// Can be parsed using Next, Skip and tokenizer methods.
-//
-//	p.Next() // {
-//
-//	p.Next() // "
-//	p.String() // "num"
-//
-//	p.Next() // 0
-//	p.Int() // token.ErrNotInt
-//	p.Uint() // token.ErrNotInt
-//	p.Double() // 3.14
-//
-//	p.Next() // "
-//	p.String() // "arr"
-//
-//	p.Next() // [
-//
-//	p.Next() // n
-//
-//	p.Next() // f
-//	p.Bool() // false
-//
-//	p.Next() // t
-//	p.Bool() // true
-//
-//	p.Next() // ]
-//
-//	p.Next() // "
-//	p.String() // "obj"
-//
-//	p.Next() // {
-//
-//	p.Next() // "
-//	p.String() // "k"
-//
-//	p.Next() // "
-//	p.String() // "v"
-//
-//	p.Next() // "
-//	p.String() // "boring"
-//
-//	p.Skip()
-//
-//	p.Next() // }
-//
-//	p.Next() // }
 package parse
 
 import (
@@ -72,7 +24,13 @@ import (
 type Parser interface {
 	// Next returns the Kind of the token or an error.
 	Next() (Kind, error)
-	// Skip skips over the value of an object.
+	// Skip skips over some of the json string.
+	// If the kind '{' was returned by Next, then the whole object is skipped.
+	// If a object key was just parsed, then that key's value is skipped.
+	// If an object value was just parsed, then the rest of the object is skipped.
+	// If the kind '[' was returned by Next, then the whole array is skipped.
+	// If an array element was parsed, then the rest of the array is skipped.
+	// In any other case, Skip returns an error.
 	Skip() error
 
 	Bool() (bool, error)
@@ -86,14 +44,10 @@ type Parser interface {
 }
 
 type parser struct {
-	state
+	state     state
 	stack     []state
 	alloc     func(int) []byte
 	tokenizer token.Tokenizer
-}
-
-type state struct {
-	kind stateKind
 }
 
 func NewParser(buf []byte) Parser {
@@ -103,7 +57,7 @@ func NewParser(buf []byte) Parser {
 
 func NewParserWithCustomAllocator(buf []byte, alloc func(int) []byte) Parser {
 	p := &parser{
-		state:     state{},
+		state:     unknownState,
 		stack:     make([]state, 0, 10),
 		alloc:     alloc,
 		tokenizer: token.NewTokenizerWithCustomAllocator(buf, alloc),
@@ -115,7 +69,7 @@ func (p *parser) Init(buf []byte) {
 	// Reset the tokenizer with the new buffer.
 	p.tokenizer.Init(buf)
 	// Reset the state.
-	p.state = state{}
+	p.state = unknownState
 	// Shrink the stack's length, but keep it's capacity,
 	// so we can reuse it on the next parse.
 	p.stack = p.stack[:0]
@@ -123,8 +77,10 @@ func (p *parser) Init(buf []byte) {
 
 func (p *parser) assertValue(scanKind scan.Kind) (Kind, error) {
 	switch scanKind {
-	case scan.NullKind, scan.FalseKind, scan.TrueKind, scan.NumberKind, scan.StringKind:
+	case scan.NullKind, scan.NumberKind, scan.StringKind:
 		return Kind(scanKind), nil
+	case scan.FalseKind, scan.TrueKind:
+		return BoolKind, nil
 	case scan.ArrayOpenKind:
 		return Kind(scanKind), nil
 	case scan.ObjectOpenKind:
@@ -143,22 +99,22 @@ func (p *parser) nextUnknown() (Kind, error) {
 		return UnknownKind, err
 	}
 	if kind == ObjectOpenKind {
-		p.kind = objectOpenStateKind
-		p.down(objectOpenStateKind)
+		p.state = objectOpenState
+		p.down(objectOpenState)
 	}
 	if kind == ArrayOpenKind {
-		p.kind = arrayOpenStateKind
-		p.down(arrayOpenStateKind)
+		p.state = arrayOpenState
+		p.down(arrayOpenState)
 	}
 	return kind, nil
 }
 
 func (p *parser) maybeDown(kind Kind) {
 	if kind == ObjectOpenKind {
-		p.down(objectOpenStateKind)
+		p.down(objectOpenState)
 	}
 	if kind == ArrayOpenKind {
-		p.down(arrayOpenStateKind)
+		p.down(arrayOpenState)
 	}
 }
 
@@ -182,7 +138,7 @@ func (p *parser) firstArrayElement() (Kind, error) {
 	}
 	if scanKind == scan.ArrayCloseKind {
 		if err := p.up(); err != nil {
-			return UnknownKind, nil
+			return UnknownKind, err
 		}
 		return ArrayCloseKind, nil
 	}
@@ -190,7 +146,7 @@ func (p *parser) firstArrayElement() (Kind, error) {
 	if err != nil {
 		return UnknownKind, err
 	}
-	p.kind = arrayElementStateKind
+	p.state = arrayElementState
 	p.maybeDown(kind)
 	return kind, nil
 }
@@ -202,7 +158,7 @@ func (p *parser) nextArrayElement() (Kind, error) {
 	}
 	if scanKind == scan.ArrayCloseKind {
 		if err := p.up(); err != nil {
-			return UnknownKind, nil
+			return UnknownKind, err
 		}
 		return ArrayCloseKind, nil
 	}
@@ -219,12 +175,12 @@ func (p *parser) firstObjectKey() (Kind, error) {
 	}
 	if scanKind == scan.ObjectCloseKind {
 		if err := p.up(); err != nil {
-			return UnknownKind, nil
+			return UnknownKind, err
 		}
 		return ObjectCloseKind, nil
 	}
 	if scanKind == scan.StringKind {
-		p.kind = objectValueStateKind
+		p.state = objectValueState
 		return StringKind, nil
 	}
 	return UnknownKind, errExpectedStringOrCloseCurly
@@ -237,7 +193,7 @@ func (p *parser) nextObjectKey() (Kind, error) {
 	}
 	if scanKind == scan.ObjectCloseKind {
 		if err := p.up(); err != nil {
-			return UnknownKind, nil
+			return UnknownKind, err
 		}
 		return ObjectCloseKind, nil
 	}
@@ -247,7 +203,7 @@ func (p *parser) nextObjectKey() (Kind, error) {
 			return UnknownKind, err
 		}
 		if nextScanKind == scan.StringKind {
-			p.kind = objectValueStateKind
+			p.state = objectValueState
 			return StringKind, nil
 		} else {
 			return UnknownKind, errExpectedCommaOrCloseBracket
@@ -264,23 +220,23 @@ func (p *parser) nextObjectValue() (Kind, error) {
 	if scanKind != scan.ColonKind {
 		return UnknownKind, errExpectedColon
 	}
-	p.kind = objectKeyStateKind
+	p.state = objectKeyState
 	return p.nextValue()
 }
 
 func (p *parser) Next() (Kind, error) {
-	switch p.kind {
-	case unknownStateKind:
+	switch p.state {
+	case unknownState:
 		return p.nextUnknown()
-	case arrayOpenStateKind:
+	case arrayOpenState:
 		return p.firstArrayElement()
-	case arrayElementStateKind:
+	case arrayElementState:
 		return p.nextArrayElement()
-	case objectOpenStateKind:
+	case objectOpenState:
 		return p.firstObjectKey()
-	case objectKeyStateKind:
+	case objectKeyState:
 		return p.nextObjectKey()
-	case objectValueStateKind:
+	case objectValueState:
 		return p.nextObjectValue()
 	default:
 		panic("unreachable")
@@ -288,31 +244,62 @@ func (p *parser) Next() (Kind, error) {
 }
 
 func (p *parser) Skip() error {
-	if p.kind != objectValueStateKind {
-		_, err := p.Next()
-		return err
-	}
-	currentLevel := len(p.stack)
-	_, err := p.nextObjectValue()
-	if err != nil {
-		return err
-	}
-	for len(p.stack) > currentLevel {
+	switch p.state {
+	case unknownState:
+		return errCannotSkipUnknown
+	case arrayOpenState, arrayElementState:
+		// '[' has been parsed or
+		// '['"e1",...,"en" has been parsed.
+		// call Next until ']' is parsed,
+		// which will result in the stack being popped,
+		// which will result in the stack size being smaller.
+		currentStackSize := len(p.stack)
+		for len(p.stack) >= currentStackSize {
+			_, err := p.Next()
+			if err != nil {
+				return err
+			}
+		}
+	case objectOpenState, objectKeyState:
+		// '{' has been parsed or
+		// '{'"k1":"v1",...,"kn":"vn" has been parsed.
+		// call Next until '}' is parsed,
+		// which will result in the stack being popped,
+		// which will result in the stack size being smaller.
+		currentStackSize := len(p.stack)
+		for len(p.stack) >= currentStackSize {
+			_, err := p.Next()
+			if err != nil {
+				return err
+			}
+		}
+	case objectValueState:
+		currentStackSize := len(p.stack)
 		_, err := p.Next()
 		if err != nil {
 			return err
 		}
+		// If Next parsed down into an array or object,
+		// then keep on parsing until we reach our current level.
+		// If Next parsed a string, number, boolean or null,
+		// then the level would be the same.
+		for len(p.stack) > currentStackSize {
+			_, err := p.Next()
+			if err != nil {
+				return err
+			}
+		}
+	default:
+		panic("unreachable")
 	}
 	return nil
 }
 
-func (p *parser) down(stateKind stateKind) {
+func (p *parser) down(state state) {
 	// Append the current state to the stack.
 	p.stack = append(p.stack, p.state)
 	// Create a new state.
-	p.state = state{
-		kind: stateKind,
-	}
+	p.state = state
 }
 
 func (p *parser) up() error {

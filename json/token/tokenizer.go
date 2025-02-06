@@ -97,10 +97,10 @@ func (t *tokenizer) Bool() (bool, error) {
 	if err := t.tokenize(); err != nil {
 		return false, err
 	}
-	if t.tokenKind.IsTrue() {
+	if t.tokenKind.IsBool() && t.scanKind.IsTrue() {
 		return true, nil
 	}
-	if t.tokenKind.IsFalse() {
+	if t.tokenKind.IsBool() && t.scanKind.IsFalse() {
 		return false, nil
 	}
 	return false, ErrNotBool
@@ -227,9 +227,9 @@ func (t *tokenizer) tokenize() error {
 		case scan.NumberKind:
 			err = t.tokenizeNumber()
 		case scan.TrueKind:
-			t.tokenKind = TrueKind
+			t.tokenKind = BoolKind
 		case scan.FalseKind:
-			t.tokenKind = FalseKind
+			t.tokenKind = BoolKind
 		case scan.NullKind:
 			t.tokenKind = NullKind
 		}

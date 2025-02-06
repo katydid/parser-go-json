@@ -14,95 +14,67 @@
 
 package json
 
+// Kind of the token that is parsed.
+// This is represented by one for following bytes: {["0?n
 type Kind byte
 
-var kindMap = map[byte]Kind{
-	'{': objectKind,
-	'[': arrayKind,
-	'"': stringKind,
-	't': trueKind,
-	'f': falseKind,
-	'n': nullKind,
-	'-': numberKind,
-	'0': numberKind,
-	'1': numberKind,
-	'2': numberKind,
-	'3': numberKind,
-	'4': numberKind,
-	'5': numberKind,
-	'6': numberKind,
-	'7': numberKind,
-	'8': numberKind,
-	'9': numberKind,
+const UnknownKind = Kind(0)
+
+func (k Kind) IsUnknown() bool {
+	return k == UnknownKind
 }
 
-func getKind(b byte) Kind {
-	k, ok := kindMap[b]
-	if ok {
-		return k
-	}
-	return unknownKind
+const ObjectKind = Kind('{')
+
+func (k Kind) IsObject() bool {
+	return k == ObjectKind
 }
 
-const unknownKind = Kind(0)
+const ArrayKind = Kind('[')
 
-const objectKind = Kind('{')
-
-func (k Kind) isObject() bool {
-	return k == objectKind
+func (k Kind) IsArray() bool {
+	return k == ArrayKind
 }
 
-const arrayKind = Kind('[')
+const StringKind = Kind('"')
 
-func (k Kind) isArray() bool {
-	return k == arrayKind
+func (k Kind) IsString() bool {
+	return k == StringKind
 }
 
-const stringKind = Kind('"')
+const NumberKind = Kind('0')
 
-func (k Kind) isString() bool {
-	return k == stringKind
+func (k Kind) IsNumber() bool {
+	return k == NumberKind
 }
 
-const numberKind = Kind('0')
+const BoolKind = Kind('?')
 
-func (k Kind) isNumber() bool {
-	return k == numberKind
+func (k Kind) IsBool() bool {
+	return k == BoolKind
 }
 
-const trueKind = Kind('t')
+const NullKind = Kind('n')
 
-func (k Kind) isTrue() bool {
-	return k == trueKind
-}
-
-const falseKind = Kind('f')
-
-func (k Kind) isFalse() bool {
-	return k == falseKind
-}
-
-const nullKind = Kind('n')
-
-func (k Kind) isNull() bool {
-	return k == nullKind
+func (k Kind) IsNull() bool {
+	return k == NullKind
 }
 
 func (k Kind) String() string {
 	switch k {
-	case unknownKind:
+	case UnknownKind:
 		return "unknown"
-	case falseKind:
-		return "false"
-	case trueKind:
-		return "true"
-	case numberKind:
+	case NullKind:
+		return "null"
+	case BoolKind:
+		return "bool"
+	case NumberKind:
 		return "number"
-	case stringKind:
+	case StringKind:
 		return "string"
-	case arrayKind:
+	case ArrayKind:
 		return "array"
-	case objectKind:
+	case ObjectKind:
 		return "object"
 	}
 	return "other"

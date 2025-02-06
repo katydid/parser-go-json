@@ -12,16 +12,18 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package json
+package parse
 
-import (
-	"reflect"
-	"unsafe"
-)
+type state byte
 
-// castToString uses unsafe to cast a byte slice to a string without copying or allocating memory.
-func castToString(buf []byte) string {
-	header := (*reflect.SliceHeader)(unsafe.Pointer(&buf))
-	strHeader := reflect.StringHeader{Data: header.Data, Len: header.Len}
-	return *(*string)(unsafe.Pointer(&strHeader))
-}
+const unknownState = state(0)
+
+const arrayOpenState = state('[')
+
+const arrayElementState = state(',')
+
+const objectOpenState = state('{')
+
+const objectKeyState = state('k')
+
+const objectValueState = state('v')
