@@ -15,6 +15,7 @@
 package parse
 
 import (
+	"io"
 	"testing"
 )
 
@@ -38,7 +39,7 @@ func expectErr[A any](t *testing.T, f func() (A, error)) {
 }
 
 func TestParseExample(t *testing.T) {
-	s := `{"num":3.14,"arr":[null,false,true],"obj":{"k":"v","boring":[1,2,3]}}`
+	s := `{"num":3.14,"arr":[null,false,true,1,2],"obj":{"k":"v","a":[1,2,3],"b":1,"c":2}}`
 	p := NewParser([]byte(s))
 	expect(t, p.Next, ObjectOpenKind)
 
@@ -57,13 +58,15 @@ func TestParseExample(t *testing.T) {
 
 	expect(t, p.Next, NullKind)
 
-	expect(t, p.Next, FalseKind)
+	expect(t, p.Next, BoolKind)
 	expect(t, p.Bool, false)
 
-	expect(t, p.Next, TrueKind)
+	expect(t, p.Next, BoolKind)
 	expect(t, p.Bool, true)
 
-	expect(t, p.Next, ArrayCloseKind)
+	if err := p.Skip(); err != nil {
+		t.Fatal(err)
+	}
 
 	expect(t, p.Next, StringKind)
 	expect(t, p.String, "obj")
@@ -77,11 +80,18 @@ func TestParseExample(t *testing.T) {
 	expect(t, p.String, "v")
 
 	expect(t, p.Next, StringKind)
-	expect(t, p.String, "boring")
+	expect(t, p.String, "a")
 
-	p.Skip()
+	if err := p.Skip(); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := p.Skip(); err != nil {
+		t.Fatal(err)
+	}
 
 	expect(t, p.Next, ObjectCloseKind)
-
-	expect(t, p.Next, ObjectCloseKind)
+	if _, err := p.Next(); err != io.EOF {
+		t.Fatalf("expected EOF, but got %v", err)
+	}
 }

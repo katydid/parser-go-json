@@ -21,7 +21,7 @@ import (
 	"github.com/katydid/parser-go/parser/debug"
 )
 
-func TestDebug(t *testing.T) {
+func TestDebugWalk(t *testing.T) {
 	p := NewParser()
 	data, err := json.Marshal(debug.Input)
 	if err != nil {
@@ -39,7 +39,7 @@ func TestDebug(t *testing.T) {
 	}
 }
 
-func TestRandomDebug(t *testing.T) {
+func TestDebugRandomWalk(t *testing.T) {
 	p := NewParser()
 	data, err := json.Marshal(debug.Input)
 	if err != nil {

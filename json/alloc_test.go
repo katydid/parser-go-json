@@ -18,153 +18,30 @@ import (
 	"testing"
 
 	"github.com/katydid/parser-go-json/json/internal/pool"
-	"github.com/katydid/parser-go-json/json/rand"
+	"github.com/katydid/parser-go-json/json/internal/testrun"
 	"github.com/katydid/parser-go/parser/debug"
 )
 
 func TestNoAllocsOnAverage(t *testing.T) {
-	r := rand.NewRand()
-	num := 100
-	js := randJSONs(r, num)
-	jparser := NewParser()
-
-	const runsPerTest = 100
-	for i := 0; i < num; i++ {
-		f := func() {
-			if err := jparser.Init(js[i]); err != nil {
-				t.Fatalf("seed = %v, err = %v", r.Seed(), err)
-			}
-			if err := debug.Walk(jparser); err != nil {
-				t.Fatalf("seed = %v, err = %v", r.Seed(), err)
-			}
+	pool := pool.New()
+	p := NewParser()
+	testrun.NoAllocsOnAverage(t, func(input []byte) {
+		p.Init(input)
+		if err := debug.Walk(p); err != nil {
+			t.Fatalf("expected EOF, but got %v", err)
 		}
-		allocs := testing.AllocsPerRun(runsPerTest, f)
-		if allocs != 0 {
-			t.Errorf("seed = %v, got %v allocs, want 0 allocs", r.Seed(), allocs)
-		}
-	}
+		pool.FreeAll()
+	})
 }
 
 func TestNotASingleAllocAfterWarmUp(t *testing.T) {
-	r := rand.NewRand()
-	num := 100
-	js := randJSONs(r, num)
 	pool := pool.New()
-	jparser := NewParser()
-	jparser.(*jsonParser).pool = pool
-
-	// warm up buffer pool
-	for i := 0; i < num; i++ {
-		if err := jparser.Init(js[i%num]); err != nil {
-			t.Fatalf("seed = %v, err = %v value = %v", r.Seed(), err, string(js[i%num]))
+	p := NewParser()
+	p.(*jsonParser).pool = pool
+	testrun.NotASingleAllocAfterWarmUp(t, pool, func(bs []byte) {
+		p.Init(bs)
+		if err := debug.Walk(p); err != nil {
+			t.Fatalf("expected EOF, but got %v", err)
 		}
-		if err := debug.Walk(jparser); err != nil {
-			t.Fatalf("seed = %v, err = %v", r.Seed(), err)
-		}
-	}
-	originalPoolSize := pool.Size()
-
-	const runsPerTest = 1
-	for i := 0; i < num; i++ {
-		f := func() {
-			if err := jparser.Init(js[i]); err != nil {
-				t.Fatalf("seed = %v, err = %v", r.Seed(), err)
-			}
-			if err := debug.Walk(jparser); err != nil {
-				t.Fatalf("seed = %v, err = %v", r.Seed(), err)
-			}
-		}
-		allocs := testing.AllocsPerRun(runsPerTest, f)
-		if allocs != 0 {
-			poolallocs := pool.Size() - originalPoolSize
-			// there are sometimes allocations made by the testing framework
-			// retry to make sure that the allocation is the parser's fault.
-			allocs2 := testing.AllocsPerRun(runsPerTest, f)
-			if allocs2 != 0 {
-				t.Errorf("seed = %v, got %v allocs, want 0 allocs, pool allocs = %v", r.Seed(), allocs, poolallocs)
-			}
-		}
-	}
-}
-
-func BenchmarkAlloc(b *testing.B) {
-	num := 1000
-	r := rand.NewRand()
-	js := randJSONs(r, num)
-	jparser := NewParser()
-
-	// exercise buffer pool
-	for i := 0; i < num; i++ {
-		if err := jparser.Init(js[i%num]); err != nil {
-			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
-		}
-		if err := debug.Walk(jparser); err != nil {
-			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
-		}
-	}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		if err := jparser.Init(js[i%num]); err != nil {
-			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
-		}
-		if err := debug.Walk(jparser); err != nil {
-			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
-		}
-	}
-	b.ReportAllocs()
-}
-
-func BenchmarkPoolDefault(b *testing.B) {
-	// generate random jsons
-	num := 1000
-	r := rand.NewRand()
-	js := randJSONs(r, num)
-
-	// initialise pool
-	jparser := NewParser()
-
-	// exercise buffer pool
-	for i := 0; i < num; i++ {
-		if err := jparser.Init(js[i%num]); err != nil {
-			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
-		}
-		if err := debug.Walk(jparser); err != nil {
-			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
-		}
-	}
-	// start benchmark
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		if err := jparser.Init(js[i%num]); err != nil {
-			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
-		}
-		if err := debug.Walk(jparser); err != nil {
-			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
-		}
-	}
-	b.ReportAllocs()
-}
-
-func BenchmarkPoolNone(b *testing.B) {
-	// generate random jsons
-	num := 1000
-	r := rand.NewRand()
-	js := randJSONs(r, num)
-
-	// set pool to no pool
-	jparser := NewParser()
-	jparser.(*jsonParser).pool = pool.None()
-
-	// start benchmark
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		if err := jparser.Init(js[i%num]); err != nil {
-			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
-		}
-		if err := debug.Walk(jparser); err != nil {
-			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
-		}
-	}
-	b.ReportAllocs()
+	})
 }

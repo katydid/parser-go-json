@@ -12,18 +12,12 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package parse
+package json
 
-type stateKind byte
+type state byte
 
-const unknownStateKind = stateKind(0)
+const unknownState = state(0)
 
-const arrayOpenStateKind = stateKind('[')
-
-const arrayElementStateKind = stateKind(',')
-
-const objectOpenStateKind = stateKind('{')
-
-const objectKeyStateKind = stateKind('k')
-
-const objectValueStateKind = stateKind('v')
+func (s state) IsUnknown() bool {
+	return s == unknownState
+}

@@ -18,7 +18,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/katydid/parser-go-json/json/internal/testutil"
+	"github.com/katydid/parser-go-json/json/internal/testrun"
 	"github.com/katydid/parser-go-json/json/rand"
 )
 
@@ -26,7 +26,7 @@ func TestRandomScan(t *testing.T) {
 	r := rand.NewRand()
 	values := rand.Values(r, 100)
 	for _, value := range values {
-		name := testutil.Name(value)
+		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
 			s := NewScanner([]byte(value))
 			_, _, err := s.Next()

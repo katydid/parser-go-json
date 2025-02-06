@@ -15,7 +15,7 @@
 package token
 
 // kind of the token that is tokenized.
-// This is represented by one for following bytes: {:}[,]"0tfn>-+.
+// This is represented by one for following bytes: {:}[,]"0?n>-+.
 type kind byte
 
 const UnknownKind = kind(0)
@@ -66,16 +66,10 @@ func (k kind) IsString() bool {
 	return k == StringKind
 }
 
-const TrueKind = kind('t')
+const BoolKind = kind('?')
 
-func (k kind) IsTrue() bool {
-	return k == TrueKind
-}
-
-const FalseKind = kind('f')
-
-func (k kind) IsFalse() bool {
-	return k == FalseKind
+func (k kind) IsBool() bool {
+	return k == BoolKind
 }
 
 const NullKind = kind('n')
@@ -128,10 +122,8 @@ func (k kind) String() string {
 		return "unknown"
 	case NullKind:
 		return "null"
-	case FalseKind:
-		return "false"
-	case TrueKind:
-		return "true"
+	case BoolKind:
+		return "bool"
 	case NumberKind:
 		return "number"
 	case StringKind:

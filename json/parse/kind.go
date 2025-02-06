@@ -14,10 +14,8 @@
 
 package parse
 
-import "github.com/katydid/parser-go-json/json/scan"
-
 // Kind of the token that is parsed.
-// This is represented by one for following bytes: {["0tfn
+// This is represented by one for following bytes: {}[]"0tfn
 type Kind byte
 
 const UnknownKind = Kind(0)
@@ -62,16 +60,10 @@ func (k Kind) IsNumber() bool {
 	return k == NumberKind
 }
 
-const TrueKind = Kind('t')
+const BoolKind = Kind('?')
 
-func (k Kind) IsTrue() bool {
-	return k == TrueKind
-}
-
-const FalseKind = Kind('f')
-
-func (k Kind) IsFalse() bool {
-	return k == FalseKind
+func (k Kind) IsBool() bool {
+	return k == BoolKind
 }
 
 const NullKind = Kind('n')
@@ -86,10 +78,8 @@ func (k Kind) String() string {
 		return "unknown"
 	case NullKind:
 		return "null"
-	case FalseKind:
-		return "false"
-	case TrueKind:
-		return "true"
+	case BoolKind:
+		return "bool"
 	case NumberKind:
 		return "number"
 	case StringKind:
@@ -104,30 +94,4 @@ func (k Kind) String() string {
 		return "objectClose"
 	}
 	return "other"
-}
-
-func fromScanKind(k scan.Kind) (Kind, error) {
-	switch k {
-	case scan.UnknownKind:
-		return UnknownKind, nil
-	case scan.NullKind:
-		return UnknownKind, nil
-	case scan.FalseKind:
-		return FalseKind, nil
-	case scan.TrueKind:
-		return TrueKind, nil
-	case scan.NumberKind:
-		return NumberKind, nil
-	case scan.StringKind:
-		return StringKind, nil
-	case scan.ArrayOpenKind:
-		return ArrayOpenKind, nil
-	case scan.ArrayCloseKind:
-		return ArrayCloseKind, nil
-	case scan.ObjectOpenKind:
-		return ObjectOpenKind, nil
-	case scan.ObjectCloseKind:
-		return ObjectCloseKind, nil
-	}
-	panic("unreachable")
 }
