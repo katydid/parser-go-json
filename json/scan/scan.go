@@ -14,56 +14,60 @@
 
 package scan
 
-import "io"
+import (
+	"io"
+)
 
-// Next returns the Kind and the end offset of the token or an error.
-func Next(buf []byte, offset int) (Kind, int, error) {
+// Next returns the Kind and the start and end offset of the token or an error.
+// The start is not always zero, since spaces can be skipped.
+func Next(buf []byte, offset int) (Kind, int, int, error) {
 	var err error
 	offset, err = skipSpace(buf, offset)
 	if err != nil {
-		return UnknownKind, offset, err
+		return UnknownKind, offset, offset, err
 	}
+	start := offset
 	if offset == len(buf) {
-		return UnknownKind, offset, io.EOF
+		return UnknownKind, start, offset, io.EOF
 	}
 	c, err := look(buf, offset)
 	if err != nil {
-		return UnknownKind, offset, err
+		return UnknownKind, start, offset, err
 	}
 	kind := getKind(c)
 	switch kind {
 	case ObjectOpenKind, ObjectCloseKind, ArrayOpenKind, ArrayCloseKind, ColonKind, CommaKind:
 		offset, err = incOffset(buf, offset, 1)
 		if err != nil {
-			return UnknownKind, offset, err
+			return UnknownKind, start, offset, err
 		}
 	case StringKind:
 		offset, err = scanString(buf, offset)
 		if err != nil {
-			return UnknownKind, offset, err
+			return UnknownKind, start, offset, err
 		}
 	case NumberKind:
 		offset, err = scanNumber(buf, offset)
 		if err != nil {
-			return UnknownKind, offset, err
+			return UnknownKind, start, offset, err
 		}
 	case TrueKind:
 		offset, err = scanTrue(buf, offset)
 		if err != nil {
-			return UnknownKind, offset, err
+			return UnknownKind, start, offset, err
 		}
 	case FalseKind:
 		offset, err = scanFalse(buf, offset)
 		if err != nil {
-			return UnknownKind, offset, err
+			return UnknownKind, start, offset, err
 		}
 	case NullKind:
 		offset, err = scanNull(buf, offset)
 		if err != nil {
-			return UnknownKind, offset, err
+			return UnknownKind, start, offset, err
 		}
 	}
-	return kind, offset, nil
+	return kind, start, offset, nil
 }
 
 var kindMap = map[byte]Kind{

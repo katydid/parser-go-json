@@ -38,7 +38,7 @@ func expectErr[A any](t *testing.T, f func() (A, error)) {
 }
 
 func TestParseExample(t *testing.T) {
-	s := `{"num":3.14,"arr":[null,false,true],"obj":{"k":"v", "boring": [1,2,3]}}`
+	s := `{"num":3.14,"arr":[null,false,true],"obj":{"k":"v","boring":[1,2,3]}}`
 	p := NewParser([]byte(s))
 	expect(t, p.Next, ObjectOpenKind)
 

@@ -12,14 +12,13 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package parse
+package testutil
 
-import "errors"
-
-var errExpectedValue = errors.New("expected value")
-
-var errExpectedCommaOrCloseBracket = errors.New("expected ',' or ']'")
-
-var errExpectedStringOrCloseCurly = errors.New("expected '\"' or '}'")
-
-var errExpectedColon = errors.New("expected ':'")
+// Name truncates the input to a test name.
+func Name(input []byte) string {
+	max := 25
+	if len(input) < max {
+		return string(input)
+	}
+	return string(input[:max]) + "..."
+}

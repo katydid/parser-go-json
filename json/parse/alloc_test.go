@@ -12,7 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package scan
+package parse
 
 import (
 	"testing"
@@ -23,10 +23,10 @@ import (
 
 func TestNoAllocsOnAverage(t *testing.T) {
 	pool := pool.New()
-	s := NewScanner(nil)
+	p := NewParserWithCustomAllocator(nil, pool.Alloc)
 	testutil.NoAllocsOnAverage(t, func(input []byte) {
-		s.Init(input)
-		if err := walk(s); err != nil {
+		p.Init(input)
+		if err := walk(p); err != nil {
 			t.Fatalf("expected EOF, but got %v", err)
 		}
 		pool.FreeAll()
@@ -35,10 +35,10 @@ func TestNoAllocsOnAverage(t *testing.T) {
 
 func TestNotASingleAllocAfterWarmUp(t *testing.T) {
 	pool := pool.New()
-	s := NewScanner(nil)
+	p := NewParserWithCustomAllocator(nil, pool.Alloc)
 	testutil.NotASingleAllocAfterWarmUp(t, pool, func(bs []byte) {
-		s.Init(bs)
-		if err := walk(s); err != nil {
+		p.Init(bs)
+		if err := walk(p); err != nil {
 			t.Fatalf("expected EOF, but got %v", err)
 		}
 	})
