@@ -12,14 +12,17 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package parse
+package scan
 
-import "errors"
+import "io"
 
-var errExpectedValue = errors.New("expected value")
-
-var errExpectedCommaOrCloseBracket = errors.New("expected ',' or ']'")
-
-var errExpectedStringOrCloseCurly = errors.New("expected '\"' or '}'")
-
-var errExpectedColon = errors.New("expected ':'")
+func walk(s Scanner) error {
+	_, _, err := s.Next()
+	for err == nil {
+		_, _, err = s.Next()
+	}
+	if err != io.EOF {
+		return err
+	}
+	return nil
+}

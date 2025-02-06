@@ -14,12 +14,16 @@
 
 package parse
 
-import "errors"
+type stateKind byte
 
-var errExpectedValue = errors.New("expected value")
+const unknownStateKind = stateKind(0)
 
-var errExpectedCommaOrCloseBracket = errors.New("expected ',' or ']'")
+const arrayOpenStateKind = stateKind('[')
 
-var errExpectedStringOrCloseCurly = errors.New("expected '\"' or '}'")
+const arrayElementStateKind = stateKind(',')
 
-var errExpectedColon = errors.New("expected ':'")
+const objectOpenStateKind = stateKind('{')
+
+const objectKeyStateKind = stateKind('k')
+
+const objectValueStateKind = stateKind('v')

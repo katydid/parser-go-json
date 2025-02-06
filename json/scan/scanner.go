@@ -42,11 +42,11 @@ func (s *scanner) Init(buf []byte) {
 
 // Next returns the Kind and the slice of the buffer containing the token or an error.
 func (s *scanner) Next() (Kind, []byte, error) {
-	kind, offset, err := Next(s.buf, s.offset)
+	kind, start, end, err := Next(s.buf, s.offset)
 	if err != nil {
 		return kind, nil, err
 	}
-	buf := s.buf[s.offset:offset]
-	s.offset = offset
+	buf := s.buf[start:end]
+	s.offset = end
 	return kind, buf, nil
 }

@@ -12,34 +12,25 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package scan
+package parse
 
 import (
 	"testing"
 
-	"github.com/katydid/parser-go-json/json/internal/pool"
 	"github.com/katydid/parser-go-json/json/internal/testutil"
+	"github.com/katydid/parser-go-json/json/rand"
 )
 
-func TestNoAllocsOnAverage(t *testing.T) {
-	pool := pool.New()
-	s := NewScanner(nil)
-	testutil.NoAllocsOnAverage(t, func(input []byte) {
-		s.Init(input)
-		if err := walk(s); err != nil {
-			t.Fatalf("expected EOF, but got %v", err)
-		}
-		pool.FreeAll()
-	})
-}
-
-func TestNotASingleAllocAfterWarmUp(t *testing.T) {
-	pool := pool.New()
-	s := NewScanner(nil)
-	testutil.NotASingleAllocAfterWarmUp(t, pool, func(bs []byte) {
-		s.Init(bs)
-		if err := walk(s); err != nil {
-			t.Fatalf("expected EOF, but got %v", err)
-		}
-	})
+func TestRandomParse(t *testing.T) {
+	r := rand.NewRand()
+	values := rand.Values(r, 100)
+	for _, value := range values {
+		name := testutil.Name(value)
+		t.Run(name, func(t *testing.T) {
+			tokenizer := NewParser([]byte(value))
+			if err := walk(tokenizer); err != nil {
+				t.Fatalf("expected EOF, but got %v", err)
+			}
+		})
+	}
 }

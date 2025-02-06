@@ -12,13 +12,11 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package token
+package parse
 
 import (
 	"errors"
 	"io"
-
-	"github.com/katydid/parser-go-json/json/scan"
 )
 
 var errUnknownToken = errors.New("unknown token")
@@ -27,11 +25,11 @@ var errExpectedBool = errors.New("expected bool")
 
 var errExpectedString = errors.New("expected string")
 
-func walkValue(t Tokenizer, kind scan.Kind) error {
+func walkValue(t Parser, kind Kind) error {
 	if _, err := t.Bool(); err == nil {
 		return nil
 	}
-	if kind == scan.FalseKind || kind == scan.TrueKind {
+	if kind == FalseKind || kind == TrueKind {
 		return errExpectedBool
 	}
 	if _, err := t.Int(); err == nil {
@@ -46,7 +44,7 @@ func walkValue(t Tokenizer, kind scan.Kind) error {
 	if _, err := t.String(); err == nil {
 		return nil
 	}
-	if kind == scan.StringKind {
+	if kind == StringKind {
 		return errExpectedString
 	}
 	if _, err := t.Bytes(); err == nil {
@@ -55,11 +53,11 @@ func walkValue(t Tokenizer, kind scan.Kind) error {
 	return errUnknownToken
 }
 
-func walk(t Tokenizer) error {
+func walk(t Parser) error {
 	kind, err := t.Next()
 	for err == nil {
 		switch kind {
-		case scan.NullKind, scan.FalseKind, scan.TrueKind, scan.NumberKind, scan.StringKind:
+		case NullKind, FalseKind, TrueKind, NumberKind, StringKind:
 			if err := walkValue(t, kind); err != nil {
 				return err
 			}

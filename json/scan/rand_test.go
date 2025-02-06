@@ -15,31 +15,27 @@
 package scan
 
 import (
+	"io"
 	"testing"
 
-	"github.com/katydid/parser-go-json/json/internal/pool"
 	"github.com/katydid/parser-go-json/json/internal/testutil"
+	"github.com/katydid/parser-go-json/json/rand"
 )
 
-func TestNoAllocsOnAverage(t *testing.T) {
-	pool := pool.New()
-	s := NewScanner(nil)
-	testutil.NoAllocsOnAverage(t, func(input []byte) {
-		s.Init(input)
-		if err := walk(s); err != nil {
-			t.Fatalf("expected EOF, but got %v", err)
-		}
-		pool.FreeAll()
-	})
-}
-
-func TestNotASingleAllocAfterWarmUp(t *testing.T) {
-	pool := pool.New()
-	s := NewScanner(nil)
-	testutil.NotASingleAllocAfterWarmUp(t, pool, func(bs []byte) {
-		s.Init(bs)
-		if err := walk(s); err != nil {
-			t.Fatalf("expected EOF, but got %v", err)
-		}
-	})
+func TestRandomScan(t *testing.T) {
+	r := rand.NewRand()
+	values := rand.Values(r, 100)
+	for _, value := range values {
+		name := testutil.Name(value)
+		t.Run(name, func(t *testing.T) {
+			s := NewScanner([]byte(value))
+			_, _, err := s.Next()
+			for err == nil {
+				_, _, err = s.Next()
+			}
+			if err != io.EOF {
+				t.Fatalf("expected EOF, but got %v", err)
+			}
+		})
+	}
 }

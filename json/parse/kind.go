@@ -84,6 +84,8 @@ func (k Kind) String() string {
 	switch k {
 	case UnknownKind:
 		return "unknown"
+	case NullKind:
+		return "null"
 	case FalseKind:
 		return "false"
 	case TrueKind:

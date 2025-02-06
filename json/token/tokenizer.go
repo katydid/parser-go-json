@@ -15,6 +15,8 @@
 package token
 
 import (
+	"fmt"
+
 	"github.com/katydid/parser-go-json/json/internal/fork/strconv"
 	"github.com/katydid/parser-go-json/json/internal/fork/unquote"
 	"github.com/katydid/parser-go-json/json/scan"
@@ -89,7 +91,7 @@ func (t *tokenizer) Next() (scan.Kind, error) {
 
 // Bool attempts to convert the current token to a bool.
 func (t *tokenizer) Bool() (bool, error) {
-	if !t.scanKind.IsTrue() || t.scanKind.IsFalse() {
+	if !t.scanKind.IsTrue() && !t.scanKind.IsFalse() {
 		return false, ErrNotBool
 	}
 	if err := t.tokenize(); err != nil {
@@ -208,9 +210,11 @@ func unquoteBytes(alloc func(int) []byte, s []byte) (string, error) {
 func (t *tokenizer) tokenizeString() error {
 	res, err := unquoteBytes(t.alloc, t.scanToken)
 	if err != nil {
+		panic(fmt.Sprintf("%q", t.scanToken))
 		return err
 	}
 	t.tokenString = res
+	t.tokenKind = StringKind
 	return nil
 }
 

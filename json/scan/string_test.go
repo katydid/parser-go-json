@@ -17,6 +17,7 @@ package scan
 import (
 	"testing"
 
+	"github.com/katydid/parser-go-json/json/internal/testutil"
 	"github.com/katydid/parser-go-json/json/rand"
 )
 
@@ -58,7 +59,7 @@ func TestRandString(t *testing.T) {
 	r := rand.NewRand()
 	for i := 0; i < 100; i++ {
 		s := rand.String(r)
-		name := s[:min(len(s), 10)] + "..."
+		name := testutil.Name([]byte(s))
 		t.Run(name, func(t *testing.T) {
 			buf := []byte(s)
 			got, err := String(buf)

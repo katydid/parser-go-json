@@ -14,27 +14,81 @@
 
 package scan
 
-import (
-	"io"
-	"testing"
+import "testing"
 
-	"github.com/katydid/parser-go-json/json/rand"
-)
-
-func TestRandomScan(t *testing.T) {
-	r := rand.NewRand()
-	values := rand.Values(r, 100)
-	for _, value := range values {
-		name := string(value[:min(len(value), 10)]) + "..."
-		t.Run(name, func(t *testing.T) {
-			s := NewScanner([]byte(value))
-			_, _, err := s.Next()
-			for err == nil {
-				_, _, err = s.Next()
-			}
-			if err != io.EOF {
-				t.Fatalf("expected EOF, but got %v", err)
-			}
-		})
+func expect[A comparable, B any](t *testing.T, f func() (A, B, error), want A) {
+	t.Helper()
+	got, _, err := f()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
+	if got != want {
+		t.Fatalf("want %v, but got %v", want, got)
+	}
+}
+
+func TestScannerExample(t *testing.T) {
+	str := `{"num":3.14,"arr":[null,false,true],"obj":{"k":"v"}}`
+	s := NewScanner([]byte(str))
+	expect(t, s.Next, ObjectOpenKind)
+	expect(t, s.Next, StringKind)
+	expect(t, s.Next, ColonKind)
+	expect(t, s.Next, NumberKind)
+	expect(t, s.Next, CommaKind)
+	expect(t, s.Next, StringKind)
+	expect(t, s.Next, ColonKind)
+	expect(t, s.Next, ArrayOpenKind)
+	expect(t, s.Next, NullKind)
+	expect(t, s.Next, CommaKind)
+	expect(t, s.Next, FalseKind)
+	expect(t, s.Next, CommaKind)
+	expect(t, s.Next, TrueKind)
+	expect(t, s.Next, ArrayCloseKind)
+	expect(t, s.Next, CommaKind)
+	expect(t, s.Next, StringKind)
+	expect(t, s.Next, ColonKind)
+	expect(t, s.Next, ObjectOpenKind)
+	expect(t, s.Next, StringKind)
+	expect(t, s.Next, ColonKind)
+	expect(t, s.Next, StringKind)
+	expect(t, s.Next, ObjectCloseKind)
+	expect(t, s.Next, ObjectCloseKind)
+}
+
+func TestScannerExampleWithSpaces(t *testing.T) {
+	str := "  {  \"num\" : 3.14\t\r\n ,\t\"arr\"\n:\r[   null , false    , true],  \"obj\" : { \"k\" : \"v\" }, \"boring\"  : [\n 1 , 2 ,  3  ]  }  "
+	s := NewScanner([]byte(str))
+	expect(t, s.Next, ObjectOpenKind)
+	expect(t, s.Next, StringKind)
+	expect(t, s.Next, ColonKind)
+	expect(t, s.Next, NumberKind)
+	expect(t, s.Next, CommaKind)
+	expect(t, s.Next, StringKind)
+	expect(t, s.Next, ColonKind)
+	expect(t, s.Next, ArrayOpenKind)
+	expect(t, s.Next, NullKind)
+	expect(t, s.Next, CommaKind)
+	expect(t, s.Next, FalseKind)
+	expect(t, s.Next, CommaKind)
+	expect(t, s.Next, TrueKind)
+	expect(t, s.Next, ArrayCloseKind)
+	expect(t, s.Next, CommaKind)
+	expect(t, s.Next, StringKind)
+	expect(t, s.Next, ColonKind)
+	expect(t, s.Next, ObjectOpenKind)
+	expect(t, s.Next, StringKind)
+	expect(t, s.Next, ColonKind)
+	expect(t, s.Next, StringKind)
+	expect(t, s.Next, ObjectCloseKind)
+	expect(t, s.Next, CommaKind)
+	expect(t, s.Next, StringKind)
+	expect(t, s.Next, ColonKind)
+	expect(t, s.Next, ArrayOpenKind)
+	expect(t, s.Next, NumberKind)
+	expect(t, s.Next, CommaKind)
+	expect(t, s.Next, NumberKind)
+	expect(t, s.Next, CommaKind)
+	expect(t, s.Next, NumberKind)
+	expect(t, s.Next, ArrayCloseKind)
+	expect(t, s.Next, ObjectCloseKind)
 }
