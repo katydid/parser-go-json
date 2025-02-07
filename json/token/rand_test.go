@@ -12,36 +12,25 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package json
+package token
 
 import (
 	"testing"
 
-	"github.com/katydid/parser-go-json/json/internal/pool"
 	"github.com/katydid/parser-go-json/json/internal/testrun"
-	"github.com/katydid/parser-go/parser/debug"
+	"github.com/katydid/parser-go-json/json/rand"
 )
 
-func TestNoAllocsOnAverage(t *testing.T) {
-	pool := pool.New()
-	p := NewParser()
-	testrun.NoAllocsOnAverage(t, func(input []byte) {
-		p.Init(input)
-		if err := debug.Walk(p); err != nil {
-			t.Fatalf("expected EOF, but got %v", err)
-		}
-		pool.FreeAll()
-	})
-}
-
-func TestNotASingleAllocAfterWarmUp(t *testing.T) {
-	pool := pool.New()
-	p := NewParser()
-	p.(*jsonParser).pool = pool
-	testrun.NotASingleAllocAfterWarmUp(t, pool, func(bs []byte) {
-		p.Init(bs)
-		if err := debug.Walk(p); err != nil {
-			t.Fatalf("expected EOF, but got %v", err)
-		}
-	})
+func TestRandomScan(t *testing.T) {
+	r := rand.NewRand()
+	values := rand.Values(r, 100)
+	for _, value := range values {
+		name := testrun.Name(value)
+		t.Run(name, func(t *testing.T) {
+			tokenizer := NewTokenizer([]byte(value))
+			if err := walk(tokenizer); err != nil {
+				t.Fatalf("expected EOF, but got %v", err)
+			}
+		})
+	}
 }

@@ -13,3 +13,16 @@
 //  limitations under the License.
 
 package json
+
+type state struct {
+	kind       stateKind
+	arrayIndex int
+}
+
+type stateKind byte
+
+const unknownStateKind = stateKind(0)
+
+func (s stateKind) IsUnknown() bool {
+	return s == unknownStateKind
+}

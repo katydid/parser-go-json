@@ -12,4 +12,16 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package json
+package scan
+
+import "errors"
+
+var errExpectedNull = errors.New("expected null")
+
+var errExpectedFalse = errors.New("expected false")
+
+var errExpectedTrue = errors.New("expected true")
+
+var errScanString = errors.New("unable to scan string")
+
+var errScanNumber = errors.New("unable to scan number")

@@ -15,109 +15,43 @@
 package json
 
 import (
-	"fmt"
-	"io"
+	"encoding/json"
+	"testing"
 
-	"github.com/katydid/parser-go/parser"
 	"github.com/katydid/parser-go/parser/debug"
 )
 
-func getValue(p parser.Interface) interface{} {
-	var v interface{}
-	var err error
-	v, err = p.Int()
-	if err == nil {
-		return v
+func TestDebugWalk(t *testing.T) {
+	p := NewParser()
+	data, err := json.Marshal(debug.Input)
+	if err != nil {
+		t.Fatal(err)
 	}
-	v, err = p.Uint()
-	if err == nil {
-		return v
+	if err := p.Init(data); err != nil {
+		t.Fatal(err)
 	}
-	v, err = p.Double()
-	if err == nil {
-		return v
+	m, err := debug.Parse(p)
+	if err != nil {
+		t.Fatal(err)
 	}
-	v, err = p.Bool()
-	if err == nil {
-		return v
+	if !m.Equal(debug.Output) {
+		t.Fatalf("expected %s but got %s", debug.Output, m)
 	}
-	v, err = p.String()
-	if err == nil {
-		return v
-	}
-	bs, err := p.Bytes()
-	if err == nil {
-		return string(bs)
-	}
-	return nil
 }
 
-func parse(p parser.Interface) (debug.Nodes, error) {
-	a := make(debug.Nodes, 0)
-	for {
-		if err := p.Next(); err != nil {
-			if err == io.EOF {
-				break
-			} else {
-				return nil, err
-			}
+func TestDebugRandomWalk(t *testing.T) {
+	p := NewParser()
+	data, err := json.Marshal(debug.Input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 10; i++ {
+		if err := p.Init(data); err != nil {
+			t.Fatal(err)
 		}
-		value := getValue(p)
-		if p.IsLeaf() {
-			a = append(a, debug.Node{Label: fmt.Sprintf("%v", value), Children: nil})
-		} else {
-			name := fmt.Sprintf("%v", value)
-			p.Down()
-			v, err := parse(p)
-			if err != nil {
-				return nil, err
-			}
-			p.Up()
-			a = append(a, debug.Node{Label: name, Children: v})
+		l := debug.NewLogger(p, debug.NewLineLogger())
+		if err := debug.RandomWalk(l, debug.NewRand(), 10, 3); err != nil {
+			t.Fatal(err)
 		}
 	}
-	return a, nil
-}
-
-func walkValue(p parser.Interface) {
-	if _, err := p.Int(); err == nil {
-		return
-	}
-	if _, err := p.Uint(); err == nil {
-		return
-	}
-	if _, err := p.Double(); err == nil {
-		return
-	}
-	if _, err := p.Bool(); err == nil {
-		return
-	}
-	if _, err := p.String(); err == nil {
-		return
-	}
-	if _, err := p.Bytes(); err == nil {
-		return
-	}
-	return
-}
-
-func walk(p parser.Interface) error {
-	for {
-		if err := p.Next(); err != nil {
-			if err == io.EOF {
-				break
-			} else {
-				return err
-			}
-		}
-		walkValue(p)
-		if !p.IsLeaf() {
-			p.Down()
-			if err := walk(p); err != nil {
-				return err
-			}
-			p.Up()
-		}
-	}
-	return nil
 }

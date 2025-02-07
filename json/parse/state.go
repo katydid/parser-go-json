@@ -12,4 +12,23 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package json
+package parse
+
+type state byte
+
+const startState = state(0)
+
+// leafState is for parsing only a single value of: null, true, false, string or number
+const leafState = state('l')
+
+const arrayOpenState = state('[')
+
+const arrayElementState = state(',')
+
+const objectOpenState = state('{')
+
+const objectKeyState = state('k')
+
+const objectValueState = state('v')
+
+const endState = state('e')

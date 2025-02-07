@@ -12,33 +12,8 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package json
+package unquote
 
-import (
-	"bytes"
-	"testing"
-
-	"github.com/katydid/parser-go-json/json/pool"
-)
-
-var unquotetests = []struct {
-	in  string
-	out string
-}{
-	{`""`, ""},
-	{`"a"`, "a"},
-	{`"abc"`, "abc"},
-	{`"☺"`, "☺"},
-	{`"hello world"`, "hello world"},
-	{`"\u1234"`, "\u1234"},
-	{`"'"`, "'"},
-}
-
-func TestUnquote(t *testing.T) {
-	for _, test := range unquotetests {
-		got, gotOk := unquoteBytes(pool.New(), []byte(test.in))
-		if !bytes.Equal(got, []byte(test.out)) || !gotOk {
-			t.Errorf("Unquote(%q) = (%q, %v), want (%q, %v)", test.in, got, gotOk, test.out, true)
-		}
-	}
+func Unquote(alloc func(size int) []byte, s []byte) (t []byte, ok bool) {
+	return unquoteBytes(alloc, s)
 }

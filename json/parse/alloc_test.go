@@ -12,22 +12,21 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package json
+package parse
 
 import (
 	"testing"
 
 	"github.com/katydid/parser-go-json/json/internal/pool"
 	"github.com/katydid/parser-go-json/json/internal/testrun"
-	"github.com/katydid/parser-go/parser/debug"
 )
 
 func TestNoAllocsOnAverage(t *testing.T) {
 	pool := pool.New()
-	p := NewParser()
+	p := NewParserWithCustomAllocator(nil, pool.Alloc)
 	testrun.NoAllocsOnAverage(t, func(input []byte) {
 		p.Init(input)
-		if err := debug.Walk(p); err != nil {
+		if err := walk(p); err != nil {
 			t.Fatalf("expected EOF, but got %v", err)
 		}
 		pool.FreeAll()
@@ -36,11 +35,10 @@ func TestNoAllocsOnAverage(t *testing.T) {
 
 func TestNotASingleAllocAfterWarmUp(t *testing.T) {
 	pool := pool.New()
-	p := NewParser()
-	p.(*jsonParser).pool = pool
+	p := NewParserWithCustomAllocator(nil, pool.Alloc)
 	testrun.NotASingleAllocAfterWarmUp(t, pool, func(bs []byte) {
 		p.Init(bs)
-		if err := debug.Walk(p); err != nil {
+		if err := walk(p); err != nil {
 			t.Fatalf("expected EOF, but got %v", err)
 		}
 	})

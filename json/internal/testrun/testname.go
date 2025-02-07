@@ -12,4 +12,13 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package json
+package testrun
+
+// Name truncates the input to a test name.
+func Name(input []byte) string {
+	max := 25
+	if len(input) < max {
+		return string(input)
+	}
+	return string(input[:max]) + "..."
+}

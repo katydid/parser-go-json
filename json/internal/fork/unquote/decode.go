@@ -2,16 +2,12 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// This code has been copied from https://golang.org/src/encoding/json/decode.go
-
-package json
+package unquote
 
 import (
 	"unicode"
 	"unicode/utf16"
 	"unicode/utf8"
-
-	"github.com/katydid/parser-go-json/json/pool"
 )
 
 // getu4 decodes \uXXXX from the beginning of s, returning the hex value,
@@ -37,7 +33,7 @@ func getu4(s []byte) rune {
 	return r
 }
 
-func unquoteBytes(pool pool.Pool, s []byte) (t []byte, ok bool) {
+func unquoteBytes(alloc func(size int) []byte, s []byte) (t []byte, ok bool) {
 	if len(s) < 2 || s[0] != '"' || s[len(s)-1] != '"' {
 		return
 	}
@@ -66,7 +62,7 @@ func unquoteBytes(pool pool.Pool, s []byte) (t []byte, ok bool) {
 		return s, true
 	}
 
-	b := pool.Alloc(len(s) * utf8.UTFMax)
+	b := alloc(len(s) * utf8.UTFMax)
 	w := copy(b, s[0:r])
 	for r < len(s) {
 		switch c := s[r]; {

@@ -15,164 +15,65 @@
 package json
 
 import (
-	"encoding/json"
 	"testing"
 
-	"github.com/katydid/parser-go/parser/debug"
+	"github.com/katydid/parser-go-json/json/internal/testrun"
 )
 
-func TestDebug(t *testing.T) {
-	p := NewJsonParser()
-	data, err := json.Marshal(debug.Input)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := p.Init(data); err != nil {
-		t.Fatal(err)
-	}
-	m := debug.Walk(p)
-	if !m.Equal(debug.Output) {
-		t.Fatalf("expected %s but got %s", debug.Output, m)
-	}
-}
-
-func TestRandomDebug(t *testing.T) {
-	p := NewJsonParser()
-	data, err := json.Marshal(debug.Input)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for i := 0; i < 10; i++ {
-		if err := p.Init(data); err != nil {
-			t.Fatal(err)
-		}
-		//l := debug.NewLogger(p, debug.NewLineLogger())
-		debug.RandomWalk(p, debug.NewRand(), 10, 3)
-		//t.Logf("original %v vs random %v", debug.Output, m)
-	}
-}
-
-func TestEscapedChar(t *testing.T) {
-	j := map[string][]interface{}{
-		`a\"`: {1},
-	}
-	data, err := json.Marshal(j)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Logf("%s", string(data))
-	parser := NewJsonParser()
-	if err := parser.Init(data); err != nil {
-		t.Fatal(err)
-	}
-	m, err := parse(parser)
-	if err != nil {
-		t.Fatal(err)
-	}
-	name := m[0].Label
-	if name != `a\"` {
-		t.Fatalf("wrong escaped name %s", name)
-	}
-}
-
-func TestMultiLineArray(t *testing.T) {
-	s := `{
-		"A":[1]
-	}`
-	parser := NewJsonParser()
-	if err := parser.Init([]byte(s)); err != nil {
-		t.Fatal(err)
-	}
-	m, err := parse(parser)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Logf("%v", m)
-}
-
-func TestIntWithExponent(t *testing.T) {
-	s := `{"A":1e+08}`
-	parser := NewJsonParser()
-	if err := parser.Init([]byte(s)); err != nil {
-		t.Fatal(err)
-	}
-	if err := parser.Next(); err != nil {
-		t.Fatal(err)
-	}
-	parser.Down()
-	if err := parser.Next(); err != nil {
-		t.Fatal(err)
-	}
-	if !parser.IsLeaf() {
-		t.Fatal("incorrect walk, please adjust the path above")
-	}
-	if i, err := parser.Int(); err != nil {
-		t.Fatalf("did not expect error %v", err)
-	} else if i != 1e+08 {
-		t.Fatalf("got %d", i)
-	}
-}
-
-func TestTooLargeNumber(t *testing.T) {
-	input := `123456789.123456789e+123456789`
-	parser := NewJsonParser()
-	if err := parser.Init([]byte(input)); err != nil {
-		t.Fatalf("init error: %v", err)
-	}
-	if err := parser.Next(); err != nil {
-		t.Fatalf("Next err = %v", err)
-	}
-	if _, err := parser.Double(); err == nil {
-		t.Fatal("expected number to be too large")
-	}
-	bs, err := parser.Bytes()
-	if err != nil {
-		t.Fatalf("expected bytes to return anyway, but got error = %v", err)
-	}
-	if string(bs) != input {
-		t.Fatalf("expected %v, but got %v", input, string(bs))
-	}
-}
-
 func TestValues(t *testing.T) {
-	testValue(t, "0", "0")
-	testValue(t, "1", "1")
-	testValue(t, "-1", "-1")
-	testValue(t, "123", "123")
-	testValue(t, "1.1", "1.1")
-	testValue(t, "1.123", "1.123")
-	testValue(t, "1.1e1", "11")
-	testValue(t, "1.1e-1", "0.11")
-	testValue(t, "1.1e10", "11000000000")
-	testValue(t, "1.1e+10", "11000000000")
-	testValue(t, `"a"`, "a")
-	testValue(t, `"abc"`, "abc")
-	testValue(t, `""`, "")
-	testValue(t, `"\b"`, "\b")
-	testValue(t, `true`, "true")
-	testValue(t, `false`, "false")
-	testValue(t, `null`, "null")
-}
-
-func testWalk(t *testing.T, s string) {
-	t.Helper()
-	parser := NewJsonParser()
-	if err := parser.Init([]byte(s)); err != nil {
-		t.Error(err)
-		return
-	}
-	m, err := parse(parser)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	t.Logf("%v", m)
+	p := NewParser()
+	testrun.EqualValue(t, p, "0", "0")
+	testrun.EqualValue(t, p, "1", "1")
+	testrun.EqualValue(t, p, "-1", "-1")
+	testrun.EqualValue(t, p, "123", "123")
+	testrun.EqualValue(t, p, "1.1", "1.1")
+	testrun.EqualValue(t, p, "1.123", "1.123")
+	testrun.EqualValue(t, p, "1.1e1", "11")
+	testrun.EqualValue(t, p, "1.1e-1", "0.11")
+	testrun.EqualValue(t, p, "1.1e10", "11000000000")
+	testrun.EqualValue(t, p, "1.1e+10", "11000000000")
+	testrun.EqualValue(t, p, `"a"`, "a")
+	testrun.EqualValue(t, p, `"abc"`, "abc")
+	testrun.EqualValue(t, p, `""`, "")
+	testrun.EqualValue(t, p, `"\b"`, "\b")
+	testrun.EqualValue(t, p, `true`, "true")
+	testrun.EqualValue(t, p, `false`, "false")
+	testrun.EqualValue(t, p, `null`, "null")
 }
 
 func TestArray(t *testing.T) {
-	testWalk(t, `[1]`)
-	testWalk(t, `[1,2.3e5]`)
-	testWalk(t, `[1,"a"]`)
-	testWalk(t, `[true, false, null]`)
-	testWalk(t, `[{"a": true, "b": [1,2]}]`)
+	p := NewParser()
+	testrun.Parsable(t, p, `[]`)
+	testrun.NotParsable(t, p, `[`)
+	testrun.Parsable(t, p, `[1]`)
+	testrun.NotParsable(t, p, `[1 2]`)
+	testrun.Parsable(t, p, `[1,2]`)
+	testrun.Parsable(t, p, `[1,2.3e5]`)
+	testrun.Parsable(t, p, `[1,"a"]`)
+	testrun.Parsable(t, p, `[1,2,3]`)
+	testrun.Parsable(t, p, `[true,false,null]`)
+	testrun.Parsable(t, p, `[ true  , false , null   ]`)
+	testrun.Parsable(t, p, `[{"a": true, "b": [1,2]}]`)
+	testrun.Parsable(t, p, `["["]`)
+	testrun.Parsable(t, p, `["]"]`)
+}
+
+func TestObject(t *testing.T) {
+	p := NewParser()
+	testrun.Parsable(t, p, `{}`)
+	testrun.Parsable(t, p, `{"a":1}`)
+	testrun.Parsable(t, p, `{"a":1,"b":2}`)
+	testrun.Parsable(t, p, `{"a":1,"b":2,"c":3}`)
+	testrun.NotParsable(t, p, `{"a":1,"b"}`)
+	testrun.NotParsable(t, p, `{"a"}`)
+	testrun.NotParsable(t, p, `{"a" "b"}`)
+	testrun.Parsable(t, p, `{"{":null}`)
+	testrun.Parsable(t, p, `{"}":null}`)
+	testrun.Parsable(t, p, `{"a":"{"}`)
+	testrun.Parsable(t, p, `{"a":"}"}`)
+	testrun.Parsable(t, p, `{"a":true,"b":false}`)
+	testrun.Parsable(t, p, `{"a": true , "b": false}`)
+	testrun.Parsable(t, p, `{"a":[1]}`)
+	testrun.Parsable(t, p, `{"a":true,"b":[1,2]}`)
+	testrun.Parsable(t, p, `{"a": true, "b": [1,2]}`)
 }

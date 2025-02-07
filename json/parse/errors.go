@@ -12,4 +12,16 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package json
+package parse
+
+import "errors"
+
+var errExpectedValue = errors.New("expected value")
+
+var errExpectedCommaOrCloseBracket = errors.New("expected ',' or ']'")
+
+var errExpectedStringOrCloseCurly = errors.New("expected '\"' or '}'")
+
+var errExpectedColon = errors.New("expected ':'")
+
+var errCannotSkipUnknown = errors.New("cannot Skip before parsing")

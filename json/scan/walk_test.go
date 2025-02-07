@@ -12,4 +12,17 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package json
+package scan
+
+import "io"
+
+func walk(s Scanner) error {
+	_, _, err := s.Next()
+	for err == nil {
+		_, _, err = s.Next()
+	}
+	if err != io.EOF {
+		return err
+	}
+	return nil
+}
