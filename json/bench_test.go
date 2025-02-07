@@ -28,18 +28,18 @@ func BenchmarkPoolDefault(b *testing.B) {
 	r := rand.NewRand()
 	values := rand.Values(r, num)
 
-	// initialise pool
-	jparser := NewParser()
-	// exercise buffer pool
-	for i := 0; i < num; i++ {
-		if err := jparser.Init(values[i%num]); err != nil {
-			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
-		}
-		if err := debug.Walk(jparser); err != nil {
-			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
-		}
-	}
 	b.Run("pool", func(b *testing.B) {
+		// initialise pool
+		jparser := NewParser()
+		// exercise buffer pool
+		for i := 0; i < num; i++ {
+			if err := jparser.Init(values[i%num]); err != nil {
+				b.Fatalf("seed = %v, err = %v", r.Seed(), err)
+			}
+			if err := debug.Walk(jparser); err != nil {
+				b.Fatalf("seed = %v, err = %v", r.Seed(), err)
+			}
+		}
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			if err := jparser.Init(values[i%num]); err != nil {
@@ -52,8 +52,9 @@ func BenchmarkPoolDefault(b *testing.B) {
 		b.ReportAllocs()
 	})
 
-	jparser.(*jsonParser).pool = pool.None()
 	b.Run("nopool", func(b *testing.B) {
+		jparser := NewParser()
+		jparser.(*jsonParser).pool = pool.None()
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
 			if err := jparser.Init(values[i%num]); err != nil {

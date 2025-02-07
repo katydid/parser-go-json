@@ -19,25 +19,6 @@ import (
 	"testing"
 )
 
-func expect[A comparable](t *testing.T, f func() (A, error), want A) {
-	t.Helper()
-	got, err := f()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if got != want {
-		t.Fatalf("want %v, but got %v", want, got)
-	}
-}
-
-func expectErr[A any](t *testing.T, f func() (A, error)) {
-	t.Helper()
-	got, err := f()
-	if err == nil {
-		t.Fatalf("expected error, but got %v", got)
-	}
-}
-
 func TestParseExample(t *testing.T) {
 	s := `{"num":3.14,"arr":[null,false,true,1,2],"obj":{"k":"v","a":[1,2,3],"b":1,"c":2}}`
 	p := NewParser([]byte(s))

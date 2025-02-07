@@ -33,13 +33,19 @@ type Parser interface {
 	// In any other case, Skip simply calls Next.
 	Skip() error
 
+	// Bool attempts to convert the current token to a bool.
 	Bool() (bool, error)
+	// Int attempts to convert the current token to an int64.
 	Int() (int64, error)
+	// Uint attempts to convert the current token to an uint64.
 	Uint() (uint64, error)
+	// Double attempts to convert the current token to a float64.
 	Double() (float64, error)
+	// String attempts to convert the current token to a string.
 	String() (string, error)
+	// Bytes returns the raw current token.
 	Bytes() ([]byte, error)
-
+	// Init restarts the parser with a new byte buffer, without allocating a new parser.
 	Init([]byte)
 }
 
@@ -57,7 +63,7 @@ func NewParser(buf []byte) Parser {
 
 func NewParserWithCustomAllocator(buf []byte, alloc func(int) []byte) Parser {
 	p := &parser{
-		state:     unknownState,
+		state:     startState,
 		stack:     make([]state, 0, 10),
 		alloc:     alloc,
 		tokenizer: token.NewTokenizerWithCustomAllocator(buf, alloc),
@@ -69,10 +75,21 @@ func (p *parser) Init(buf []byte) {
 	// Reset the tokenizer with the new buffer.
 	p.tokenizer.Init(buf)
 	// Reset the state.
-	p.state = unknownState
+	p.state = startState
 	// Shrink the stack's length, but keep it's capacity,
 	// so we can reuse it on the next parse.
 	p.stack = p.stack[:0]
+}
+
+func (p *parser) nextToken() (scan.Kind, error) {
+	scanKind, err := p.tokenizer.Next()
+	if err == nil {
+		return scanKind, nil
+	}
+	if err == io.EOF {
+		return scanKind, io.ErrShortBuffer
+	}
+	return scanKind, err
 }
 
 func (p *parser) assertValue(scanKind scan.Kind) (Kind, error) {
@@ -89,8 +106,8 @@ func (p *parser) assertValue(scanKind scan.Kind) (Kind, error) {
 	return UnknownKind, errExpectedValue
 }
 
-func (p *parser) nextUnknown() (Kind, error) {
-	scanKind, err := p.tokenizer.Next()
+func (p *parser) nextStart() (Kind, error) {
+	scanKind, err := p.nextToken()
 	if err != nil {
 		return UnknownKind, err
 	}
@@ -101,10 +118,11 @@ func (p *parser) nextUnknown() (Kind, error) {
 	if kind == ObjectOpenKind {
 		p.state = objectOpenState
 		p.down(objectOpenState)
-	}
-	if kind == ArrayOpenKind {
+	} else if kind == ArrayOpenKind {
 		p.state = arrayOpenState
 		p.down(arrayOpenState)
+	} else {
+		p.state = leafState
 	}
 	return kind, nil
 }
@@ -119,7 +137,7 @@ func (p *parser) maybeDown(kind Kind) {
 }
 
 func (p *parser) nextValue() (Kind, error) {
-	scanKind, err := p.tokenizer.Next()
+	scanKind, err := p.nextToken()
 	if err != nil {
 		return UnknownKind, err
 	}
@@ -132,7 +150,7 @@ func (p *parser) nextValue() (Kind, error) {
 }
 
 func (p *parser) firstArrayElement() (Kind, error) {
-	scanKind, err := p.tokenizer.Next()
+	scanKind, err := p.nextToken()
 	if err != nil {
 		return UnknownKind, err
 	}
@@ -152,7 +170,7 @@ func (p *parser) firstArrayElement() (Kind, error) {
 }
 
 func (p *parser) nextArrayElement() (Kind, error) {
-	scanKind, err := p.tokenizer.Next()
+	scanKind, err := p.nextToken()
 	if err != nil {
 		return UnknownKind, err
 	}
@@ -169,7 +187,7 @@ func (p *parser) nextArrayElement() (Kind, error) {
 }
 
 func (p *parser) firstObjectKey() (Kind, error) {
-	scanKind, err := p.tokenizer.Next()
+	scanKind, err := p.nextToken()
 	if err != nil {
 		return UnknownKind, err
 	}
@@ -187,7 +205,7 @@ func (p *parser) firstObjectKey() (Kind, error) {
 }
 
 func (p *parser) nextObjectKey() (Kind, error) {
-	scanKind, err := p.tokenizer.Next()
+	scanKind, err := p.nextToken()
 	if err != nil {
 		return UnknownKind, err
 	}
@@ -198,7 +216,7 @@ func (p *parser) nextObjectKey() (Kind, error) {
 		return ObjectCloseKind, nil
 	}
 	if scanKind == scan.CommaKind {
-		nextScanKind, err := p.tokenizer.Next()
+		nextScanKind, err := p.nextToken()
 		if err != nil {
 			return UnknownKind, err
 		}
@@ -213,7 +231,7 @@ func (p *parser) nextObjectKey() (Kind, error) {
 }
 
 func (p *parser) nextObjectValue() (Kind, error) {
-	scanKind, err := p.tokenizer.Next()
+	scanKind, err := p.nextToken()
 	if err != nil {
 		return UnknownKind, err
 	}
@@ -224,10 +242,24 @@ func (p *parser) nextObjectValue() (Kind, error) {
 	return p.nextValue()
 }
 
+func (p *parser) eof() error {
+	if _, err := p.tokenizer.Next(); err != nil {
+		if err == io.EOF {
+			return io.EOF
+		}
+		return err
+	}
+	// There is still bytes left in the buffer, but the object or array is closed.
+	return io.ErrShortBuffer
+}
+
 func (p *parser) Next() (Kind, error) {
 	switch p.state {
-	case unknownState:
-		return p.nextUnknown()
+	case startState:
+		return p.nextStart()
+	case leafState:
+		// leaf was already parsed, so there should be nothing left to parse
+		return UnknownKind, p.eof()
 	case arrayOpenState:
 		return p.firstArrayElement()
 	case arrayElementState:
@@ -238,6 +270,8 @@ func (p *parser) Next() (Kind, error) {
 		return p.nextObjectKey()
 	case objectValueState:
 		return p.nextObjectValue()
+	case endState:
+		return UnknownKind, p.eof()
 	default:
 		panic("unreachable")
 	}
@@ -245,7 +279,7 @@ func (p *parser) Next() (Kind, error) {
 
 func (p *parser) Skip() error {
 	switch p.state {
-	case unknownState:
+	case startState:
 		_, err := p.Next()
 		if err != nil {
 			return err
@@ -306,9 +340,6 @@ func (p *parser) down(state state) {
 }
 
 func (p *parser) up() error {
-	if len(p.stack) == 0 {
-		return io.EOF
-	}
 	top := len(p.stack) - 1
 	// Set the current state to the state on top of the stack.
 	p.state = p.stack[top]
@@ -316,6 +347,9 @@ func (p *parser) up() error {
 	// but do it in a way that keeps the capacity,
 	// so we can reuse it the next time Down is called.
 	p.stack = p.stack[:top]
+	if len(p.stack) == 0 {
+		p.state = endState
+	}
 	return nil
 }
 
