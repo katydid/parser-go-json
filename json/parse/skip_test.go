@@ -20,11 +20,52 @@ import (
 )
 
 // Skip returns an error if nothing has been parsed yet.
-func TestSkipUnknown(t *testing.T) {
+func TestSkipUnknownObject(t *testing.T) {
 	str := `{}`
 	p := NewParser([]byte(str))
-	if err := p.Skip(); err == nil {
-		t.Fatalf("state is unknown, so expected err")
+	if err := p.Skip(); err != nil {
+		t.Fatal(err)
+	}
+	expect(t, p.Next, ObjectCloseKind)
+	if _, err := p.Next(); err != io.EOF {
+		t.Fatalf("expected EOF, but got %v", err)
+	}
+}
+
+func TestSkipUnknownArray(t *testing.T) {
+	str := `[]`
+	p := NewParser([]byte(str))
+	if err := p.Skip(); err != nil {
+		t.Fatal(err)
+	}
+	expect(t, p.Next, ArrayCloseKind)
+	if _, err := p.Next(); err != io.EOF {
+		t.Fatalf("expected EOF, but got %v", err)
+	}
+}
+
+func TestSkipUnknownArrayOpen(t *testing.T) {
+	str := `[1]`
+	p := NewParser([]byte(str))
+	if err := p.Skip(); err != nil {
+		t.Fatal(err)
+	}
+	expect(t, p.Next, NumberKind)
+	expect(t, p.Int, 1)
+	expect(t, p.Next, ArrayCloseKind)
+	if _, err := p.Next(); err != io.EOF {
+		t.Fatalf("expected EOF, but got %v", err)
+	}
+}
+
+func TestSkipUnknownString(t *testing.T) {
+	str := `"abc"`
+	p := NewParser([]byte(str))
+	if err := p.Skip(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := p.Next(); err != io.EOF {
+		t.Fatalf("expected EOF, but got %v", err)
 	}
 }
 
