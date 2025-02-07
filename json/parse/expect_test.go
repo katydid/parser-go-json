@@ -12,17 +12,28 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package json
+package parse
 
-type state struct {
-	kind       stateKind
-	arrayIndex int
+import (
+	"io"
+	"testing"
+)
+
+func expect[A comparable](t *testing.T, f func() (A, error), want A) {
+	t.Helper()
+	got, err := f()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got != want {
+		t.Fatalf("want %v, but got %v", want, got)
+	}
 }
 
-type stateKind byte
-
-const unknownStateKind = stateKind(0)
-
-func (s stateKind) IsUnknown() bool {
-	return s == unknownStateKind
+func expectErr[A any](t *testing.T, f func() (A, error)) {
+	t.Helper()
+	got, err := f()
+	if err == nil || err == io.EOF {
+		t.Fatalf("expected error, but got %v with err = %v", got, err)
+	}
 }

@@ -16,7 +16,10 @@ package parse
 
 type state byte
 
-const unknownState = state(0)
+const startState = state(0)
+
+// leafState is for parsing only a single value of: null, true, false, string or number
+const leafState = state('l')
 
 const arrayOpenState = state('[')
 
@@ -27,3 +30,5 @@ const objectOpenState = state('{')
 const objectKeyState = state('k')
 
 const objectValueState = state('v')
+
+const endState = state('e')
