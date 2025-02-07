@@ -30,7 +30,7 @@ type Parser interface {
 	// If an object value was just parsed, then the rest of the object is skipped.
 	// If the kind '[' was returned by Next, then the whole array is skipped.
 	// If an array element was parsed, then the rest of the array is skipped.
-	// In any other case, Skip returns an error.
+	// In any other case, Skip simply calls Next.
 	Skip() error
 
 	Bool() (bool, error)
@@ -246,7 +246,10 @@ func (p *parser) Next() (Kind, error) {
 func (p *parser) Skip() error {
 	switch p.state {
 	case unknownState:
-		return errCannotSkipUnknown
+		_, err := p.Next()
+		if err != nil {
+			return err
+		}
 	case arrayOpenState, arrayElementState:
 		// '[' has been parsed or
 		// '['"e1",...,"en" has been parsed.
