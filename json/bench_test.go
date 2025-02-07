@@ -26,52 +26,43 @@ func BenchmarkPoolDefault(b *testing.B) {
 	// generate random jsons
 	num := 1000
 	r := rand.NewRand()
-	js := rand.Values(r, num)
+	values := rand.Values(r, num)
 
 	// initialise pool
 	jparser := NewParser()
-
 	// exercise buffer pool
 	for i := 0; i < num; i++ {
-		if err := jparser.Init(js[i%num]); err != nil {
+		if err := jparser.Init(values[i%num]); err != nil {
 			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
 		}
 		if err := debug.Walk(jparser); err != nil {
 			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
 		}
 	}
-	// start benchmark
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		if err := jparser.Init(js[i%num]); err != nil {
-			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
+	b.Run("pool", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			if err := jparser.Init(values[i%num]); err != nil {
+				b.Fatalf("seed = %v, err = %v", r.Seed(), err)
+			}
+			if err := debug.Walk(jparser); err != nil {
+				b.Fatalf("seed = %v, err = %v", r.Seed(), err)
+			}
 		}
-		if err := debug.Walk(jparser); err != nil {
-			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
-		}
-	}
-	b.ReportAllocs()
-}
+		b.ReportAllocs()
+	})
 
-func BenchmarkPoolNone(b *testing.B) {
-	// generate random jsons
-	num := 1000
-	r := rand.NewRand()
-	js := rand.Values(r, num)
-
-	// set pool to no pool
-	jparser := NewParser()
 	jparser.(*jsonParser).pool = pool.None()
-
-	// start benchmark
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		if err := jparser.Init(js[i%num]); err != nil {
-			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
+	b.Run("nopool", func(b *testing.B) {
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			if err := jparser.Init(values[i%num]); err != nil {
+				b.Fatalf("seed = %v, err = %v", r.Seed(), err)
+			}
+			if err := debug.Walk(jparser); err != nil {
+				b.Fatalf("seed = %v, err = %v", r.Seed(), err)
+			}
 		}
-		if err := debug.Walk(jparser); err != nil {
-			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
-		}
-	}
-	b.ReportAllocs()
+		b.ReportAllocs()
+	})
 }
