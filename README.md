@@ -68,4 +68,4 @@ Thanks to the following people for consulting on the project:
 - [Johan Brandhorst-Satzkorn](https://www.linkedin.com/in/jbrandhorst/)
 
 I still made all the bad design decisions, so don't blame them.
-They only made the project better than it would have been.
+They only made the project better than it would have been without their advice.
