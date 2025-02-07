@@ -114,3 +114,93 @@ func TestParseInvalidObjectWithSuffix(t *testing.T) {
 	expect(t, p.Next, ObjectCloseKind)
 	expectErr(t, p.Next)
 }
+
+func TestParseValidNestedObject(t *testing.T) {
+	s := `{"a":{"b":{"c":{"d":{"e": 1}}}}}`
+	p := NewParser([]byte(s))
+	expect(t, p.Next, ObjectOpenKind)
+	expect(t, p.Next, StringKind)
+	expect(t, p.String, "a")
+	expect(t, p.Next, ObjectOpenKind)
+	expect(t, p.Next, StringKind)
+	expect(t, p.String, "b")
+	expect(t, p.Next, ObjectOpenKind)
+	expect(t, p.Next, StringKind)
+	expect(t, p.String, "c")
+	expect(t, p.Next, ObjectOpenKind)
+	expect(t, p.Next, StringKind)
+	expect(t, p.String, "d")
+	expect(t, p.Next, ObjectOpenKind)
+	expect(t, p.Next, StringKind)
+	expect(t, p.String, "e")
+	expect(t, p.Next, NumberKind)
+	expect(t, p.Int, 1)
+	expect(t, p.Next, ObjectCloseKind)
+	expect(t, p.Next, ObjectCloseKind)
+	expect(t, p.Next, ObjectCloseKind)
+	expect(t, p.Next, ObjectCloseKind)
+	expect(t, p.Next, ObjectCloseKind)
+	if _, err := p.Next(); err != io.EOF {
+		t.Fatalf("expected EOF, but got %v", err)
+	}
+}
+
+func TestParseInvalidNestedObject(t *testing.T) {
+	s := `{"a":{"b":{"c":{"d":{"e": 1}}}}`
+	p := NewParser([]byte(s))
+	expect(t, p.Next, ObjectOpenKind)
+	expect(t, p.Next, StringKind)
+	expect(t, p.String, "a")
+	expect(t, p.Next, ObjectOpenKind)
+	expect(t, p.Next, StringKind)
+	expect(t, p.String, "b")
+	expect(t, p.Next, ObjectOpenKind)
+	expect(t, p.Next, StringKind)
+	expect(t, p.String, "c")
+	expect(t, p.Next, ObjectOpenKind)
+	expect(t, p.Next, StringKind)
+	expect(t, p.String, "d")
+	expect(t, p.Next, ObjectOpenKind)
+	expect(t, p.Next, StringKind)
+	expect(t, p.String, "e")
+	expect(t, p.Next, NumberKind)
+	expect(t, p.Int, 1)
+	expect(t, p.Next, ObjectCloseKind)
+	expect(t, p.Next, ObjectCloseKind)
+	expect(t, p.Next, ObjectCloseKind)
+	expect(t, p.Next, ObjectCloseKind)
+	expectErr(t, p.Next)
+}
+
+func TestParseValidNestedArray(t *testing.T) {
+	s := `[[[[1]]]]`
+	p := NewParser([]byte(s))
+	expect(t, p.Next, ArrayOpenKind)
+	expect(t, p.Next, ArrayOpenKind)
+	expect(t, p.Next, ArrayOpenKind)
+	expect(t, p.Next, ArrayOpenKind)
+	expect(t, p.Next, NumberKind)
+	expect(t, p.Int, 1)
+	expect(t, p.Next, ArrayCloseKind)
+	expect(t, p.Next, ArrayCloseKind)
+	expect(t, p.Next, ArrayCloseKind)
+	expect(t, p.Next, ArrayCloseKind)
+	if _, err := p.Next(); err != io.EOF {
+		t.Fatalf("expected EOF, but got %v", err)
+	}
+}
+
+func TestParseInvalidNestedArray(t *testing.T) {
+	s := `[[[[1]]]`
+	p := NewParser([]byte(s))
+	expect(t, p.Next, ArrayOpenKind)
+	expect(t, p.Next, ArrayOpenKind)
+	expect(t, p.Next, ArrayOpenKind)
+	expect(t, p.Next, ArrayOpenKind)
+	expect(t, p.Next, NumberKind)
+	expect(t, p.Int, 1)
+	expect(t, p.Next, ArrayCloseKind)
+	expect(t, p.Next, ArrayCloseKind)
+	expect(t, p.Next, ArrayCloseKind)
+	expectErr(t, p.Next)
+}
