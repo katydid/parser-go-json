@@ -173,7 +173,6 @@ func (b *decimal) set(s []byte) (ok bool) {
 // readFloat reports the number of bytes consumed (i), and whether the number
 // is valid (ok).
 func readFloat(s []byte) (mantissa uint64, exp int, neg, trunc, hex bool, i int, ok bool) {
-	underscores := false
 
 	// optional sign
 	if i >= len(s) {
@@ -206,10 +205,6 @@ func readFloat(s []byte) (mantissa uint64, exp int, neg, trunc, hex bool, i int,
 loop:
 	for ; i < len(s); i++ {
 		switch c := s[i]; true {
-		case c == '_':
-			underscores = true
-			continue
-
 		case c == '.':
 			if sawdot {
 				break loop
@@ -282,10 +277,6 @@ loop:
 		}
 		e := 0
 		for ; i < len(s) && ('0' <= s[i] && s[i] <= '9' || s[i] == '_'); i++ {
-			if s[i] == '_' {
-				underscores = true
-				continue
-			}
 			if e < 10000 {
 				e = e*10 + int(s[i]) - '0'
 			}
@@ -298,10 +289,6 @@ loop:
 
 	if mantissa != 0 {
 		exp = dp - ndMant
-	}
-
-	if underscores && !underscoreOK(s[:i]) {
-		return
 	}
 
 	ok = true

@@ -21,6 +21,10 @@ func ParseUint(s []byte) (uint64, error) {
 	return parseUint(s, 64)
 }
 
+// Cutoff is the smallest number such that cutoff*base > maxUint64.
+// Use compile-time constants for common cases.
+const cutOffUint64 uint64 = maxUint64/10 + 1
+
 func parseUint(s []byte, bitSize int) (uint64, error) {
 	base := 10
 
@@ -28,76 +32,23 @@ func parseUint(s []byte, bitSize int) (uint64, error) {
 		return 0, errSyntaxParseUint
 	}
 
-	base0 := base == 0
-
-	s0 := s
-	switch {
-	case 2 <= base && base <= 36:
-		// valid base; nothing to do
-
-	case base == 0:
-		// Look for octal, hex prefix.
-		base = 10
-		if s[0] == '0' {
-			switch {
-			case len(s) >= 3 && lower(s[1]) == 'b':
-				base = 2
-				s = s[2:]
-			case len(s) >= 3 && lower(s[1]) == 'o':
-				base = 8
-				s = s[2:]
-			case len(s) >= 3 && lower(s[1]) == 'x':
-				base = 16
-				s = s[2:]
-			default:
-				base = 8
-				s = s[1:]
-			}
-		}
-
-	default:
-		panic("unreachable")
-	}
-
 	if bitSize == 0 {
 		bitSize = 64
 	}
 
-	// Cutoff is the smallest number such that cutoff*base > maxUint64.
-	// Use compile-time constants for common cases.
-	var cutoff uint64
-	switch base {
-	case 10:
-		cutoff = maxUint64/10 + 1
-	case 16:
-		cutoff = maxUint64/16 + 1
-	default:
-		cutoff = maxUint64/uint64(base) + 1
-	}
-
 	maxVal := uint64(1)<<uint(bitSize) - 1
 
-	underscores := false
 	var n uint64
 	for _, c := range []byte(s) {
 		var d byte
 		switch {
-		case c == '_' && base0:
-			underscores = true
-			continue
 		case '0' <= c && c <= '9':
 			d = c - '0'
-		case 'a' <= lower(c) && lower(c) <= 'z':
-			d = lower(c) - 'a' + 10
 		default:
 			return 0, errSyntaxParseUint
 		}
 
-		if d >= byte(base) {
-			return 0, errSyntaxParseUint
-		}
-
-		if n >= cutoff {
+		if n >= cutOffUint64 {
 			// n*base overflows
 			return maxVal, errRangeParseUint
 		}
@@ -109,10 +60,6 @@ func parseUint(s []byte, bitSize int) (uint64, error) {
 			return maxVal, errRangeParseUint
 		}
 		n = n1
-	}
-
-	if underscores && !underscoreOK(s0) {
-		return 0, errSyntaxParseUint
 	}
 
 	return n, nil
@@ -144,10 +91,12 @@ func parseUint(s []byte, bitSize int) (uint64, error) {
 //
 // [integer literals]: https://go.dev/ref/spec#Integer_literals
 func ParseInt(s []byte) (i int64, err error) {
-	return parseInt(s, 64)
+	return parseInt(s)
 }
 
-func parseInt(s []byte, bitSize int) (i int64, err error) {
+const cutOffInt64 uint64 = uint64(1 << uint(64-1))
+
+func parseInt(s []byte) (i int64, err error) {
 
 	if len(s) == 0 {
 		return 0, errSyntaxParseInt
@@ -164,16 +113,12 @@ func parseInt(s []byte, bitSize int) (i int64, err error) {
 
 	// Convert unsigned and check range.
 	var un uint64
-	un, err = parseUint(s, bitSize)
+	un, err = parseUint(s, 64)
 	if err != nil && err.(*NumError).Err != ErrRange {
 		return 0, errSyntaxParseInt
 	}
 
-	if bitSize == 0 {
-		bitSize = 64
-	}
-
-	cutoff := uint64(1 << uint(bitSize-1))
+	cutoff := cutOffInt64
 	if !neg && un >= cutoff {
 		return int64(cutoff - 1), errRangeParseInt
 	}
@@ -216,7 +161,7 @@ func Atoi(s []byte) (int, error) {
 	}
 
 	// Slow path for invalid, big, or underscored integers.
-	i64, err := parseInt(s, 0)
+	i64, err := parseInt(s)
 	if nerr, ok := err.(*NumError); ok {
 		if nerr.Err == ErrRange {
 			return int(i64), errRangeAtoi
@@ -225,54 +170,4 @@ func Atoi(s []byte) (int, error) {
 		}
 	}
 	return int(i64), err
-}
-
-// underscoreOK reports whether the underscores in s are allowed.
-// Checking them in this one function lets all the parsers skip over them simply.
-// Underscore must appear only between digits or between a base prefix and a digit.
-func underscoreOK(s []byte) bool {
-	// saw tracks the last character (class) we saw:
-	// ^ for beginning of number,
-	// 0 for a digit or base prefix,
-	// _ for an underscore,
-	// ! for none of the above.
-	saw := '^'
-	i := 0
-
-	// Optional sign.
-	if len(s) >= 1 && (s[0] == '-' || s[0] == '+') {
-		s = s[1:]
-	}
-
-	// Optional base prefix.
-	hex := false
-	if len(s) >= 2 && s[0] == '0' && (lower(s[1]) == 'b' || lower(s[1]) == 'o' || lower(s[1]) == 'x') {
-		i = 2
-		saw = '0' // base prefix counts as a digit for "underscore as digit separator"
-		hex = lower(s[1]) == 'x'
-	}
-
-	// Number proper.
-	for ; i < len(s); i++ {
-		// Digits are always okay.
-		if '0' <= s[i] && s[i] <= '9' || hex && 'a' <= lower(s[i]) && lower(s[i]) <= 'f' {
-			saw = '0'
-			continue
-		}
-		// Underscore must follow digit.
-		if s[i] == '_' {
-			if saw != '0' {
-				return false
-			}
-			saw = '_'
-			continue
-		}
-		// Underscore must also be followed by digit.
-		if saw == '_' {
-			return false
-		}
-		// Saw non-digit, non-underscore.
-		saw = '!'
-	}
-	return saw != '_'
 }
