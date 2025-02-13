@@ -16,17 +16,6 @@ package scan
 
 import "testing"
 
-func expect[A comparable, B any](t *testing.T, f func() (A, B, error), want A) {
-	t.Helper()
-	got, _, err := f()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if got != want {
-		t.Fatalf("want %v, but got %v", want, got)
-	}
-}
-
 func TestScannerExample(t *testing.T) {
 	str := `{"num":3.14,"arr":[null,false,true],"obj":{"k":"v"}}`
 	s := NewScanner([]byte(str))

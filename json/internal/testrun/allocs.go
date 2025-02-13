@@ -32,7 +32,7 @@ func NoAllocsOnAverage(t *testing.T, f func(bs []byte)) {
 		ff := func() { f(inputs[i]) }
 		allocs := testing.AllocsPerRun(runsPerTest, ff)
 		if allocs != 0 {
-			t.Errorf("seed = %v, got %v allocs, want 0 allocs", r.Seed(), allocs)
+			t.Fatalf("seed = %v, got %v allocs, want 0 allocs", r.Seed(), allocs)
 		}
 	}
 }

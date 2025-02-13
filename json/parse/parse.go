@@ -279,11 +279,6 @@ func (p *parser) Next() (Kind, error) {
 
 func (p *parser) Skip() error {
 	switch p.state {
-	case startState:
-		_, err := p.Next()
-		if err != nil {
-			return err
-		}
 	case arrayOpenState, arrayElementState:
 		// '[' has been parsed or
 		// '['"e1",...,"en" has been parsed.
@@ -327,7 +322,10 @@ func (p *parser) Skip() error {
 			}
 		}
 	default:
-		panic("unreachable")
+		_, err := p.Next()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

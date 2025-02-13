@@ -15,8 +15,6 @@
 package token
 
 import (
-	"fmt"
-
 	"github.com/katydid/parser-go-json/json/internal/fork/strconv"
 	"github.com/katydid/parser-go-json/json/internal/fork/unquote"
 	"github.com/katydid/parser-go-json/json/scan"
@@ -210,7 +208,6 @@ func unquoteBytes(alloc func(int) []byte, s []byte) (string, error) {
 func (t *tokenizer) tokenizeString() error {
 	res, err := unquoteBytes(t.alloc, t.scanToken)
 	if err != nil {
-		panic(fmt.Sprintf("%q", t.scanToken))
 		return err
 	}
 	t.tokenString = res
