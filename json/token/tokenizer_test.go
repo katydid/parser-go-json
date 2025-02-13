@@ -20,25 +20,6 @@ import (
 	"github.com/katydid/parser-go-json/json/scan"
 )
 
-func expect[A comparable](t *testing.T, f func() (A, error), want A) {
-	t.Helper()
-	got, err := f()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-	if got != want {
-		t.Fatalf("want %v, but got %v", want, got)
-	}
-}
-
-func expectErr[A any](t *testing.T, f func() (A, error)) {
-	t.Helper()
-	got, err := f()
-	if err == nil {
-		t.Fatalf("expected error, but got %v", got)
-	}
-}
-
 func TestTokenizerExample(t *testing.T) {
 	s := `{"num":3.14,"arr":[null,false,true],"obj":{"k":"v"}}`
 	tzer := NewTokenizer([]byte(s))
