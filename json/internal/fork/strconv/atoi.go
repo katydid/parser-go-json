@@ -160,7 +160,7 @@ func Atoi(s []byte) (int, error) {
 		return n, nil
 	}
 
-	// Slow path for invalid, big, or underscored integers.
+	// Slow path for invalid or big integers.
 	i64, err := parseInt(s)
 	if nerr, ok := err.(*NumError); ok {
 		if nerr.Err == ErrRange {

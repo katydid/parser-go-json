@@ -53,18 +53,11 @@ func TestNumbersMaxInt64Plus1(t *testing.T) {
 	if _, err := tzer.Int(); err == nil {
 		t.Fatal("expected err on attempting to convert to int64")
 	}
-	if _, err := tzer.Uint(); err == nil {
-		t.Fatal("expected err on attempting to convert to uint64")
-	}
-	if _, err := tzer.Double(); err == nil {
-		t.Fatal("expected err on attempting to convert to float64")
-	}
-	gotb, err := tzer.Bytes()
+	var want uint64 = math.MaxInt64 + 1
+	got, err := tzer.Uint()
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := input
-	got := string(gotb)
 	if got != want {
 		t.Fatalf("got %v, but want %v", got, want)
 	}

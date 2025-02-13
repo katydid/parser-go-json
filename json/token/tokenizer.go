@@ -165,32 +165,56 @@ func (t *tokenizer) Bytes() ([]byte, error) {
 	return t.scanToken, nil
 }
 
+func (t *tokenizer) notInteger() bool {
+	for _, b := range t.scanToken {
+		if b == '.' || b == 'e' || b == 'E' {
+			return true
+		}
+	}
+	return false
+}
+
 func (t *tokenizer) tokenizeNumber() error {
 	var err error
-	t.tokenDouble, err = strconv.ParseFloat(t.scanToken)
+	if t.notInteger() {
+		t.tokenDouble, err = strconv.ParseFloat(t.scanToken)
+		if err != nil {
+			t.tokenKind = TooLargeNumberKind
+			// scan already passed, so we know this is a valid number.
+			// The number is just too large represent in 64 bits.
+			return nil
+		}
+		t.tokenKind = FractionNumberKind
+		// This can only be a float, so we return and do not try others.
+		return nil
+	}
+	t.tokenInt, err = strconv.ParseInt(t.scanToken)
 	if err != nil {
 		t.tokenKind = TooLargeNumberKind
 		// scan already passed, so we know this is a valid number.
-		// The number is just too large represent in a float.
+		// The number is just too large represent in 64 bits.
+
+		// This can be overwritten if uint parses it correctly, so we do not return.
+	} else {
+		if t.scanToken[0] == '-' {
+			t.tokenKind = NegativeNumberKind
+		} else {
+			t.tokenKind = NumberKind
+			t.tokenUint = uint64(t.tokenInt)
+		}
 		return nil
 	}
-	t.tokenUint = uint64(t.tokenDouble)
-	isUint := float64(t.tokenUint) == t.tokenDouble
-	t.tokenInt = int64(t.tokenDouble)
-	isInt := float64(t.tokenInt) == t.tokenDouble
-	if isUint && isInt {
-		t.tokenKind = NumberKind
-		return nil
+	// only if int could parse the non negative number, tokenKind == TooLargeNumberKind then try uint64 too
+	if t.scanToken[0] != '-' {
+		t.tokenUint, err = strconv.ParseUint(t.scanToken)
+		if err != nil {
+			t.tokenKind = TooLargeNumberKind
+			// scan already passed, so we know this is a valid number.
+			// The number is just too large represent in 64 bits.
+		} else {
+			t.tokenKind = LargePositiveNumberKind
+		}
 	}
-	if isInt {
-		t.tokenKind = NegativeNumberKind
-		return nil
-	}
-	if isUint {
-		t.tokenKind = LargePositiveNumberKind
-		return nil
-	}
-	t.tokenKind = FractionNumberKind
 	return nil
 }
 
