@@ -189,22 +189,21 @@ func (t *tokenizer) tokenizeNumber() error {
 		return nil
 	}
 	t.tokenInt, err = strconv.ParseInt(t.scanToken)
-	if err != nil {
-		t.tokenKind = TooLargeNumberKind
-		// scan already passed, so we know this is a valid number.
-		// The number is just too large represent in 64 bits.
-
-		// This can be overwritten if uint parses it correctly, so we do not return.
-	} else {
+	if err == nil {
 		if t.scanToken[0] == '-' {
 			t.tokenKind = NegativeNumberKind
 		} else {
 			t.tokenKind = NumberKind
 			t.tokenUint = uint64(t.tokenInt)
+			t.tokenDouble = float64(t.tokenDouble)
 		}
 		return nil
 	}
-	// only if int could parse the non negative number, tokenKind == TooLargeNumberKind then try uint64 too
+	// scan already passed, so we know this is a valid number.
+	// The number is just too large represent in signed 64 bits.
+	t.tokenKind = TooLargeNumberKind
+	// This can be overwritten if uint parses it correctly, so we do not return yet.
+	// Only if int could not parse the non negative number, tokenKind == TooLargeNumberKind then try uint64 too
 	if t.scanToken[0] != '-' {
 		t.tokenUint, err = strconv.ParseUint(t.scanToken)
 		if err != nil {

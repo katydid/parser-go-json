@@ -14,14 +14,10 @@
 
 package json
 
-import "errors"
+type action byte
 
-var errDown = errors.New("cannot go Down")
+const nextAction = action(0)
 
-var errPop = errors.New("stack is length zero, cannot go Up")
+const downAction = action('d')
 
-var errNextShouldBeCalled = errors.New("Next should also be called at the start of parsing, after Down and after Up")
-
-var errDownLeaf = errors.New("cannot call Down in Leaf")
-
-var errDownEOF = errors.New("cannot call Down at EOF")
+const upAction = action('u')
