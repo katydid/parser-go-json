@@ -47,7 +47,7 @@ func parseValue(parser InitParser, input string) (string, error) {
 		return "", fmt.Errorf("walk error: %v", err)
 	}
 	if len(jout) != 1 {
-		return "", fmt.Errorf("expected one node")
+		return "", fmt.Errorf("expected one node, but got %v", jout)
 	}
 	if len(jout[0].Children) != 0 {
 		return "", fmt.Errorf("did not expected any children")

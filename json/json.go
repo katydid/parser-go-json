@@ -50,6 +50,9 @@ func NewParser() Interface {
 
 func (p *jsonParser) Init(buf []byte) error {
 	p.parser.Init(buf)
+	p.action = nextAction
+	p.state = state{}
+	p.stack = p.stack[:0]
 	p.pool.FreeAll()
 	return nil
 }
@@ -58,9 +61,6 @@ func (p *jsonParser) nextAtStartState(action action) error {
 	fmt.Printf("nextAtStartState\n")
 	switch action {
 	case nextAction:
-		// find value type
-		// if object Next over open
-		// if array: TODO
 		parseKind, err := p.parser.Next()
 		if err != nil {
 			return err
@@ -77,8 +77,16 @@ func (p *jsonParser) nextAtStartState(action action) error {
 			}
 			return nil
 		case parse.ArrayOpenKind:
-			p.state.kind = inArrayStateKind
-			panic("TODO")
+			p.state.kind = inArrayIndexStateKind
+			parseKindNext, err := p.parser.Next()
+			if err != nil {
+				return err
+			}
+			if parseKindNext == parse.ArrayCloseKind {
+				return p.eof()
+			}
+			p.state.arrayElemKind = parseKindNext
+			return nil
 		case parse.NullKind, parse.BoolKind, parse.NumberKind, parse.StringKind:
 			p.state.kind = inLeafStateKind
 			return nil
@@ -215,6 +223,108 @@ func (p *jsonParser) nextInObjectAtValueState(action action) error {
 	panic("unreachable")
 }
 
+func (p *jsonParser) nextInArrayIndexState(action action) error {
+	fmt.Printf("nextInArrayIndexState\n")
+	// inArrayIndexState represents that we have scanned an element, if it was null, bool, number or string and the first key of an object or .
+	switch action {
+	case nextAction:
+		p.state.arrayIndex += 1
+		switch p.state.arrayElemKind {
+		case parse.ObjectOpenKind, parse.ArrayOpenKind:
+			if err := p.parser.Skip(); err != nil {
+				return err
+			}
+		case parse.NullKind, parse.BoolKind, parse.NumberKind, parse.StringKind:
+		default:
+			panic("unreachable")
+		}
+		parseKind, err := p.parser.Next()
+		if err != nil {
+			return err
+		}
+		if parseKind == parse.ArrayCloseKind {
+			return p.eof()
+		}
+		p.state.arrayElemKind = parseKind
+		return nil
+	case downAction:
+		// We are at an array element that we are representing as an index.
+		// We do not need parse another thing, simply update the state.
+		p.state.kind = inArrayAfterIndexStateKind
+		if err := p.push(); err != nil {
+			return err
+		}
+		switch p.state.arrayElemKind {
+		case parse.ObjectOpenKind:
+			p.state.kind = inObjectAtKeyStateKind
+			parseKindNext, err := p.parser.Next()
+			if err != nil {
+				return err
+			}
+			if parseKindNext == parse.ObjectCloseKind {
+				return p.eof()
+			}
+			return nil
+		case parse.ArrayOpenKind:
+			p.state.kind = inArrayIndexStateKind
+			parseKindNext, err := p.parser.Next()
+			if err != nil {
+				return err
+			}
+			if parseKindNext == parse.ArrayCloseKind {
+				return p.eof()
+			}
+			p.state.arrayElemKind = parseKindNext
+			return nil
+		case parse.NullKind, parse.BoolKind, parse.NumberKind, parse.StringKind:
+			p.state.kind = inLeafStateKind
+			return nil
+		}
+		panic("unreachable")
+	case upAction:
+		// Skip the rest of the array
+		if err := p.parser.Skip(); err != nil {
+			return err
+		}
+		if err := p.pop(); err != nil {
+			return err
+		}
+		return p.next()
+	}
+	panic("unreachable")
+}
+
+func (p *jsonParser) nextInArrayAfterIndexState(action action) error {
+	fmt.Printf("nextInArrayAfterIndexState\n")
+	// This is after Up was called on an element.
+	switch action {
+	case nextAction:
+		p.state.arrayIndex += 1
+		parseKind, err := p.parser.Next()
+		if err != nil {
+			return err
+		}
+		if parseKind == parse.ArrayCloseKind {
+			return p.eof()
+		}
+		p.state.kind = inArrayIndexStateKind
+		p.state.arrayElemKind = parseKind
+		return nil
+	case downAction:
+		return errDown
+	case upAction:
+		// Skip the rest of the array
+		if err := p.parser.Skip(); err != nil {
+			return err
+		}
+		if err := p.pop(); err != nil {
+			return err
+		}
+		return p.next()
+	}
+	panic("unreachable")
+}
+
 func (p *jsonParser) eof() error {
 	// When EOF is returned also set the state to an EOF state.
 	// This state allows us to call Up.
@@ -232,8 +342,10 @@ func (p *jsonParser) next() error {
 		return p.nextAtStartState(action)
 	case inLeafStateKind:
 		return p.nextInLeafState(action)
-	case inArrayStateKind:
-		panic("TODO")
+	case inArrayIndexStateKind:
+		return p.nextInArrayIndexState(action)
+	case inArrayAfterIndexStateKind:
+		return p.nextInArrayAfterIndexState(action)
 	case inObjectAtKeyStateKind:
 		return p.nextInObjectAtKeyState(action)
 	case inObjectAtValueStateKind:
@@ -264,6 +376,7 @@ func (p *jsonParser) push() error {
 	// Append the current state to the stack.
 	p.stack = append(p.stack, p.state)
 	p.state.kind = atStartStateKind
+	p.state.arrayIndex = 0
 	return nil
 }
 
@@ -291,7 +404,7 @@ func (p *jsonParser) Bool() (bool, error) {
 }
 
 func (p *jsonParser) Int() (int64, error) {
-	if p.state.kind == inArrayStateKind {
+	if p.state.kind == inArrayIndexStateKind {
 		return p.state.arrayIndex, nil
 	}
 	return p.parser.Int()

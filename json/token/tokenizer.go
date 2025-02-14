@@ -181,7 +181,7 @@ func (t *tokenizer) tokenizeNumber() error {
 		if err != nil {
 			t.tokenKind = TooLargeNumberKind
 			// scan already passed, so we know this is a valid number.
-			// The number is just too large represent in 64 bits.
+			// The number is just too large represent in 64 float bits.
 			return nil
 		}
 		t.tokenKind = FractionNumberKind
