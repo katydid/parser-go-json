@@ -16,13 +16,18 @@ package json
 
 type state struct {
 	kind       stateKind
-	arrayIndex int
+	arrayIndex int64
 }
 
 type stateKind byte
 
-const unknownStateKind = stateKind(0)
+const atStartStateKind = stateKind(0)
 
-func (s stateKind) IsUnknown() bool {
-	return s == unknownStateKind
-}
+const inLeafStateKind = stateKind('l')
+
+const inArrayStateKind = stateKind('[')
+
+const inObjectAtKeyStateKind = stateKind('k')
+const inObjectAtValueStateKind = stateKind('v')
+
+const atEOFStateKind = stateKind('$')
