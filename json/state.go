@@ -14,9 +14,12 @@
 
 package json
 
+import "github.com/katydid/parser-go-json/json/parse"
+
 type state struct {
-	kind       stateKind
-	arrayIndex int64
+	kind          stateKind
+	arrayElemKind parse.Kind
+	arrayIndex    int64
 }
 
 type stateKind byte
@@ -25,7 +28,8 @@ const atStartStateKind = stateKind(0)
 
 const inLeafStateKind = stateKind('l')
 
-const inArrayStateKind = stateKind('[')
+const inArrayIndexStateKind = stateKind('i')
+const inArrayAfterIndexStateKind = stateKind('a')
 
 const inObjectAtKeyStateKind = stateKind('k')
 const inObjectAtValueStateKind = stateKind('v')

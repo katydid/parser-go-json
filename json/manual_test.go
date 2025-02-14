@@ -76,10 +76,10 @@ func TestIntWithExponent(t *testing.T) {
 	if !parser.IsLeaf() {
 		t.Fatal("incorrect walk, please adjust the path above")
 	}
-	if i, err := parser.Int(); err != nil {
+	if d, err := parser.Double(); err != nil {
 		t.Fatalf("did not expect error %v", err)
-	} else if i != 1e+08 {
-		t.Fatalf("got %d", i)
+	} else if d != 1e+08 {
+		t.Fatalf("got %v", d)
 	}
 }
 
