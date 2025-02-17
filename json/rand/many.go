@@ -31,7 +31,7 @@ func values(r Rand, atleast int) (map[byte]int, []string) {
 	kinds := allKinds()
 	ss := []string{}
 	for !(eachKindHasNonZero(kinds) && len(ss) >= atleast) {
-		s := Value(r, 5)
+		s := Value(r)
 		ss = append(ss, s)
 		kinds[whichKind(s)] += 1
 	}

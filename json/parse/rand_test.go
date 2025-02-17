@@ -21,7 +21,7 @@ import (
 	"github.com/katydid/parser-go-json/json/rand"
 )
 
-func TestRandomParse(t *testing.T) {
+func TestParseRandomValues(t *testing.T) {
 	r := rand.NewRand()
 	values := rand.Values(r, 100)
 	for _, value := range values {
@@ -29,6 +29,20 @@ func TestRandomParse(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			tokenizer := NewParser([]byte(value))
 			if err := walk(tokenizer); err != nil {
+				t.Fatalf("expected EOF, but got %v", err)
+			}
+		})
+	}
+}
+
+func TestRandomlyParseRandomValues(t *testing.T) {
+	r := rand.NewRand()
+	values := rand.Values(r, 100)
+	for _, value := range values {
+		name := testrun.Name(value)
+		t.Run(name, func(t *testing.T) {
+			tokenizer := NewParser([]byte(value))
+			if err := randWalk(r, tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v", err)
 			}
 		})
