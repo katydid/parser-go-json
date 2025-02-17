@@ -104,7 +104,7 @@ func (p *jsonParser) nextInLeafState(action action) error {
 	switch action {
 	case nextAction:
 		// We already parsed the leaf, so there is no next element.
-		return io.EOF
+		return p.eof()
 	case downAction:
 		// Cannot call Down when in leaf, since we are the bottom.
 		return errDownLeaf
@@ -124,7 +124,7 @@ func (p *jsonParser) nextAtEOF(action action) error {
 	switch action {
 	case nextAction:
 		// If Next is called too many times, just keep on return EOF
-		return io.EOF
+		return p.eof()
 	case downAction:
 		// We cannot go down if we are at the EOF
 		return errDownEOF
@@ -330,6 +330,16 @@ func (p *jsonParser) nextInArrayAfterIndexState(action action) error {
 }
 
 func (p *jsonParser) eof() error {
+	if len(p.stack) == 0 {
+		// if we are at the top of stack, then check that there is no more input left.
+		_, err := p.parser.Next()
+		if err == nil {
+			return errExpectedEOF
+		}
+		if err != io.EOF {
+			return err
+		}
+	}
 	// When EOF is returned also set the state to an EOF state.
 	// This state allows us to call Up.
 	p.state.kind = atEOFStateKind

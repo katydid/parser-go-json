@@ -25,3 +25,5 @@ var errNextShouldBeCalled = errors.New("Next should also be called at the start 
 var errDownLeaf = errors.New("cannot call Down in Leaf")
 
 var errDownEOF = errors.New("cannot call Down at EOF")
+
+var errExpectedEOF = errors.New("expected EOF")
