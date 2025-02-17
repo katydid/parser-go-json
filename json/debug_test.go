@@ -16,8 +16,10 @@ package json
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
+	"github.com/katydid/parser-go-json/json/parse"
 	"github.com/katydid/parser-go/parser/debug"
 )
 
@@ -41,17 +43,20 @@ func TestDebugWalk(t *testing.T) {
 
 func TestDebugRandomWalk(t *testing.T) {
 	p := NewParser()
+	p.(*jsonParser).parser = parse.NewLogger(parse.NewParser(nil))
 	data, err := json.Marshal(debug.Input)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for i := 0; i < 10; i++ {
-		if err := p.Init(data); err != nil {
-			t.Fatal(err)
-		}
-		l := debug.NewLogger(p, debug.NewLineLogger())
-		if err := debug.RandomWalk(l, debug.NewRand(), 10, 3); err != nil {
-			t.Fatal(err)
-		}
+		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
+			if err := p.Init(data); err != nil {
+				t.Fatal(err)
+			}
+			l := debug.NewLogger(p, debug.NewLineLogger())
+			if err := debug.RandomWalk(l, debug.NewRand(), 10, 3); err != nil {
+				t.Fatal(err)
+			}
+		})
 	}
 }

@@ -38,14 +38,6 @@ func expect[A comparable](t *testing.T, f func() (A, error), want A) {
 	}
 }
 
-func expectErr[A any](t *testing.T, f func() (A, error)) {
-	t.Helper()
-	got, err := f()
-	if err == nil || err == io.EOF {
-		t.Fatalf("expected error, but got %v with err = %v", got, err)
-	}
-}
-
 func expectEOF(t *testing.T, f func() error) {
 	t.Helper()
 	err := f()
