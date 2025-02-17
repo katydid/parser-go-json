@@ -239,3 +239,38 @@ func TestSkipUpUpUp(t *testing.T) {
 	expect(t, p.String, "B")
 	expectEOF(t, p.Next)
 }
+
+func TestSkipUpUpUpEndOfObject(t *testing.T) {
+	str := `{
+		"A": [
+			{"a": "b"},
+			"b",
+			"c"
+		],
+		"B": 1
+	}`
+	p := NewParser()
+	if err := p.Init([]byte(str)); err != nil {
+		t.Fatal(err)
+	}
+	assertNoErr(t, p.Next)
+	expect(t, p.String, "A")
+
+	p.Down()
+	assertNoErr(t, p.Next)
+	expect(t, p.Int, 0)
+	p.Down()
+	assertNoErr(t, p.Next)
+	expect(t, p.String, "a")
+	p.Down()
+	assertNoErr(t, p.Next)
+	expect(t, p.String, "b")
+	p.Up()
+	// expectEOF(t, p.Next)
+	p.Up()
+	// assertNoErr(t, p.Next)
+	p.Up()
+	assertNoErr(t, p.Next)
+	expect(t, p.String, "B")
+	expectEOF(t, p.Next)
+}
