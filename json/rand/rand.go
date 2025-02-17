@@ -78,11 +78,11 @@ func Object(r Rand, opts ...Option) string {
 func randObject(r Rand, c *config) string {
 	l := r.Intn(c.maxObjectFields)
 	if l == 0 {
-		return "{" + randWs(r) + "}"
+		return "{" + randWs(r, c) + "}"
 	}
 	ss := make([]string, l)
 	for i := 0; i < l; i++ {
-		ss[i] = randWs(r) + String(r) + randWs(r) + ":" + randElement(r, c)
+		ss[i] = randWs(r, c) + String(r) + randWs(r, c) + ":" + randElement(r, c)
 	}
 	return "{" + strings.Join(ss, ",") + "}"
 }
@@ -98,7 +98,7 @@ func Array(r Rand, opts ...Option) string {
 func randArray(r Rand, c *config) string {
 	l := r.Intn(c.maxArrayLength)
 	if l == 0 {
-		return "[" + randWs(r) + "]"
+		return "[" + randWs(r, c) + "]"
 	}
 	ss := make([]string, l)
 	for i := 0; i < l; i++ {
@@ -109,7 +109,7 @@ func randArray(r Rand, c *config) string {
 
 // element := ws value ws
 func randElement(r Rand, c *config) string {
-	return randWs(r) + randValue(r, c) + randWs(r)
+	return randWs(r, c) + randValue(r, c) + randWs(r, c)
 }
 
 // String returns a string that represents a random JSON string.
@@ -268,8 +268,8 @@ func randHex(r Rand) string {
 }
 
 // ws := "" | '0020' ws | '000A' ws | '000D' ws | '0009' ws
-func randWs(r Rand) string {
-	l := r.Intn(5)
+func randWs(r Rand, c *config) string {
+	l := r.Intn(c.maxSpaces)
 	ss := make([]rune, l)
 	for i := 0; i < l; i++ {
 		ss[i] = randW(r)

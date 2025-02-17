@@ -57,8 +57,8 @@ func GetMyField(p parser.Interface) (string, error) {
 ## Special Considerations
 
 * The parser uses a buffer pool, which will allocate memory until it is warmed up.
-* Buffers are reused and pooled. This means that the `String` and `Bytes` methods, returns a `string` and `[]byte` respectively that should be copied if it is needed again after calling `Next`, `Up` or `Down`.
-* Arrays are indexed, which means that `["a","b","c"]` will be parsed something that looks like an integer indexed map: `{O: "a", 1: "b", 2: "c"}`.
+* Buffers are reused and pooled. This means that the `String` and `Bytes` methods, returns a `string` and `[]byte` respectively that should be copied if it is needed again before calling `Next`, `Up` or `Down`.
+* Arrays are indexed, which means that `["a","b","c"]` will be parsed into something that looks like an integer indexed map: `{O: "a", 1: "b", 2: "c"}`.
 
 ## Thank you
 

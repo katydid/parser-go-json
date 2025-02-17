@@ -23,6 +23,7 @@ type config struct {
 	numberEdgeCases []string
 	// r.Intn(c.numberEdgeCaseOdds) == 0 will result in a random edge case being generated.
 	numberEdgeCaseOdds int
+	maxSpaces          int
 }
 
 type Option func(*config)
@@ -36,6 +37,7 @@ func newConfig(opts ...Option) *config {
 		maxStringLength:    100,
 		numberEdgeCases:    defaultNumberEdgeCases,
 		numberEdgeCaseOdds: 100,
+		maxSpaces:          5,
 	}
 	// apply options
 	for _, o := range opts {
@@ -77,5 +79,12 @@ func WithMaxArrayLength(maxArrayLength int) Option {
 func WithMaxStringLength(maxStringLength int) Option {
 	return func(c *config) {
 		c.maxStringLength = maxStringLength
+	}
+}
+
+// WithMaxSpaces sets the maximum number of spaces generated at each opportunity to generate spaces.
+func WithMaxSpaces(maxSpaces int) Option {
+	return func(c *config) {
+		c.maxSpaces = maxSpaces
 	}
 }
