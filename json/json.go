@@ -53,6 +53,7 @@ func NewParser() Interface {
 func (p *jsonParser) Init(buf []byte) error {
 	p.parser.Init(buf)
 	p.action = nextAction
+	p.actions = p.actions[:0]
 	p.state = state{}
 	p.stack = p.stack[:0]
 	p.pool.FreeAll()

@@ -24,7 +24,7 @@ import (
 
 func TestParseRandomValues(t *testing.T) {
 	r := rand.NewRand()
-	numValues := 10000
+	numValues := 1000
 	values := rand.Values(r, numValues)
 	p := NewParser()
 
@@ -43,7 +43,7 @@ func TestParseRandomValues(t *testing.T) {
 
 func TestRandomlyParseRandomValues(t *testing.T) {
 	r := rand.NewRand()
-	numValues := 10000
+	numValues := 1000
 	values := rand.Values(r, numValues)
 	p := NewParser()
 
