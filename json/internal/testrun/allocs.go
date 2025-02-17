@@ -15,6 +15,7 @@
 package testrun
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/katydid/parser-go-json/json/internal/pool"
@@ -38,34 +39,65 @@ func NoAllocsOnAverage(t *testing.T, f func(bs []byte)) {
 }
 
 func NotASingleAllocAfterWarmUp(t *testing.T, pool pool.Pool, f func(bs []byte)) {
+	defer runtime.GOMAXPROCS(runtime.GOMAXPROCS(1))
+
 	t.Helper()
 	r := rand.NewRand()
+	seed := r.Seed()
 	numValues := 100
+
 	inputs := rand.Values(r, numValues)
 
+	testRunWarmup(pool, f, inputs)
+
+	testRunAfterWarmup(t, seed, pool, f, inputs)
+}
+
+func testRunWarmup(pool pool.Pool, f func(bs []byte), inputs [][]byte) {
 	// warm up buffer pool
-	for i := 0; i < numValues; i++ {
+	for i := 0; i < len(inputs); i++ {
 		f(inputs[i])
 		pool.FreeAll()
 	}
-	originalPoolSize := pool.Size()
+}
 
-	const runsPerTest = 1
-	for i := 0; i < numValues; i++ {
+func testRunAfterWarmup(t *testing.T, seed int64, pool pool.Pool, f func(bs []byte), inputs [][]byte) {
+	originalPoolSize := pool.Size()
+	for i := 0; i < len(inputs); i++ {
 		ff := func() {
 			f(inputs[i])
 			pool.FreeAll()
 		}
-		allocs := testing.AllocsPerRun(runsPerTest, ff)
+		allocs := allocsForSingleRun(ff)
 		if allocs != 0 {
-			poolallocs := pool.Size() - originalPoolSize
-			pool.FreeAll()
 			// there are sometimes allocations made by the testing framework
 			// retry to make sure that the allocation is the parser's fault.
-			allocs2 := testing.AllocsPerRun(runsPerTest, ff)
+			allocs2 := allocsForSingleRun(ff)
 			if allocs2 != 0 {
-				t.Fatalf("input = %s, seed = %v, got %v allocs, want 0 allocs, pool allocs = %v", inputs[i], r.Seed(), allocs, poolallocs)
+				poolallocs := pool.Size() - originalPoolSize
+				t.Fatalf("input = %s, seed = %v, got %v allocs, pool allocs = %d", inputs[i], seed, allocs, poolallocs)
 			}
 		}
 	}
+}
+
+// allocsForSingleRun should be called with GOMAXPROCS=1
+// Hint add the following line to the caller
+//
+//	defer runtime.GOMAXPROCS(runtime.GOMAXPROCS(1))
+func allocsForSingleRun(f func()) (avg uint64) {
+	var memstats runtime.MemStats
+
+	// Measure the starting statistics
+	runtime.ReadMemStats(&memstats)
+	mallocs := 0 - memstats.Mallocs
+
+	// Run the function
+	f()
+
+	// Read the final statistics
+	runtime.ReadMemStats(&memstats)
+	mallocs += memstats.Mallocs
+
+	return mallocs
 }
