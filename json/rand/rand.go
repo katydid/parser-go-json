@@ -28,14 +28,29 @@ func Value(r Rand, opts ...Option) string {
 // value BNF:
 // value := object | array | string | number | "true" | "false" | "null"
 func randValue(r Rand, c *config) string {
-	maxN := 7
-	if c.maxLevels <= 0 {
+	if c.maxDepth <= 0 {
 		// do not generate arrays or objects,
 		// since we have generated a deep enough structure and
 		// we do not want to endlessly recurse.
-		maxN = 5
+		return randTerminator(r, c)
 	}
-	switch r.Intn(maxN) {
+	switch r.Intn(3) {
+	case 0:
+		return randTerminator(r, c)
+	case 1:
+		c.maxDepth = c.maxDepth - 1
+		return randArray(r, c)
+	case 2:
+		c.maxDepth = c.maxDepth - 1
+		return randObject(r, c)
+	}
+	panic("unreachable")
+}
+
+// randTerminator generates a random json value that cannot recurse into generating more json values.
+// More specifically, it generates either null, false, true, number or a string and does not generate an array or object.
+func randTerminator(r Rand, c *config) string {
+	switch r.Intn(5) {
 	case 0:
 		return "null"
 	case 1:
@@ -46,11 +61,6 @@ func randValue(r Rand, c *config) string {
 		return randNumber(r, c)
 	case 4:
 		return randString(r, c)
-	case 5:
-		c.maxLevels = c.maxLevels - 1
-		return randArray(r, c)
-	case 6:
-		return randObject(r, c)
 	}
 	panic("unreachable")
 }
@@ -66,7 +76,7 @@ func Object(r Rand, opts ...Option) string {
 // members := member | member ',' members
 // member := ws string ws ':' element
 func randObject(r Rand, c *config) string {
-	l := r.Intn(10)
+	l := r.Intn(c.maxObjectFields)
 	if l == 0 {
 		return "{" + randWs(r) + "}"
 	}
@@ -86,7 +96,7 @@ func Array(r Rand, opts ...Option) string {
 // array := '[' ws ']' | '[' elements ']'
 // elements := element | element ',' elements
 func randArray(r Rand, c *config) string {
-	l := r.Intn(10)
+	l := r.Intn(c.maxArrayLength)
 	if l == 0 {
 		return "[" + randWs(r) + "]"
 	}
@@ -112,7 +122,7 @@ func String(r Rand, opts ...Option) string {
 // string := '"' characters '"'
 // characters := "" | character characters
 func randString(r Rand, c *config) string {
-	ss := make([]string, int(r.Intn(100)))
+	ss := make([]string, int(r.Intn(c.maxStringLength)))
 	for i := range ss {
 		ss[i] = randChar(r)
 	}
@@ -173,29 +183,8 @@ func Number(r Rand, opts ...Option) string {
 // number := integer fraction exponent
 func randNumber(r Rand, c *config) string {
 	// Sometimes generate an edge case
-	if r.Intn(100) == 0 {
-		switch r.Intn(9) {
-		case 0:
-			return "9223372036854775807" // math.MaxInt64
-		case 1:
-			return "9223372036854775808" // math.MaxInt64 + 1
-		case 2:
-			return "-9223372036854775808" // math.MinInt64
-		case 3:
-			return "-9223372036854775809" // math.MinInt64 - 1
-		case 4:
-			return "18446744073709551615" // math.MaxUint64
-		case 5:
-			return "18446744073709551616" // math.MaxUint64 + 1
-		case 6:
-			return "1.79769313486231570814527423731704356798070e+308" // math.MaxFloat64
-		case 7:
-			return "2.79769313486231570814527423731704356798070e+308" // > math.MaxFloat64
-		case 8:
-			return "4.9406564584124654417656879286822137236505980e-324" // math.SmallestNonzeroFloat64
-		default:
-			panic("unreachable")
-		}
+	if r.Intn(c.numberEdgeCaseOdds) == 0 {
+		return c.numberEdgeCases[r.Intn(len(c.numberEdgeCases))]
 	}
 	return randInteger(r) + randFraction(r) + randExponent(r)
 }
