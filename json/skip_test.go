@@ -16,7 +16,6 @@
 package json
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -61,7 +60,6 @@ func TestSkipArrayElements(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fmt.Printf("first element\n")
 	assertNoErr(t, p.Next)
 	expect(t, p.Int, 0)
 	p.Down()
@@ -70,7 +68,6 @@ func TestSkipArrayElements(t *testing.T) {
 	// expectEOF(t, p.Next)
 	p.Up()
 
-	fmt.Printf("second element\n")
 	assertNoErr(t, p.Next)
 	expect(t, p.Int, 1)
 	p.Down()
@@ -79,7 +76,6 @@ func TestSkipArrayElements(t *testing.T) {
 	expectEOF(t, p.Next)
 	p.Up()
 
-	fmt.Printf("third element\n")
 	assertNoErr(t, p.Next)
 	expect(t, p.Int, 2)
 	p.Down()
@@ -93,7 +89,6 @@ func TestSkipArrayElements(t *testing.T) {
 	// expectEOF(t, p.Next)
 	p.Up()
 
-	fmt.Printf("fourth element\n")
 	assertNoErr(t, p.Next)
 	expect(t, p.Int, 3)
 	p.Down()

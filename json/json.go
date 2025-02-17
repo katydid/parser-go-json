@@ -41,10 +41,11 @@ type jsonParser struct {
 
 // NewParser returns a new JSON parser.
 func NewParser() Interface {
+	p := pool.New()
 	return &jsonParser{
 		stack:  make([]state, 0, 10),
-		parser: parse.NewParser(nil),
-		pool:   pool.New(),
+		parser: parse.NewParserWithCustomAllocator(nil, p.Alloc),
+		pool:   p,
 	}
 }
 
@@ -58,7 +59,6 @@ func (p *jsonParser) Init(buf []byte) error {
 }
 
 func (p *jsonParser) nextAtStartState(action action) error {
-	fmt.Printf("nextAtStartState\n")
 	switch action {
 	case nextAction:
 		parseKind, err := p.parser.Next()
@@ -101,7 +101,6 @@ func (p *jsonParser) nextAtStartState(action action) error {
 }
 
 func (p *jsonParser) nextInLeafState(action action) error {
-	fmt.Printf("nextInLeafState\n")
 	switch action {
 	case nextAction:
 		// We already parsed the leaf, so there is no next element.
@@ -122,7 +121,6 @@ func (p *jsonParser) nextInLeafState(action action) error {
 }
 
 func (p *jsonParser) nextAtEOF(action action) error {
-	fmt.Printf("nextAtEOF\n")
 	switch action {
 	case nextAction:
 		// If Next is called too many times, just keep on return EOF
@@ -143,7 +141,6 @@ func (p *jsonParser) nextAtEOF(action action) error {
 }
 
 func (p *jsonParser) nextInObjectAtKeyState(action action) error {
-	fmt.Printf("nextInObjectAtKeyState\n")
 	// inObjectAtKeyStateKind represents that we have scanned a key
 	switch action {
 	case nextAction:
@@ -191,7 +188,6 @@ func (p *jsonParser) nextInObjectAtKeyState(action action) error {
 }
 
 func (p *jsonParser) nextInObjectAtValueState(action action) error {
-	fmt.Printf("nextInObjectAtValueState\n")
 	// inObjectAtValueStateKind represents that we have scanned a value and Up was called.
 	switch action {
 	case nextAction:
@@ -224,7 +220,6 @@ func (p *jsonParser) nextInObjectAtValueState(action action) error {
 }
 
 func (p *jsonParser) nextInArrayIndexState(action action) error {
-	fmt.Printf("nextInArrayIndexState\n")
 	// inArrayIndexState represents that we have scanned an element, if it was null, bool, number or string and the first key of an object or .
 	switch action {
 	case nextAction:
@@ -305,7 +300,6 @@ func (p *jsonParser) nextInArrayIndexState(action action) error {
 }
 
 func (p *jsonParser) nextInArrayAfterIndexState(action action) error {
-	fmt.Printf("nextInArrayAfterIndexState\n")
 	// This is after Up was called on an element.
 	switch action {
 	case nextAction:
@@ -343,7 +337,6 @@ func (p *jsonParser) eof() error {
 }
 
 func (p *jsonParser) next() error {
-	fmt.Printf("next\n")
 	action := p.action
 	// do not forget to reset action
 	p.action = nextAction
@@ -367,22 +360,18 @@ func (p *jsonParser) next() error {
 }
 
 func (p *jsonParser) Next() error {
-	fmt.Printf("Next\n")
 	return p.next()
 }
 
 func (p *jsonParser) Down() {
-	fmt.Printf("Down\n")
 	p.action = downAction
 }
 
 func (p *jsonParser) Up() {
-	fmt.Printf("Up\n")
 	p.action = upAction
 }
 
 func (p *jsonParser) push() error {
-	fmt.Printf("push\n")
 	// Append the current state to the stack.
 	p.stack = append(p.stack, p.state)
 	p.state.kind = atStartStateKind
@@ -391,7 +380,6 @@ func (p *jsonParser) push() error {
 }
 
 func (p *jsonParser) pop() error {
-	fmt.Printf("pop\n")
 	if len(p.stack) == 0 {
 		return errPop
 	}
