@@ -128,7 +128,7 @@ func TestSkipArrayObjectElement(t *testing.T) {
 	expectEOF(t, p.Next)
 }
 
-func TestSkipAfterFirstArrayElement(t *testing.T) {
+func TestSkipUpTwiceInARow(t *testing.T) {
 	str := `{
 		"A": [
 			"a",
@@ -150,7 +150,92 @@ func TestSkipAfterFirstArrayElement(t *testing.T) {
 	assertNoErr(t, p.Next)
 	expect(t, p.String, "a")
 	p.Up()
-	assertNoErr(t, p.Next)
 	p.Up()
+	expectEOF(t, p.Next)
+}
+
+func TestSkipDownUp(t *testing.T) {
+	str := `{
+		"A": [
+			"a",
+			"b",
+			"c"
+		]
+	}`
+	p := NewParser()
+	if err := p.Init([]byte(str)); err != nil {
+		t.Fatal(err)
+	}
+	assertNoErr(t, p.Next)
+	expect(t, p.String, "A")
+
+	p.Down()
+	assertNoErr(t, p.Next)
+	expect(t, p.Int, 0)
+	p.Down()
+	p.Up()
+	assertNoErr(t, p.Next)
+	expect(t, p.Int, 1)
+	p.Up()
+	expectEOF(t, p.Next)
+}
+
+func TestSkipDownUpUp(t *testing.T) {
+	str := `{
+		"A": [
+			"a",
+			"b",
+			"c"
+		],
+		"B": 1
+	}`
+	p := NewParser()
+	if err := p.Init([]byte(str)); err != nil {
+		t.Fatal(err)
+	}
+	assertNoErr(t, p.Next)
+	expect(t, p.String, "A")
+
+	p.Down()
+	assertNoErr(t, p.Next)
+	expect(t, p.Int, 0)
+	p.Down()
+	p.Up()
+	p.Up()
+	assertNoErr(t, p.Next)
+	expect(t, p.String, "B")
+	expectEOF(t, p.Next)
+}
+
+func TestSkipUpUpUp(t *testing.T) {
+	str := `{
+		"A": [
+			{"a": "b", "c": "d"},
+			"b",
+			"c"
+		],
+		"B": 1
+	}`
+	p := NewParser()
+	if err := p.Init([]byte(str)); err != nil {
+		t.Fatal(err)
+	}
+	assertNoErr(t, p.Next)
+	expect(t, p.String, "A")
+
+	p.Down()
+	assertNoErr(t, p.Next)
+	expect(t, p.Int, 0)
+	p.Down()
+	assertNoErr(t, p.Next)
+	expect(t, p.String, "a")
+	p.Down()
+	assertNoErr(t, p.Next)
+	expect(t, p.String, "b")
+	p.Up()
+	p.Up()
+	p.Up()
+	assertNoErr(t, p.Next)
+	expect(t, p.String, "B")
 	expectEOF(t, p.Next)
 }

@@ -31,20 +31,22 @@ type Interface interface {
 }
 
 type jsonParser struct {
-	action action
-	state  state
-	stack  []state
-	parser parse.Parser
-	pool   pool.Pool
+	action  action
+	actions []action
+	state   state
+	stack   []state
+	parser  parse.Parser
+	pool    pool.Pool
 }
 
 // NewParser returns a new JSON parser.
 func NewParser() Interface {
 	p := pool.New()
 	return &jsonParser{
-		stack:  make([]state, 0, 10),
-		parser: parse.NewParserWithCustomAllocator(nil, p.Alloc),
-		pool:   p,
+		stack:   make([]state, 0, 10),
+		actions: make([]action, 0, 10),
+		parser:  parse.NewParserWithCustomAllocator(nil, p.Alloc),
+		pool:    p,
 	}
 }
 
@@ -368,21 +370,44 @@ func (p *jsonParser) next() error {
 	panic("unreachable")
 }
 
+func (p *jsonParser) nexts() error {
+	if err := p.next(); err != nil {
+		return err
+	}
+	for i := 1; i <= len(p.actions); i++ {
+		p.action = p.actions[len(p.actions)-i]
+		if err := p.next(); err != nil {
+			return err
+		}
+	}
+	p.actions = p.actions[:0]
+	return nil
+}
+
 func (p *jsonParser) Next() error {
-	return p.next()
+	return p.nexts()
 }
 
 func (p *jsonParser) Down() {
-	p.action = downAction
+	p.pushAction(downAction)
 }
 
 func (p *jsonParser) Up() {
-	if p.action == downAction {
-		// when Up is called straight after Down, we simply call next.
-		p.action = nextAction
-	} else {
-		p.action = upAction
+	p.pushAction(upAction)
+}
+
+func (p *jsonParser) pushAction(newAction action) {
+	if p.action == nextAction {
+		p.action = newAction
+		return
 	}
+	// when Up is called straight after Down, we simply call next.
+	if p.action == downAction && newAction == upAction {
+		p.action = nextAction
+		return
+	}
+	p.actions = append(p.actions, p.action)
+	p.action = newAction
 }
 
 func (p *jsonParser) push() error {
