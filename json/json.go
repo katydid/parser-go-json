@@ -377,7 +377,12 @@ func (p *jsonParser) Down() {
 }
 
 func (p *jsonParser) Up() {
-	p.action = upAction
+	if p.action == downAction {
+		// when Up is called straight after Down, we simply call next.
+		p.action = nextAction
+	} else {
+		p.action = upAction
+	}
 }
 
 func (p *jsonParser) push() error {
