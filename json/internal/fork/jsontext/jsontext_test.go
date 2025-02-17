@@ -34,14 +34,14 @@ func TestMoreValues(t *testing.T) {
 	testrun.SameValue(t, p, `123456789.123456789e+123456789`)
 	testrun.EqualValue(t, p, `-0`, "0")
 	testrun.SameValue(t, p, `-123456789`)
-	testrun.EqualValue(t, p, `-0.0`, "0")
+	testrun.EqualValue(t, p, `-0.0`, "-0")
 	testrun.SameValue(t, p, `-0.123456789`)
-	testrun.EqualValue(t, p, `-0e0`, "0")
-	testrun.EqualValue(t, p, `-0e-0`, "0")
-	testrun.EqualValue(t, p, `-0e123456789`, "0")
-	testrun.EqualValue(t, p, `-0e-123456789`, "0")
-	testrun.EqualValue(t, p, `-123.123e-123`, `-1.23123e-121`)       // 1.23123 x 10^125
-	testrun.EqualValue(t, p, `-123456789.123456789e-123456789`, "0") // (-123456789.123456789) * (10 ^ (-123456789)) = 0
+	testrun.EqualValue(t, p, `-0e0`, "-0")
+	testrun.EqualValue(t, p, `-0e-0`, "-0")
+	testrun.EqualValue(t, p, `-0e123456789`, "-0")
+	testrun.EqualValue(t, p, `-0e-123456789`, "-0")
+	testrun.EqualValue(t, p, `-123.123e-123`, `-1.23123e-121`)        // 1.23123 x 10^125
+	testrun.EqualValue(t, p, `-123456789.123456789e-123456789`, "-0") // (-123456789.123456789) * (10 ^ (-123456789)) = 0
 	testrun.EqualValue(t, p, `""`, "")
 	testrun.EqualValue(t, p, `"a"`, "a")
 	testrun.EqualValue(t, p, `"ab"`, "ab")

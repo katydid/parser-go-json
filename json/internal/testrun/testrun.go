@@ -56,7 +56,9 @@ func parseValue(parser InitParser, input string) (string, error) {
 }
 
 func Parsable(t *testing.T, parser InitParser, s string) {
+	t.Helper()
 	t.Run("Parsable("+s+")", func(t *testing.T) {
+		t.Helper()
 		if err := walk(parser, s); err != nil {
 			t.Fatal(err)
 		}
@@ -64,7 +66,9 @@ func Parsable(t *testing.T, parser InitParser, s string) {
 }
 
 func NotParsable(t *testing.T, parser InitParser, s string) {
+	t.Helper()
 	t.Run("NotParsable("+s+")", func(t *testing.T) {
+		t.Helper()
 		parsed, err := parse(parser, s)
 		if err != nil {
 			return
@@ -74,7 +78,9 @@ func NotParsable(t *testing.T, parser InitParser, s string) {
 }
 
 func EqualValue(t *testing.T, parser InitParser, input, output string) {
+	t.Helper()
 	t.Run("EqualValue("+input+","+output+")", func(t *testing.T) {
+		t.Helper()
 		res, err := parseValue(parser, input)
 		if err != nil {
 			t.Fatal(err)
@@ -86,7 +92,9 @@ func EqualValue(t *testing.T, parser InitParser, input, output string) {
 }
 
 func SameValue(t *testing.T, parser InitParser, input string) {
+	t.Helper()
 	t.Run("SameValue("+input+")", func(t *testing.T) {
+		t.Helper()
 		res, err := parseValue(parser, input)
 		if err != nil {
 			t.Fatal(err)
