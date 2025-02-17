@@ -20,11 +20,16 @@ import (
 )
 
 // Value returns a string representing random json value.
+func Value(r Rand, opts ...Option) string {
+	c := newConfig(opts...)
+	return randValue(r, c)
+}
+
 // value BNF:
 // value := object | array | string | number | "true" | "false" | "null"
-func Value(r Rand, level int) string {
+func randValue(r Rand, c *config) string {
 	maxN := 7
-	if level <= 0 {
+	if c.maxLevels <= 0 {
 		// do not generate arrays or objects,
 		// since we have generated a deep enough structure and
 		// we do not want to endlessly recurse.
@@ -38,59 +43,75 @@ func Value(r Rand, level int) string {
 	case 2:
 		return "true"
 	case 3:
-		return Number(r)
+		return randNumber(r, c)
 	case 4:
-		return String(r)
+		return randString(r, c)
 	case 5:
-		return Array(r, level-1)
+		c.maxLevels = c.maxLevels - 1
+		return randArray(r, c)
 	case 6:
-		return Object(r, level-1)
+		return randObject(r, c)
 	}
 	panic("unreachable")
 }
 
 // Object returns a string that represents a random JSON object.
+func Object(r Rand, opts ...Option) string {
+	c := newConfig(opts...)
+	return randObject(r, c)
+}
+
 // object BNF:
 // object := '{' ws '}' | '{' members '}'
 // members := member | member ',' members
 // member := ws string ws ':' element
-func Object(r Rand, level int) string {
+func randObject(r Rand, c *config) string {
 	l := r.Intn(10)
 	if l == 0 {
 		return "{" + randWs(r) + "}"
 	}
 	ss := make([]string, l)
 	for i := 0; i < l; i++ {
-		ss[i] = randWs(r) + String(r) + randWs(r) + ":" + randElement(r, level)
+		ss[i] = randWs(r) + String(r) + randWs(r) + ":" + randElement(r, c)
 	}
 	return "{" + strings.Join(ss, ",") + "}"
 }
 
 // Array returns a string that represents a random JSON array.
+func Array(r Rand, opts ...Option) string {
+	c := newConfig(opts...)
+	return randArray(r, c)
+}
+
 // array := '[' ws ']' | '[' elements ']'
 // elements := element | element ',' elements
-func Array(r Rand, level int) string {
+func randArray(r Rand, c *config) string {
 	l := r.Intn(10)
 	if l == 0 {
 		return "[" + randWs(r) + "]"
 	}
 	ss := make([]string, l)
 	for i := 0; i < l; i++ {
-		ss[i] = randElement(r, level)
+		ss[i] = randElement(r, c)
 	}
 	return "[" + strings.Join(ss, ",") + "]"
 }
 
 // element := ws value ws
-func randElement(r Rand, level int) string {
-	return randWs(r) + Value(r, level) + randWs(r)
+func randElement(r Rand, c *config) string {
+	return randWs(r) + randValue(r, c) + randWs(r)
 }
 
 // String returns a string that represents a random JSON string.
+func String(r Rand, opts ...Option) string {
+	c := newConfig(opts...)
+	return randString(r, c)
+}
+
 // String BNF:
 // string := '"' characters '"'
 // characters := "" | character characters
-func String(r Rand) string {
+func randString(r Rand, c *config) string {
 	ss := make([]string, int(r.Intn(100)))
 	for i := range ss {
 		ss[i] = randChar(r)
@@ -143,9 +164,14 @@ func randEscape(r Rand) string {
 }
 
 // Number returns a string that represents a random JSON number.
+func Number(r Rand, opts ...Option) string {
+	c := newConfig(opts...)
+	return randNumber(r, c)
+}
+
 // number BNF:
 // number := integer fraction exponent
-func Number(r Rand) string {
+func randNumber(r Rand, c *config) string {
 	// Sometimes generate an edge case
 	if r.Intn(100) == 0 {
 		switch r.Intn(9) {

@@ -17,6 +17,8 @@ package parse
 import (
 	"errors"
 	"io"
+
+	"github.com/katydid/parser-go-json/json/rand"
 )
 
 var errUnknownToken = errors.New("unknown token")
@@ -25,44 +27,72 @@ var errExpectedBool = errors.New("expected bool")
 
 var errExpectedString = errors.New("expected string")
 
-func walkValue(t Parser, kind Kind) error {
-	if _, err := t.Bool(); err == nil {
+func walkValue(p Parser, kind Kind) error {
+	if _, err := p.Bool(); err == nil {
 		return nil
 	}
 	if kind == BoolKind {
 		return errExpectedBool
 	}
-	if _, err := t.Int(); err == nil {
+	if _, err := p.Int(); err == nil {
 		return nil
 	}
-	if _, err := t.Uint(); err == nil {
+	if _, err := p.Uint(); err == nil {
 		return nil
 	}
-	if _, err := t.Double(); err == nil {
+	if _, err := p.Double(); err == nil {
 		return nil
 	}
-	if _, err := t.String(); err == nil {
+	if _, err := p.String(); err == nil {
 		return nil
 	}
 	if kind == StringKind {
 		return errExpectedString
 	}
-	if _, err := t.Bytes(); err == nil {
+	if _, err := p.Bytes(); err == nil {
 		return nil
 	}
 	return errUnknownToken
 }
 
-func walk(t Parser) error {
-	kind, err := t.Next()
+func walk(p Parser) error {
+	kind, err := p.Next()
 	for err == nil {
 		switch kind {
 		case NullKind, BoolKind, NumberKind, StringKind:
-			if err := walkValue(t, kind); err != nil {
+			if err := walkValue(p, kind); err != nil {
 				return err
 			}
 		}
-		kind, err = t.Next()
+		kind, err = p.Next()
+	}
+	if err != io.EOF {
+		return err
+	}
+	return nil
+}
+
+func randNext(r rand.Rand, p Parser) (Kind, error) {
+	skip := r.Intn(2) == 0
+	for skip {
+		if err := p.Skip(); err != nil {
+			return UnknownKind, err
+		}
+		skip = r.Intn(2) == 0
+	}
+	return p.Next()
+}
+
+func randWalk(r rand.Rand, p Parser) error {
+	kind, err := p.Next()
+	for err == nil {
+		switch kind {
+		case NullKind, BoolKind, NumberKind, StringKind:
+			if err := walkValue(p, kind); err != nil {
+				return err
+			}
+		}
+		kind, err = randNext(r, p)
 	}
 	if err != io.EOF {
 		return err
