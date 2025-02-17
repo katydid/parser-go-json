@@ -16,7 +16,6 @@
 package json
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/katydid/parser-go-json/json/internal/pool"
@@ -91,7 +90,7 @@ func (p *jsonParser) nextAtStartState(action action) error {
 			p.state.kind = inLeafStateKind
 			return nil
 		}
-		panic(fmt.Sprintf("unreachable kind = %v", parseKind))
+		panic("unreachable")
 	case downAction:
 		return errNextShouldBeCalled
 	case upAction:
