@@ -35,9 +35,8 @@ func TestNoAllocsOnAverage(t *testing.T) {
 }
 
 func TestNotASingleAllocAfterWarmUp(t *testing.T) {
-	pool := pool.New()
 	p := NewParser()
-	p.(*jsonParser).pool = pool
+	pool := p.(*jsonParser).pool
 	testrun.NotASingleAllocAfterWarmUp(t, pool, func(bs []byte) {
 		p.Init(bs)
 		if err := debug.Walk(p); err != nil {
