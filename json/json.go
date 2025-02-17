@@ -371,14 +371,9 @@ func (p *jsonParser) next() error {
 }
 
 func (p *jsonParser) nexts() error {
-	if err := p.next(); err != nil {
-		// ignore EOF if we still have more actions to perform.
-		if err != io.EOF || len(p.actions) == 0 {
-			return err
-		}
-	}
-	for i := 1; i <= len(p.actions); i++ {
-		p.action = p.actions[len(p.actions)-i]
+	lastAction := p.action
+	for i := 0; i < len(p.actions); i++ {
+		p.action = p.actions[i]
 		if err := p.next(); err != nil {
 			// ignore EOF if we still have more actions to perform.
 			if err != io.EOF || i == len(p.actions) {
@@ -387,7 +382,8 @@ func (p *jsonParser) nexts() error {
 		}
 	}
 	p.actions = p.actions[:0]
-	return nil
+	p.action = lastAction
+	return p.next()
 }
 
 func (p *jsonParser) Next() error {
