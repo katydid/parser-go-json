@@ -22,7 +22,7 @@ import (
 	"github.com/katydid/parser-go/parser/debug"
 )
 
-func TestParseRandom(t *testing.T) {
+func TestParseRandomValues(t *testing.T) {
 	r := rand.NewRand()
 	numValues := 10000
 	values := rand.Values(r, numValues)
@@ -35,6 +35,25 @@ func TestParseRandom(t *testing.T) {
 				t.Fatalf("seed = %v, err = %v, input = %v", r.Seed(), err, string(values[i]))
 			}
 			if err := debug.Walk(p); err != nil {
+				t.Fatalf("seed = %v, err = %v", r.Seed(), err)
+			}
+		})
+	}
+}
+
+func TestRandomlyParseRandomValues(t *testing.T) {
+	r := rand.NewRand()
+	numValues := 10000
+	values := rand.Values(r, numValues)
+	p := NewParser()
+
+	for i := 0; i < numValues; i++ {
+		name := testrun.Name(values[i])
+		t.Run(name, func(t *testing.T) {
+			if err := p.Init(values[i]); err != nil {
+				t.Fatalf("seed = %v, err = %v, input = %v", r.Seed(), err, string(values[i]))
+			}
+			if err := debug.RandomWalk(p, r, 2, 2); err != nil {
 				t.Fatalf("seed = %v, err = %v", r.Seed(), err)
 			}
 		})
