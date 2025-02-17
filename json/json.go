@@ -91,7 +91,7 @@ func (p *jsonParser) nextAtStartState(action action) error {
 			p.state.kind = inLeafStateKind
 			return nil
 		}
-		panic("unreachable")
+		panic(fmt.Sprintf("unreachable kind = %v", parseKind))
 	case downAction:
 		return errNextShouldBeCalled
 	case upAction:
@@ -282,6 +282,16 @@ func (p *jsonParser) nextInArrayIndexState(action action) error {
 		}
 		panic("unreachable")
 	case upAction:
+		switch p.state.arrayElemKind {
+		case parse.ObjectOpenKind, parse.ArrayOpenKind:
+			// skip the element
+			if err := p.parser.Skip(); err != nil {
+				return err
+			}
+		case parse.NullKind, parse.BoolKind, parse.NumberKind, parse.StringKind:
+		default:
+			panic("unreachable")
+		}
 		// Skip the rest of the array
 		if err := p.parser.Skip(); err != nil {
 			return err
