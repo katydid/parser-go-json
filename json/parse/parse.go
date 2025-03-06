@@ -24,14 +24,18 @@ import (
 type Parser interface {
 	// Next returns the Hint of the token or an error.
 	Next() (Hint, error)
-	// Skip skips over some of the json string.
-	// If the kind '{' was returned by Next, then the whole object is skipped.
-	// If a object key was just parsed, then that key's value is skipped.
-	// If an object value was just parsed, then the rest of the object is skipped.
-	// If the kind '[' was returned by Next, then the whole array is skipped.
-	// If an array element was parsed, then the rest of the array is skipped.
-	// In any other case, Skip simply calls Next.
+
+	// Skip allows the user to skip over uninteresting parts of the parse tree.
+	// Based on the Hint skip has different intuitive behaviours.
+	// If the Hint was:
+	// * '{': the whole Map is skipped.
+	// * 'k': the key's value is skipped.
+	// * '[': the whole List is skipped.
+	// * 'v': the rest of the Map or List is skipped.
+	// * ']': same as calling Next and ignoring the Hint.
+	// * '}': same as calling Next and ignoring the Hint.
 	Skip() error
+
 	// Tokenize parses the current token.
 	Tokenize() (token.Kind, error)
 
