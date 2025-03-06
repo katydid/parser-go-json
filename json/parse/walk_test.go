@@ -27,12 +27,9 @@ var errExpectedBool = errors.New("expected bool")
 
 var errExpectedString = errors.New("expected string")
 
-func walkValue(p Parser, kind Kind) error {
+func walkValue(p Parser, hint Hint) error {
 	if _, err := p.Bool(); err == nil {
 		return nil
-	}
-	if kind == BoolKind {
-		return errExpectedBool
 	}
 	if _, err := p.Int(); err == nil {
 		return nil
@@ -46,7 +43,7 @@ func walkValue(p Parser, kind Kind) error {
 	if _, err := p.String(); err == nil {
 		return nil
 	}
-	if kind == StringKind {
+	if hint == KeyHint {
 		return errExpectedString
 	}
 	if _, err := p.Bytes(); err == nil {
@@ -59,7 +56,7 @@ func walk(p Parser) error {
 	kind, err := p.Next()
 	for err == nil {
 		switch kind {
-		case NullKind, BoolKind, NumberKind, StringKind:
+		case ValueHint, KeyHint:
 			if err := walkValue(p, kind); err != nil {
 				return err
 			}
@@ -72,11 +69,11 @@ func walk(p Parser) error {
 	return nil
 }
 
-func randNext(r rand.Rand, p Parser) (Kind, error) {
+func randNext(r rand.Rand, p Parser) (Hint, error) {
 	skip := r.Intn(2) == 0
 	for skip {
 		if err := p.Skip(); err != nil {
-			return UnknownKind, err
+			return UnknownHint, err
 		}
 		skip = r.Intn(2) == 0
 	}
@@ -84,15 +81,15 @@ func randNext(r rand.Rand, p Parser) (Kind, error) {
 }
 
 func randWalk(r rand.Rand, p Parser) error {
-	kind, err := p.Next()
+	hint, err := p.Next()
 	for err == nil {
-		switch kind {
-		case NullKind, BoolKind, NumberKind, StringKind:
-			if err := walkValue(p, kind); err != nil {
+		switch hint {
+		case ValueHint, KeyHint:
+			if err := walkValue(p, hint); err != nil {
 				return err
 			}
 		}
-		kind, err = randNext(r, p)
+		hint, err = randNext(r, p)
 	}
 	if err != io.EOF {
 		return err

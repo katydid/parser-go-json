@@ -63,33 +63,33 @@ func (p *jsonParser) Init(buf []byte) error {
 func (p *jsonParser) nextAtStartState(action action) error {
 	switch action {
 	case nextAction:
-		parseKind, err := p.parser.Next()
+		parseHint, err := p.parser.Next()
 		if err != nil {
 			return err
 		}
-		switch parseKind {
-		case parse.ObjectOpenKind:
+		switch parseHint {
+		case parse.ObjectOpenHint:
 			p.state.kind = inObjectAtKeyStateKind
-			parseKindNext, err := p.parser.Next()
+			parseHintNext, err := p.parser.Next()
 			if err != nil {
 				return err
 			}
-			if parseKindNext == parse.ObjectCloseKind {
+			if parseHintNext == parse.ObjectCloseHint {
 				return p.eof()
 			}
 			return nil
-		case parse.ArrayOpenKind:
+		case parse.ArrayOpenHint:
 			p.state.kind = inArrayIndexStateKind
-			parseKindNext, err := p.parser.Next()
+			parseHintNext, err := p.parser.Next()
 			if err != nil {
 				return err
 			}
-			if parseKindNext == parse.ArrayCloseKind {
+			if parseHintNext == parse.ArrayCloseHint {
 				return p.eof()
 			}
-			p.state.arrayElemKind = parseKindNext
+			p.state.arrayElemHint = parseHintNext
 			return nil
-		case parse.NullKind, parse.BoolKind, parse.NumberKind, parse.StringKind:
+		case parse.ValueHint, parse.KeyHint:
 			p.state.kind = inLeafStateKind
 			return nil
 		}
@@ -153,7 +153,7 @@ func (p *jsonParser) nextInObjectAtKeyState(action action) error {
 		}
 		// Next we move onto the Next key.
 		parseKind, err := p.parser.Next()
-		if parseKind == parse.ObjectCloseKind {
+		if parseKind == parse.ObjectCloseHint {
 			// If the Object has ended, we return eof
 			return p.eof()
 		}
@@ -195,7 +195,7 @@ func (p *jsonParser) nextInObjectAtValueState(action action) error {
 	case nextAction:
 		// Up was just called and we need to scan to the Next key.
 		parseKind, err := p.parser.Next()
-		if parseKind == parse.ObjectCloseKind {
+		if parseKind == parse.ObjectCloseHint {
 			// If the Object has ended, we return eof
 			return p.eof()
 		}
@@ -226,23 +226,25 @@ func (p *jsonParser) nextInArrayIndexState(action action) error {
 	switch action {
 	case nextAction:
 		p.state.arrayIndex += 1
-		switch p.state.arrayElemKind {
-		case parse.ObjectOpenKind, parse.ArrayOpenKind:
+		switch p.state.arrayElemHint {
+		case parse.ObjectOpenHint, parse.ArrayOpenHint:
 			if err := p.parser.Skip(); err != nil {
 				return err
 			}
-		case parse.NullKind, parse.BoolKind, parse.NumberKind, parse.StringKind:
+		case parse.ValueHint:
+		case parse.KeyHint:
+			panic("unreachable: unexpected key hint in array")
 		default:
 			panic("unreachable")
 		}
-		parseKind, err := p.parser.Next()
+		parseHint, err := p.parser.Next()
 		if err != nil {
 			return err
 		}
-		if parseKind == parse.ArrayCloseKind {
+		if parseHint == parse.ArrayCloseHint {
 			return p.eof()
 		}
-		p.state.arrayElemKind = parseKind
+		p.state.arrayElemHint = parseHint
 		return nil
 	case downAction:
 		// We are at an array element that we are representing as an index.
@@ -251,41 +253,45 @@ func (p *jsonParser) nextInArrayIndexState(action action) error {
 		if err := p.push(); err != nil {
 			return err
 		}
-		switch p.state.arrayElemKind {
-		case parse.ObjectOpenKind:
+		switch p.state.arrayElemHint {
+		case parse.ObjectOpenHint:
 			p.state.kind = inObjectAtKeyStateKind
-			parseKindNext, err := p.parser.Next()
+			parseHintNext, err := p.parser.Next()
 			if err != nil {
 				return err
 			}
-			if parseKindNext == parse.ObjectCloseKind {
+			if parseHintNext == parse.ObjectCloseHint {
 				return p.eof()
 			}
 			return nil
-		case parse.ArrayOpenKind:
+		case parse.ArrayOpenHint:
 			p.state.kind = inArrayIndexStateKind
-			parseKindNext, err := p.parser.Next()
+			parseHintNext, err := p.parser.Next()
 			if err != nil {
 				return err
 			}
-			if parseKindNext == parse.ArrayCloseKind {
+			if parseHintNext == parse.ArrayCloseHint {
 				return p.eof()
 			}
-			p.state.arrayElemKind = parseKindNext
+			p.state.arrayElemHint = parseHintNext
 			return nil
-		case parse.NullKind, parse.BoolKind, parse.NumberKind, parse.StringKind:
+		case parse.ValueHint:
 			p.state.kind = inLeafStateKind
 			return nil
+		case parse.KeyHint:
+			panic("unreachable: unexpected key hint in array")
 		}
 		panic("unreachable")
 	case upAction:
-		switch p.state.arrayElemKind {
-		case parse.ObjectOpenKind, parse.ArrayOpenKind:
+		switch p.state.arrayElemHint {
+		case parse.ObjectOpenHint, parse.ArrayOpenHint:
 			// skip the element
 			if err := p.parser.Skip(); err != nil {
 				return err
 			}
-		case parse.NullKind, parse.BoolKind, parse.NumberKind, parse.StringKind:
+		case parse.ValueHint:
+		case parse.KeyHint:
+			panic("unreachable: unexpected key hint in array")
 		default:
 			panic("unreachable")
 		}
@@ -306,15 +312,15 @@ func (p *jsonParser) nextInArrayAfterIndexState(action action) error {
 	switch action {
 	case nextAction:
 		p.state.arrayIndex += 1
-		parseKind, err := p.parser.Next()
+		parseHint, err := p.parser.Next()
 		if err != nil {
 			return err
 		}
-		if parseKind == parse.ArrayCloseKind {
+		if parseHint == parse.ArrayCloseHint {
 			return p.eof()
 		}
 		p.state.kind = inArrayIndexStateKind
-		p.state.arrayElemKind = parseKind
+		p.state.arrayElemHint = parseHint
 		return nil
 	case downAction:
 		return errDown
