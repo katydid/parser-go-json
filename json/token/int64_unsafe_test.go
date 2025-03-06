@@ -16,7 +16,6 @@ package token
 
 import (
 	"math"
-	"runtime"
 	"testing"
 )
 
@@ -74,33 +73,36 @@ func TestUnsafeCastMinInt64(t *testing.T) {
 	}
 }
 
-func TestAllocsUnsafeCast(t *testing.T) {
-	defer runtime.GOMAXPROCS(runtime.GOMAXPROCS(1))
+func TestAllocCastUnsafe(t *testing.T) {
 	f := func() {
-		want := int64(math.MaxInt64)
+		want := int64(1233456578)
 		bs := unsafeCastFromInt64(want)
 		got := castToInt64(bs)
 		if got != want {
 			t.Fatalf("want %d got %d", want, got)
 		}
 	}
-	allocs := testing.AllocsPerRun(1000, f)
-	if allocs > 0 {
-		t.Fatalf("UnsafeCast Allocs = %f", allocs)
+	for i := 0; i < 10000; i++ {
+		allocs := testing.AllocsPerRun(1, f)
+		if allocs > 0 {
+			t.Fatalf("UnsafeCast Allocs = %f", allocs)
+		}
 	}
 }
 
-func TestAllocCast(t *testing.T) {
+func TestAllocCastDeprecated(t *testing.T) {
 	f := func() {
-		want := int64(math.MaxInt64)
+		want := int64(1233456578)
 		bs := castFromInt64(want)
 		got := castToInt64(bs)
 		if got != want {
 			t.Fatalf("want %d got %d", want, got)
 		}
 	}
-	allocs := testing.AllocsPerRun(1000, f)
-	if allocs > 0 {
-		t.Fatalf("Cast Allocs = %f", allocs)
+	for i := 0; i < 10000; i++ {
+		allocs := testing.AllocsPerRun(1, f)
+		if allocs > 0 {
+			t.Fatalf("Cast Allocs = %f", allocs)
+		}
 	}
 }
