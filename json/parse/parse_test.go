@@ -27,14 +27,14 @@ func TestParseExample(t *testing.T) {
 	expect(t, p.Next, ObjectOpenHint)
 
 	expect(t, p.Next, KeyHint)
-	expect(t, p.String, "num")
+	expectStr(t, p.Bytes, "num")
 
 	expect(t, p.Next, ValueHint)
 	expectErr(t, p.Int)
 	expect(t, p.Double, 3.14)
 
 	expect(t, p.Next, KeyHint)
-	expect(t, p.String, "arr")
+	expectStr(t, p.Bytes, "arr")
 
 	expect(t, p.Next, ArrayOpenHint)
 
@@ -51,18 +51,18 @@ func TestParseExample(t *testing.T) {
 	}
 
 	expect(t, p.Next, KeyHint)
-	expect(t, p.String, "obj")
+	expectStr(t, p.Bytes, "obj")
 
 	expect(t, p.Next, ObjectOpenHint)
 
 	expect(t, p.Next, KeyHint)
-	expect(t, p.String, "k")
+	expectStr(t, p.Bytes, "k")
 
 	expect(t, p.Next, ValueHint)
-	expect(t, p.String, "v")
+	expectStr(t, p.Bytes, "v")
 
 	expect(t, p.Next, KeyHint)
-	expect(t, p.String, "a")
+	expectStr(t, p.Bytes, "a")
 
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)

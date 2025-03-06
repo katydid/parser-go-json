@@ -15,6 +15,7 @@
 package parse
 
 import (
+	"bytes"
 	"io"
 	"testing"
 )
@@ -27,6 +28,17 @@ func expect[A comparable](t *testing.T, f func() (A, error), want A) {
 	}
 	if got != want {
 		t.Fatalf("want %v, but got %v", want, got)
+	}
+}
+
+func expectStr(t *testing.T, f func() ([]byte, error), want string) {
+	t.Helper()
+	got, err := f()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !bytes.Equal(got, []byte(want)) {
+		t.Fatalf("want %v, but got %v", want, string(got))
 	}
 }
 

@@ -39,9 +39,7 @@ type Parser interface {
 	Int() (int64, error)
 	// Double attempts to convert the current token to a float64.
 	Double() (float64, error)
-	// String attempts to convert the current token to a string.
-	String() (string, error)
-	// Bytes returns the raw current token.
+	// Bytes returns the bytes token or a unquoted string or decimal.
 	Bytes() ([]byte, error)
 	// Init restarts the parser with a new byte buffer, without allocating a new parser.
 	Init([]byte)
@@ -357,10 +355,6 @@ func (p *parser) Int() (int64, error) {
 
 func (p *parser) Double() (float64, error) {
 	return p.tokenizer.Double()
-}
-
-func (p *parser) String() (string, error) {
-	return p.tokenizer.String()
 }
 
 func (p *parser) Bytes() ([]byte, error) {

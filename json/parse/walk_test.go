@@ -40,12 +40,6 @@ func walkValue(p Parser, hint Hint) error {
 	if _, err := p.Double(); err == nil {
 		return nil
 	}
-	if _, err := p.String(); err == nil {
-		return nil
-	}
-	if hint == KeyHint {
-		return errExpectedString
-	}
 	if _, err := p.Bytes(); err == nil {
 		return nil
 	}
