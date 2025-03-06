@@ -47,8 +47,6 @@ type tokenizer struct {
 	tokenKind   Kind
 	tokenErr    error
 	tokenDouble float64
-	tokenInt    int64
-	tokenUint   uint64
 	tokenBytes  []byte
 }
 
@@ -111,7 +109,7 @@ func (t *tokenizer) Int() (int64, error) {
 	if !t.tokenKind.IsInt64() {
 		return 0, ErrNotInt
 	}
-	return t.tokenInt, nil
+	return castToInt64(t.tokenBytes), nil
 }
 
 // Double attempts to convert the current token to a float64.
@@ -163,9 +161,10 @@ func (t *tokenizer) tokenizeNumber() error {
 		// This can only be a float, so we return and do not try others.
 		return nil
 	}
-	t.tokenInt, err = strconv.ParseInt(t.scanToken)
+	parsedInt, err := strconv.ParseInt(t.scanToken)
 	if err == nil {
 		t.tokenKind = Int64Kind
+		t.tokenBytes = castFromInt64(parsedInt)
 		return nil
 	}
 	// scan already passed, so we know this is a valid number.
