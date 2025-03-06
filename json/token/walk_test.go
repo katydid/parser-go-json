@@ -37,9 +37,6 @@ func walkValue(t Tokenizer, kind scan.Kind) error {
 	if _, err := t.Int(); err == nil {
 		return nil
 	}
-	if _, err := t.Uint(); err == nil {
-		return nil
-	}
 	if _, err := t.Double(); err == nil {
 		return nil
 	}

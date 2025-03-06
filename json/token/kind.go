@@ -14,92 +14,110 @@
 
 package token
 
-// kind of the token that is tokenized.
-// This is represented by one for following bytes: {:}[,]"0?n>-+.
-type kind byte
+// Kind of the token that is parsed.
+// This is represented by one for following bytes:
+// * '_': Null (Null)
+// * 't': True (Bool)
+// * 'f': False (Bool)
+// * 'x': Bytes (Bytes)
+// * '"': String (String)
+// * '-': Int64 (Int64)
+// * '.': Float64 (Float64)
+// * '/': Decimal (String)
+// * '9': Nanoseconds (Int64)
+// * 'T': DateTime ISO 8601 (String)
+type Kind byte
 
-const UnknownKind = kind(0)
+const UnknownKind = Kind(0)
 
-func (k kind) IsUnknown() bool {
+func (k Kind) IsUnknown() bool {
 	return k == UnknownKind
 }
 
-const StringKind = kind('"')
+const NullKind = Kind('_')
 
-func (k kind) IsString() bool {
-	return k == StringKind
-}
-
-const BoolKind = kind('?')
-
-func (k kind) IsBool() bool {
-	return k == BoolKind
-}
-
-const NullKind = kind('n')
-
-func (k kind) IsNull() bool {
+func (k Kind) IsNull() bool {
 	return k == NullKind
 }
 
-// a number can be:
-// * unknown, since it is not parsed yet.
-// * int, uint and double (any number, for example 123) represented by '0'
-// * int and double, but not uint (negative number) represented by '-'
-// * uint and double, but not int (a large positive number) represented by '+'
-// * double, but not int or uint (a fraction) represented by '.'
-// * none, since it is a number too large to fit even in double, represented by '>'
+const FalseKind = Kind('f')
 
-const TooLargeNumberKind = kind('>')
-
-func (k kind) IsTooLargeNumber() bool {
-	return k == TooLargeNumberKind
+func (k Kind) IsFalse() bool {
+	return k == FalseKind
 }
 
-const NegativeNumberKind = kind('-')
+const TrueKind = Kind('t')
 
-func (k kind) IsInt() bool {
-	return k == NumberKind || k == NegativeNumberKind
+func (k Kind) IsTrue() bool {
+	return k == TrueKind
 }
 
-const LargePositiveNumberKind = kind('+')
+const BytesKind = Kind('x')
 
-func (k kind) IsUint() bool {
-	return k == NumberKind || k == LargePositiveNumberKind
+func (k Kind) IsBytes() bool {
+	return k == BytesKind
 }
 
-const FractionNumberKind = kind('.')
+const StringKind = Kind('"')
 
-func (k kind) IsDouble() bool {
-	return k == NumberKind || k == LargePositiveNumberKind || k == NegativeNumberKind || k == FractionNumberKind
+func (k Kind) IsString() bool {
+	return k == StringKind
 }
 
-const NumberKind = kind('0')
+const Int64Kind = Kind('-')
 
-func (k kind) IsNumber() bool {
-	return k == NumberKind || k == LargePositiveNumberKind || k == NegativeNumberKind || k == FractionNumberKind || k == TooLargeNumberKind
+func (k Kind) IsInt64() bool {
+	return k == Int64Kind
 }
 
-func (k kind) String() string {
+const Float64Kind = Kind('.')
+
+func (k Kind) IsFloat64() bool {
+	return k == Float64Kind
+}
+
+const DecimalKind = Kind('/')
+
+func (k Kind) IsDecimal() bool {
+	return k == DecimalKind
+}
+
+const NanosecondsKind = Kind('9')
+
+func (k Kind) IsNanoseconds() bool {
+	return k == NanosecondsKind
+}
+
+const DateTimeKind = Kind('T')
+
+func (k Kind) IsDateTimeKind() bool {
+	return k == DateTimeKind
+}
+
+func (k Kind) String() string {
 	switch k {
 	case UnknownKind:
 		return "unknown"
 	case NullKind:
 		return "null"
-	case BoolKind:
-		return "bool"
-	case NumberKind:
-		return "number"
+	case FalseKind:
+		return "false"
+	case TrueKind:
+		return "true"
+	case BytesKind:
+		return "bytes"
 	case StringKind:
 		return "string"
-	case TooLargeNumberKind:
-		return "tooLargeNumberKind"
-	case NegativeNumberKind:
-		return "negativeNumberKind"
-	case LargePositiveNumberKind:
-		return "largePositiveNumberKind"
-	case FractionNumberKind:
-		return "fractionNumberKind"
+	case Int64Kind:
+		return "int64"
+	case Float64Kind:
+		return "float64"
+	case DecimalKind:
+		return "decimal"
+	case NanosecondsKind:
+		return "nanoseconds"
+	case DateTimeKind:
+		return "dateTime"
 	}
-	return "other"
+	panic("unreachable")
 }

@@ -29,7 +29,6 @@ func TestParseExample(t *testing.T) {
 
 	expect(t, p.Next, ValueHint)
 	expectErr(t, p.Int)
-	expectErr(t, p.Uint)
 	expect(t, p.Double, 3.14)
 
 	expect(t, p.Next, KeyHint)

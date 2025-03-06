@@ -457,7 +457,16 @@ func (p *jsonParser) Int() (int64, error) {
 }
 
 func (p *jsonParser) Uint() (uint64, error) {
-	return p.parser.Uint()
+	if p.state.kind != inArrayIndexStateKind {
+		i, err := p.Int()
+		if err != nil {
+			return 0, err
+		}
+		if i >= 0 {
+			return uint64(i), nil
+		}
+	}
+	return 0, errNotUint
 }
 
 func (p *jsonParser) Double() (float64, error) {

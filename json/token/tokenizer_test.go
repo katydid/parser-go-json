@@ -32,7 +32,6 @@ func TestTokenizerExample(t *testing.T) {
 
 	expect(t, tzer.Next, scan.NumberKind)
 	expectErr(t, tzer.Int)
-	expectErr(t, tzer.Uint)
 	expect(t, tzer.Double, 3.14)
 
 	expect(t, tzer.Next, scan.CommaKind)
@@ -89,7 +88,6 @@ func TestTokenizerExampleWithSpaces(t *testing.T) {
 	expect(t, s.Next, scan.ColonKind)
 	expect(t, s.Next, scan.NumberKind)
 	expectErr(t, s.Int)
-	expectErr(t, s.Uint)
 	expect(t, s.Double, 3.14)
 	expect(t, s.Next, scan.CommaKind)
 	expect(t, s.Next, scan.StringKind)

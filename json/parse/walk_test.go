@@ -34,9 +34,6 @@ func walkValue(p Parser, hint Hint) error {
 	if _, err := p.Int(); err == nil {
 		return nil
 	}
-	if _, err := p.Uint(); err == nil {
-		return nil
-	}
 	if _, err := p.Double(); err == nil {
 		return nil
 	}
