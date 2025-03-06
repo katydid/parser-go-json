@@ -17,6 +17,8 @@ package parse
 import (
 	"io"
 	"testing"
+
+	"github.com/katydid/parser-go-json/json/token"
 )
 
 func TestParseExample(t *testing.T) {
@@ -39,10 +41,10 @@ func TestParseExample(t *testing.T) {
 	expect(t, p.Next, ValueHint)
 
 	expect(t, p.Next, ValueHint)
-	expect(t, p.Bool, false)
+	expect(t, p.Tokenize, token.FalseKind)
 
 	expect(t, p.Next, ValueHint)
-	expect(t, p.Bool, true)
+	expect(t, p.Tokenize, token.TrueKind)
 
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)

@@ -35,8 +35,6 @@ type Parser interface {
 	// Tokenize parses the current token.
 	Tokenize() (token.Kind, error)
 
-	// Bool attempts to convert the current token to a bool.
-	Bool() (bool, error)
 	// Int attempts to convert the current token to an int64.
 	Int() (int64, error)
 	// Double attempts to convert the current token to a float64.
@@ -351,10 +349,6 @@ func (p *parser) up() error {
 		p.state = endState
 	}
 	return nil
-}
-
-func (p *parser) Bool() (bool, error) {
-	return p.tokenizer.Bool()
 }
 
 func (p *parser) Int() (int64, error) {

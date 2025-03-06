@@ -19,6 +19,7 @@ import (
 	"io"
 
 	"github.com/katydid/parser-go-json/json/rand"
+	"github.com/katydid/parser-go-json/json/token"
 )
 
 var errUnknownToken = errors.New("unknown token")
@@ -28,8 +29,10 @@ var errExpectedBool = errors.New("expected bool")
 var errExpectedString = errors.New("expected string")
 
 func walkValue(p Parser, hint Hint) error {
-	if _, err := p.Bool(); err == nil {
-		return nil
+	if tokenKind, err := p.Tokenize(); err == nil {
+		if tokenKind == token.TrueKind || tokenKind == token.FalseKind || tokenKind == token.NullKind {
+			return nil
+		}
 	}
 	if _, err := p.Int(); err == nil {
 		return nil

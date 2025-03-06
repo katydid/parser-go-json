@@ -48,12 +48,12 @@ func TestTokenizerExample(t *testing.T) {
 	expect(t, tzer.Next, scan.CommaKind)
 
 	expect(t, tzer.Next, scan.FalseKind)
-	expect(t, tzer.Bool, false)
+	expect(t, tzer.Tokenize, FalseKind)
 
 	expect(t, tzer.Next, scan.CommaKind)
 
 	expect(t, tzer.Next, scan.TrueKind)
-	expect(t, tzer.Bool, true)
+	expect(t, tzer.Tokenize, TrueKind)
 
 	expect(t, tzer.Next, scan.ArrayCloseKind)
 
@@ -97,10 +97,10 @@ func TestTokenizerExampleWithSpaces(t *testing.T) {
 	expect(t, s.Next, scan.NullKind)
 	expect(t, s.Next, scan.CommaKind)
 	expect(t, s.Next, scan.FalseKind)
-	expect(t, s.Bool, false)
+	expect(t, s.Tokenize, FalseKind)
 	expect(t, s.Next, scan.CommaKind)
 	expect(t, s.Next, scan.TrueKind)
-	expect(t, s.Bool, true)
+	expect(t, s.Tokenize, TrueKind)
 	expect(t, s.Next, scan.ArrayCloseKind)
 	expect(t, s.Next, scan.CommaKind)
 	expect(t, s.Next, scan.StringKind)

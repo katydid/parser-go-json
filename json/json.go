@@ -20,6 +20,7 @@ import (
 
 	"github.com/katydid/parser-go-json/json/internal/pool"
 	"github.com/katydid/parser-go-json/json/parse"
+	"github.com/katydid/parser-go-json/json/token"
 	"github.com/katydid/parser-go/parser"
 )
 
@@ -446,7 +447,17 @@ func (p *jsonParser) IsLeaf() bool {
 }
 
 func (p *jsonParser) Bool() (bool, error) {
-	return p.parser.Bool()
+	tokenKind, err := p.parser.Tokenize()
+	if err != nil {
+		return false, err
+	}
+	if tokenKind == token.FalseKind {
+		return false, nil
+	}
+	if tokenKind == token.TrueKind {
+		return true, nil
+	}
+	return false, errNotBool
 }
 
 func (p *jsonParser) Int() (int64, error) {
