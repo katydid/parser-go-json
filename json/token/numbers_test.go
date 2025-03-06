@@ -54,12 +54,12 @@ func TestNumbersMaxInt64Plus1(t *testing.T) {
 		t.Fatal("expected err on attempting to convert to int64")
 	}
 	var want string = input
-	got, err := tzer.String()
+	got, err := tzer.Bytes()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got != want {
-		t.Fatalf("got %v, but want %v", got, want)
+	if string(got) != want {
+		t.Fatalf("got %v, but want %v", string(got), want)
 	}
 }
 
@@ -121,12 +121,12 @@ func TestNumbersMaxUint64(t *testing.T) {
 	if !kind.IsNumber() {
 		t.Fatal("expected number")
 	}
-	got, err := tzer.String()
+	got, err := tzer.Bytes()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got != want {
-		t.Fatalf("got %v, but want %v", got, want)
+	if string(got) != want {
+		t.Fatalf("got %v, but want %v", string(got), want)
 	}
 }
 

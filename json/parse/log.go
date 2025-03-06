@@ -67,12 +67,6 @@ func (l *l) Int() (int64, error) {
 	return v, err
 }
 
-func (l *l) String() (string, error) {
-	v, err := l.p.String()
-	l.l.Printf(l.name+".String() (%v, %v)", v, err)
-	return v, err
-}
-
 func (l *l) Bytes() ([]byte, error) {
 	v, err := l.p.Bytes()
 	l.l.Printf(l.name+".Bytes() (%v, %v)", v, err)

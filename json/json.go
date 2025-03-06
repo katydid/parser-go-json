@@ -485,9 +485,22 @@ func (p *jsonParser) Double() (float64, error) {
 }
 
 func (p *jsonParser) String() (string, error) {
-	return p.parser.String()
+	bs, err := p.parser.Bytes()
+	if err != nil {
+		return "", err
+	}
+	return castToString(bs), nil
 }
 
+var nullBytes = []byte{'n', 'u', 'l', 'l'}
+
 func (p *jsonParser) Bytes() ([]byte, error) {
+	tokenKind, err := p.parser.Tokenize()
+	if err != nil {
+		return nil, err
+	}
+	if tokenKind == token.NullKind {
+		return nullBytes, nil
+	}
 	return p.parser.Bytes()
 }

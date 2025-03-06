@@ -169,7 +169,7 @@ func TestSkipObjectNestedOpen(t *testing.T) {
 	p := NewParser([]byte(str))
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
-	expect(t, p.String, "a")
+	expectStr(t, p.Bytes, "a")
 	expect(t, p.Next, ObjectOpenHint)
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
@@ -187,7 +187,7 @@ func TestSkipObjectKey(t *testing.T) {
 	p := NewParser([]byte(str))
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
-	expect(t, p.String, "a")
+	expectStr(t, p.Bytes, "a")
 	expect(t, p.Next, ValueHint)
 	expect(t, p.Int, 1)
 	if err := p.Skip(); err != nil {
@@ -204,10 +204,10 @@ func TestSkipObjectNestedKey(t *testing.T) {
 	p := NewParser([]byte(str))
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
-	expect(t, p.String, "a")
+	expectStr(t, p.Bytes, "a")
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
-	expect(t, p.String, "b")
+	expectStr(t, p.Bytes, "b")
 	expect(t, p.Next, ValueHint)
 	expect(t, p.Int, 1)
 	if err := p.Skip(); err != nil {
@@ -226,12 +226,12 @@ func TestSkipObjectValue(t *testing.T) {
 	p := NewParser([]byte(str))
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
-	expect(t, p.String, "a")
+	expectStr(t, p.Bytes, "a")
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
 	expect(t, p.Next, KeyHint)
-	expect(t, p.String, "b")
+	expectStr(t, p.Bytes, "b")
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
@@ -247,12 +247,12 @@ func TestSkipObjectRecursiveValue(t *testing.T) {
 	p := NewParser([]byte(str))
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
-	expect(t, p.String, "a")
+	expectStr(t, p.Bytes, "a")
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
 	expect(t, p.Next, KeyHint)
-	expect(t, p.String, "b")
+	expectStr(t, p.Bytes, "b")
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
@@ -268,16 +268,16 @@ func TestSkipObjectDeepRecursiveValue(t *testing.T) {
 	p := NewParser([]byte(str))
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
-	expect(t, p.String, "a")
+	expectStr(t, p.Bytes, "a")
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
 	expect(t, p.Next, KeyHint)
-	expect(t, p.String, "b")
+	expectStr(t, p.Bytes, "b")
 
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
-	expect(t, p.String, "c")
+	expectStr(t, p.Bytes, "c")
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}

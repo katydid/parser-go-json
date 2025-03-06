@@ -30,9 +30,7 @@ type Tokenizer interface {
 	Int() (int64, error)
 	// Double attempts to convert the current token to a float64.
 	Double() (float64, error)
-	// String attempts to convert the current token to a string.
-	String() (string, error)
-	// Bytes returns the raw current token.
+	// Bytes returns the bytes token or a unquoted string or decimal.
 	Bytes() ([]byte, error)
 	// Init restarts the tokenizer with a new byte buffer, without allocating a new tokenizer.
 	Init([]byte)
@@ -51,7 +49,7 @@ type tokenizer struct {
 	tokenDouble float64
 	tokenInt    int64
 	tokenUint   uint64
-	tokenString string
+	tokenBytes  []byte
 }
 
 func NewTokenizer(buf []byte) Tokenizer {
@@ -130,23 +128,15 @@ func (t *tokenizer) Double() (float64, error) {
 	return t.tokenDouble, nil
 }
 
-// String attempts to convert the current token to a string.
-func (t *tokenizer) String() (string, error) {
-	if !t.scanKind.IsString() && !t.scanKind.IsNumber() {
-		return "", ErrNotString
-	}
-	if err := t.tokenize(); err != nil {
-		return "", err
-	}
-	if !t.tokenKind.IsString() && !t.tokenKind.IsDecimal() {
-		return "", ErrNotString
-	}
-	return t.tokenString, nil
-}
-
 // Bytes returns the raw current token.
 func (t *tokenizer) Bytes() ([]byte, error) {
-	return t.scanToken, nil
+	if !t.scanKind.IsString() && !t.scanKind.IsNumber() {
+		return nil, ErrNotBytes
+	}
+	if err := t.tokenize(); err != nil {
+		return nil, err
+	}
+	return t.tokenBytes, nil
 }
 
 func (t *tokenizer) notParseableInteger() bool {
@@ -164,7 +154,7 @@ func (t *tokenizer) tokenizeNumber() error {
 		t.tokenDouble, err = strconv.ParseFloat(t.scanToken)
 		if err != nil {
 			t.tokenKind = DecimalKind
-			t.tokenString = castToString(t.scanToken)
+			t.tokenBytes = t.scanToken
 			// scan already passed, so we know this is a valid number.
 			// The number is just too large represent in 64 float bits.
 			return nil
@@ -181,19 +171,18 @@ func (t *tokenizer) tokenizeNumber() error {
 	// scan already passed, so we know this is a valid number.
 	// The number is just too large represent in signed 64 bits.
 	t.tokenKind = DecimalKind
-	t.tokenString = castToString(t.scanToken)
+	t.tokenBytes = t.scanToken
 	return nil
 }
 
-func unquoteBytes(alloc func(int) []byte, s []byte) (string, error) {
+func unquoteBytes(alloc func(int) []byte, s []byte) ([]byte, error) {
 	var ok bool
-	var t string
-	s, ok = unquote.Unquote(alloc, s)
-	t = castToString(s)
+	var u []byte
+	u, ok = unquote.Unquote(alloc, s)
 	if !ok {
-		return "", errUnquote
+		return nil, errUnquote
 	}
-	return t, nil
+	return u, nil
 }
 
 func (t *tokenizer) tokenizeString() error {
@@ -201,7 +190,7 @@ func (t *tokenizer) tokenizeString() error {
 	if err != nil {
 		return err
 	}
-	t.tokenString = res
+	t.tokenBytes = res
 	t.tokenKind = StringKind
 	return nil
 }
