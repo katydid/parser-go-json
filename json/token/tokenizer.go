@@ -48,7 +48,6 @@ type tokenizer struct {
 	tokenErr    error
 	tokenDouble float64
 	tokenInt    int64
-	tokenUint   uint64
 	tokenBytes  []byte
 }
 
