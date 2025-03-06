@@ -26,8 +26,6 @@ type Tokenizer interface {
 	Next() (scan.Kind, error)
 	// Tokenize parses the current token.
 	Tokenize() (Kind, error)
-	// Bool attempts to convert the current token to a bool.
-	Bool() (bool, error)
 	// Int attempts to convert the current token to an int64.
 	Int() (int64, error)
 	// Double attempts to convert the current token to a float64.

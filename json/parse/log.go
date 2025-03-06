@@ -67,12 +67,6 @@ func (l *l) Int() (int64, error) {
 	return v, err
 }
 
-func (l *l) Bool() (bool, error) {
-	v, err := l.p.Bool()
-	l.l.Printf(l.name+".Bool() (%v, %v)", v, err)
-	return v, err
-}
-
 func (l *l) String() (string, error) {
 	v, err := l.p.String()
 	l.l.Printf(l.name+".String() (%v, %v)", v, err)
