@@ -77,5 +77,5 @@ func (h Hint) String() string {
 	case ObjectCloseHint:
 		return "objectClose"
 	}
-	return "other"
+	panic("unreachable")
 }

@@ -27,3 +27,5 @@ var errDownLeaf = errors.New("cannot call Down in Leaf")
 var errDownEOF = errors.New("cannot call Down at EOF")
 
 var errExpectedEOF = errors.New("expected EOF")
+
+var errNotUint = errors.New("not a uint")

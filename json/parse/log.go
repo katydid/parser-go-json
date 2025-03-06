@@ -60,12 +60,6 @@ func (l *l) Int() (int64, error) {
 	return v, err
 }
 
-func (l *l) Uint() (uint64, error) {
-	v, err := l.p.Uint()
-	l.l.Printf(l.name+".Uint() (%v, %v)", v, err)
-	return v, err
-}
-
 func (l *l) Bool() (bool, error) {
 	v, err := l.p.Bool()
 	l.l.Printf(l.name+".Bool() (%v, %v)", v, err)

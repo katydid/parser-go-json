@@ -53,8 +53,8 @@ func TestNumbersMaxInt64Plus1(t *testing.T) {
 	if _, err := tzer.Int(); err == nil {
 		t.Fatal("expected err on attempting to convert to int64")
 	}
-	var want uint64 = math.MaxInt64 + 1
-	got, err := tzer.Uint()
+	var want string = input
+	got, err := tzer.String()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,9 +96,6 @@ func TestNumbersMinInt64Min1(t *testing.T) {
 	if _, err := tzer.Int(); err == nil {
 		t.Fatal("expected err on attempting to convert to int64")
 	}
-	if _, err := tzer.Uint(); err == nil {
-		t.Fatal("expected err on attempting to convert to uint64")
-	}
 	if _, err := tzer.Double(); err == nil {
 		t.Fatal("expected err on attempting to convert to float64")
 	}
@@ -115,7 +112,7 @@ func TestNumbersMinInt64Min1(t *testing.T) {
 
 func TestNumbersMaxUint64(t *testing.T) {
 	input := "18446744073709551615" // math.MaxUint64
-	var want uint64 = math.MaxUint64
+	var want string = input
 	tzer := NewTokenizer([]byte(input))
 	kind, err := tzer.Next()
 	if err != nil {
@@ -124,7 +121,7 @@ func TestNumbersMaxUint64(t *testing.T) {
 	if !kind.IsNumber() {
 		t.Fatal("expected number")
 	}
-	got, err := tzer.Uint()
+	got, err := tzer.String()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -145,9 +142,6 @@ func TestNumbersMaxUint64Plus1(t *testing.T) {
 	}
 	if _, err := tzer.Int(); err == nil {
 		t.Fatal("expected err on attempting to convert to int64")
-	}
-	if _, err := tzer.Uint(); err == nil {
-		t.Fatal("expected err on attempting to convert to uint64")
 	}
 	if _, err := tzer.Double(); err == nil {
 		t.Fatal("expected err on attempting to convert to float64")
@@ -195,9 +189,6 @@ func TestNumbersLargerThanMaxFloat64(t *testing.T) {
 	}
 	if _, err := tzer.Int(); err == nil {
 		t.Fatal("expected err on attempting to convert to int64")
-	}
-	if _, err := tzer.Uint(); err == nil {
-		t.Fatal("expected err on attempting to convert to uint64")
 	}
 	if _, err := tzer.Double(); err == nil {
 		t.Fatal("expected err on attempting to convert to float64")
@@ -281,7 +272,7 @@ func TestNumbersUintOutsideOfFloatingPointPrecision(t *testing.T) {
 				t.Fatal("expected number")
 			}
 			want := input
-			goti, err := tzer.Uint()
+			goti, err := tzer.Int()
 			if err != nil {
 				t.Fatal(err)
 			}

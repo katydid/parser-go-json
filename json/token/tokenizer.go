@@ -28,8 +28,6 @@ type Tokenizer interface {
 	Bool() (bool, error)
 	// Int attempts to convert the current token to an int64.
 	Int() (int64, error)
-	// Uint attempts to convert the current token to an uint64.
-	Uint() (uint64, error)
 	// Double attempts to convert the current token to a float64.
 	Double() (float64, error)
 	// String attempts to convert the current token to a string.
@@ -48,7 +46,7 @@ type tokenizer struct {
 	scanKind  scan.Kind
 
 	tokenized   bool
-	tokenKind   kind
+	tokenKind   Kind
 	tokenErr    error
 	tokenDouble float64
 	tokenInt    int64
@@ -95,10 +93,10 @@ func (t *tokenizer) Bool() (bool, error) {
 	if err := t.tokenize(); err != nil {
 		return false, err
 	}
-	if t.tokenKind.IsBool() && t.scanKind.IsTrue() {
+	if t.tokenKind.IsTrue() && t.scanKind.IsTrue() {
 		return true, nil
 	}
-	if t.tokenKind.IsBool() && t.scanKind.IsFalse() {
+	if t.tokenKind.IsFalse() && t.scanKind.IsFalse() {
 		return false, nil
 	}
 	return false, ErrNotBool
@@ -112,24 +110,10 @@ func (t *tokenizer) Int() (int64, error) {
 	if err := t.tokenize(); err != nil {
 		return 0, err
 	}
-	if !t.tokenKind.IsInt() {
+	if !t.tokenKind.IsInt64() {
 		return 0, ErrNotInt
 	}
 	return t.tokenInt, nil
-}
-
-// Uint attempts to convert the current token to an uint64.
-func (t *tokenizer) Uint() (uint64, error) {
-	if !t.scanKind.IsNumber() {
-		return 0, ErrNotUint
-	}
-	if err := t.tokenize(); err != nil {
-		return 0, err
-	}
-	if !t.tokenKind.IsUint() {
-		return 0, ErrNotUint
-	}
-	return t.tokenUint, nil
 }
 
 // Double attempts to convert the current token to a float64.
@@ -140,7 +124,7 @@ func (t *tokenizer) Double() (float64, error) {
 	if err := t.tokenize(); err != nil {
 		return 0, err
 	}
-	if !t.tokenKind.IsDouble() {
+	if !t.tokenKind.IsFloat64() {
 		return 0, ErrNotDouble
 	}
 	return t.tokenDouble, nil
@@ -148,13 +132,13 @@ func (t *tokenizer) Double() (float64, error) {
 
 // String attempts to convert the current token to a string.
 func (t *tokenizer) String() (string, error) {
-	if !t.scanKind.IsString() {
+	if !t.scanKind.IsString() && !t.scanKind.IsNumber() {
 		return "", ErrNotString
 	}
 	if err := t.tokenize(); err != nil {
 		return "", err
 	}
-	if !t.tokenKind.IsString() {
+	if !t.tokenKind.IsString() && !t.tokenKind.IsDecimal() {
 		return "", ErrNotString
 	}
 	return t.tokenString, nil
@@ -165,7 +149,7 @@ func (t *tokenizer) Bytes() ([]byte, error) {
 	return t.scanToken, nil
 }
 
-func (t *tokenizer) notInteger() bool {
+func (t *tokenizer) notParseableInteger() bool {
 	for _, b := range t.scanToken {
 		if b == '.' || b == 'e' || b == 'E' {
 			return true
@@ -176,44 +160,28 @@ func (t *tokenizer) notInteger() bool {
 
 func (t *tokenizer) tokenizeNumber() error {
 	var err error
-	if t.notInteger() {
+	if t.notParseableInteger() {
 		t.tokenDouble, err = strconv.ParseFloat(t.scanToken)
 		if err != nil {
-			t.tokenKind = TooLargeNumberKind
+			t.tokenKind = DecimalKind
+			t.tokenString = castToString(t.scanToken)
 			// scan already passed, so we know this is a valid number.
 			// The number is just too large represent in 64 float bits.
 			return nil
 		}
-		t.tokenKind = FractionNumberKind
+		t.tokenKind = Float64Kind
 		// This can only be a float, so we return and do not try others.
 		return nil
 	}
 	t.tokenInt, err = strconv.ParseInt(t.scanToken)
 	if err == nil {
-		if t.scanToken[0] == '-' {
-			t.tokenKind = NegativeNumberKind
-		} else {
-			t.tokenKind = NumberKind
-			t.tokenUint = uint64(t.tokenInt)
-			t.tokenDouble = float64(t.tokenDouble)
-		}
+		t.tokenKind = Int64Kind
 		return nil
 	}
 	// scan already passed, so we know this is a valid number.
 	// The number is just too large represent in signed 64 bits.
-	t.tokenKind = TooLargeNumberKind
-	// This can be overwritten if uint parses it correctly, so we do not return yet.
-	// Only if int could not parse the non negative number, tokenKind == TooLargeNumberKind then try uint64 too
-	if t.scanToken[0] != '-' {
-		t.tokenUint, err = strconv.ParseUint(t.scanToken)
-		if err != nil {
-			t.tokenKind = TooLargeNumberKind
-			// scan already passed, so we know this is a valid number.
-			// The number is just too large represent in 64 bits.
-		} else {
-			t.tokenKind = LargePositiveNumberKind
-		}
-	}
+	t.tokenKind = DecimalKind
+	t.tokenString = castToString(t.scanToken)
 	return nil
 }
 
@@ -247,9 +215,9 @@ func (t *tokenizer) tokenize() error {
 		case scan.NumberKind:
 			err = t.tokenizeNumber()
 		case scan.TrueKind:
-			t.tokenKind = BoolKind
+			t.tokenKind = TrueKind
 		case scan.FalseKind:
-			t.tokenKind = BoolKind
+			t.tokenKind = FalseKind
 		case scan.NullKind:
 			t.tokenKind = NullKind
 		}
