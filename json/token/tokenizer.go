@@ -24,6 +24,8 @@ import (
 type Tokenizer interface {
 	// Next returns the Kind of the token or an error.
 	Next() (scan.Kind, error)
+	// Tokenize parses the current token.
+	Tokenize() (Kind, error)
 	// Bool attempts to convert the current token to a bool.
 	Bool() (bool, error)
 	// Int attempts to convert the current token to an int64.
@@ -204,6 +206,13 @@ func (t *tokenizer) tokenizeString() error {
 	t.tokenString = res
 	t.tokenKind = StringKind
 	return nil
+}
+
+func (t *tokenizer) Tokenize() (Kind, error) {
+	if err := t.tokenize(); err != nil {
+		return 0, err
+	}
+	return t.tokenKind, nil
 }
 
 func (t *tokenizer) tokenize() error {
