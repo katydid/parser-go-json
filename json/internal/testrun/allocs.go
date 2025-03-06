@@ -17,6 +17,7 @@ package testrun
 import (
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/katydid/parser-go-json/json/internal/pool"
 	"github.com/katydid/parser-go-json/json/rand"
@@ -69,14 +70,20 @@ func testRunAfterWarmup(t *testing.T, seed int64, pool pool.Pool, f func(bs []by
 			pool.FreeAll()
 		}
 		allocs := allocsForSingleRun(ff)
-		if allocs != 0 {
+		retries := 10
+		for allocs != 0 && retries > 0 {
 			// there are sometimes allocations made by the testing framework
 			// retry to make sure that the allocation is the parser's fault.
-			allocs2 := allocsForSingleRun(ff)
-			if allocs2 != 0 {
-				poolallocs := pool.Size() - originalPoolSize
-				t.Fatalf("input = %s, seed = %v, got %v allocs, pool allocs = %d", inputs[i], seed, allocs, poolallocs)
+			time.Sleep(100e6)
+			allocs = allocsForSingleRun(ff)
+			if allocs == 0 {
+				break
 			}
+			retries -= 1
+		}
+		if allocs != 0 {
+			poolallocs := pool.Size() - originalPoolSize
+			t.Fatalf("input = %s, seed = %v, got %v allocs, pool allocs = %d", inputs[i], seed, allocs, poolallocs)
 		}
 	}
 }
