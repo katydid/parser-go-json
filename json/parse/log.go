@@ -42,7 +42,7 @@ func (l *l) Skip() error {
 	return err
 }
 
-func (l *l) Next() (Kind, error) {
+func (l *l) Next() (Hint, error) {
 	v, err := l.p.Next()
 	l.l.Printf(l.name+".Next() (%v, %v)", v, err)
 	return v, err

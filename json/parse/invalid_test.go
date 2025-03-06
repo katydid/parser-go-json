@@ -22,7 +22,7 @@ import (
 func TestParseJustNumber(t *testing.T) {
 	s := `1`
 	p := NewParser([]byte(s))
-	expect(t, p.Next, NumberKind)
+	expect(t, p.Next, ValueHint)
 	expect(t, p.Int, 1)
 	if _, err := p.Next(); err != io.EOF {
 		t.Fatalf("expected EOF, but got %v", err)
@@ -32,10 +32,10 @@ func TestParseJustNumber(t *testing.T) {
 func TestParseInvalidObjectWithValue(t *testing.T) {
 	s := `{"a":1`
 	p := NewParser([]byte(s))
-	expect(t, p.Next, ObjectOpenKind)
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, ObjectOpenHint)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "a")
-	expect(t, p.Next, NumberKind)
+	expect(t, p.Next, ValueHint)
 	expect(t, p.Int, 1)
 	expectErr(t, p.Next)
 }
@@ -43,8 +43,8 @@ func TestParseInvalidObjectWithValue(t *testing.T) {
 func TestParseInvalidObjectWithOnlyKey(t *testing.T) {
 	s := `{"a"`
 	p := NewParser([]byte(s))
-	expect(t, p.Next, ObjectOpenKind)
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, ObjectOpenHint)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "a")
 	expectErr(t, p.Next)
 }
@@ -52,8 +52,8 @@ func TestParseInvalidObjectWithOnlyKey(t *testing.T) {
 func TestParseInvalidArrayWithComma(t *testing.T) {
 	s := `[1,`
 	p := NewParser([]byte(s))
-	expect(t, p.Next, ArrayOpenKind)
-	expect(t, p.Next, NumberKind)
+	expect(t, p.Next, ArrayOpenHint)
+	expect(t, p.Next, ValueHint)
 	expect(t, p.Int, 1)
 	expectErr(t, p.Next)
 }
@@ -61,8 +61,8 @@ func TestParseInvalidArrayWithComma(t *testing.T) {
 func TestParseInvalidArrayWithoutComma(t *testing.T) {
 	s := `[1`
 	p := NewParser([]byte(s))
-	expect(t, p.Next, ArrayOpenKind)
-	expect(t, p.Next, NumberKind)
+	expect(t, p.Next, ArrayOpenHint)
+	expect(t, p.Next, ValueHint)
 	expect(t, p.Int, 1)
 	expectErr(t, p.Next)
 }
@@ -70,10 +70,10 @@ func TestParseInvalidArrayWithoutComma(t *testing.T) {
 func TestParseValidArrayWithSuffixSpace(t *testing.T) {
 	s := `[1] `
 	p := NewParser([]byte(s))
-	expect(t, p.Next, ArrayOpenKind)
-	expect(t, p.Next, NumberKind)
+	expect(t, p.Next, ArrayOpenHint)
+	expect(t, p.Next, ValueHint)
 	expect(t, p.Int, 1)
-	expect(t, p.Next, ArrayCloseKind)
+	expect(t, p.Next, ArrayCloseHint)
 	if _, err := p.Next(); err != io.EOF {
 		t.Fatalf("expected EOF, but got %v", err)
 	}
@@ -82,22 +82,22 @@ func TestParseValidArrayWithSuffixSpace(t *testing.T) {
 func TestParseInvalidArrayWithSuffix(t *testing.T) {
 	s := `[1] [`
 	p := NewParser([]byte(s))
-	expect(t, p.Next, ArrayOpenKind)
-	expect(t, p.Next, NumberKind)
+	expect(t, p.Next, ArrayOpenHint)
+	expect(t, p.Next, ValueHint)
 	expect(t, p.Int, 1)
-	expect(t, p.Next, ArrayCloseKind)
+	expect(t, p.Next, ArrayCloseHint)
 	expectErr(t, p.Next)
 }
 
 func TestParseValidObjectWithSuffixSpace(t *testing.T) {
 	s := `{"a":1} `
 	p := NewParser([]byte(s))
-	expect(t, p.Next, ObjectOpenKind)
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, ObjectOpenHint)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "a")
-	expect(t, p.Next, NumberKind)
+	expect(t, p.Next, ValueHint)
 	expect(t, p.Int, 1)
-	expect(t, p.Next, ObjectCloseKind)
+	expect(t, p.Next, ObjectCloseHint)
 	if _, err := p.Next(); err != io.EOF {
 		t.Fatalf("expected EOF, but got %v", err)
 	}
@@ -106,40 +106,40 @@ func TestParseValidObjectWithSuffixSpace(t *testing.T) {
 func TestParseInvalidObjectWithSuffix(t *testing.T) {
 	s := `{"a":1} {`
 	p := NewParser([]byte(s))
-	expect(t, p.Next, ObjectOpenKind)
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, ObjectOpenHint)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "a")
-	expect(t, p.Next, NumberKind)
+	expect(t, p.Next, ValueHint)
 	expect(t, p.Int, 1)
-	expect(t, p.Next, ObjectCloseKind)
+	expect(t, p.Next, ObjectCloseHint)
 	expectErr(t, p.Next)
 }
 
 func TestParseValidNestedObject(t *testing.T) {
 	s := `{"a":{"b":{"c":{"d":{"e": 1}}}}}`
 	p := NewParser([]byte(s))
-	expect(t, p.Next, ObjectOpenKind)
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, ObjectOpenHint)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "a")
-	expect(t, p.Next, ObjectOpenKind)
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, ObjectOpenHint)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "b")
-	expect(t, p.Next, ObjectOpenKind)
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, ObjectOpenHint)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "c")
-	expect(t, p.Next, ObjectOpenKind)
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, ObjectOpenHint)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "d")
-	expect(t, p.Next, ObjectOpenKind)
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, ObjectOpenHint)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "e")
-	expect(t, p.Next, NumberKind)
+	expect(t, p.Next, ValueHint)
 	expect(t, p.Int, 1)
-	expect(t, p.Next, ObjectCloseKind)
-	expect(t, p.Next, ObjectCloseKind)
-	expect(t, p.Next, ObjectCloseKind)
-	expect(t, p.Next, ObjectCloseKind)
-	expect(t, p.Next, ObjectCloseKind)
+	expect(t, p.Next, ObjectCloseHint)
+	expect(t, p.Next, ObjectCloseHint)
+	expect(t, p.Next, ObjectCloseHint)
+	expect(t, p.Next, ObjectCloseHint)
+	expect(t, p.Next, ObjectCloseHint)
 	if _, err := p.Next(); err != io.EOF {
 		t.Fatalf("expected EOF, but got %v", err)
 	}
@@ -148,43 +148,57 @@ func TestParseValidNestedObject(t *testing.T) {
 func TestParseInvalidNestedObject(t *testing.T) {
 	s := `{"a":{"b":{"c":{"d":{"e": 1}}}}`
 	p := NewParser([]byte(s))
-	expect(t, p.Next, ObjectOpenKind)
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, ObjectOpenHint)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "a")
-	expect(t, p.Next, ObjectOpenKind)
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, ObjectOpenHint)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "b")
-	expect(t, p.Next, ObjectOpenKind)
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, ObjectOpenHint)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "c")
-	expect(t, p.Next, ObjectOpenKind)
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, ObjectOpenHint)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "d")
-	expect(t, p.Next, ObjectOpenKind)
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, ObjectOpenHint)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "e")
-	expect(t, p.Next, NumberKind)
+	expect(t, p.Next, ValueHint)
 	expect(t, p.Int, 1)
-	expect(t, p.Next, ObjectCloseKind)
-	expect(t, p.Next, ObjectCloseKind)
-	expect(t, p.Next, ObjectCloseKind)
-	expect(t, p.Next, ObjectCloseKind)
+	expect(t, p.Next, ObjectCloseHint)
+	expect(t, p.Next, ObjectCloseHint)
+	expect(t, p.Next, ObjectCloseHint)
+	expect(t, p.Next, ObjectCloseHint)
 	expectErr(t, p.Next)
 }
 
-func TestParseValidNestedArray(t *testing.T) {
+func TestParseValidNestedArray2(t *testing.T) {
+	s := `[[1]]`
+	p := NewParser([]byte(s))
+	expect(t, p.Next, ArrayOpenHint)
+	expect(t, p.Next, ArrayOpenHint)
+	expect(t, p.Next, ValueHint)
+	expect(t, p.Int, 1)
+	expect(t, p.Next, ArrayCloseHint)
+	expect(t, p.Next, ArrayCloseHint)
+	if _, err := p.Next(); err != io.EOF {
+		t.Fatalf("expected EOF, but got %v", err)
+	}
+}
+
+func TestParseValidNestedArray4å(t *testing.T) {
 	s := `[[[[1]]]]`
 	p := NewParser([]byte(s))
-	expect(t, p.Next, ArrayOpenKind)
-	expect(t, p.Next, ArrayOpenKind)
-	expect(t, p.Next, ArrayOpenKind)
-	expect(t, p.Next, ArrayOpenKind)
-	expect(t, p.Next, NumberKind)
+	expect(t, p.Next, ArrayOpenHint)
+	expect(t, p.Next, ArrayOpenHint)
+	expect(t, p.Next, ArrayOpenHint)
+	expect(t, p.Next, ArrayOpenHint)
+	expect(t, p.Next, ValueHint)
 	expect(t, p.Int, 1)
-	expect(t, p.Next, ArrayCloseKind)
-	expect(t, p.Next, ArrayCloseKind)
-	expect(t, p.Next, ArrayCloseKind)
-	expect(t, p.Next, ArrayCloseKind)
+	expect(t, p.Next, ArrayCloseHint)
+	expect(t, p.Next, ArrayCloseHint)
+	expect(t, p.Next, ArrayCloseHint)
+	expect(t, p.Next, ArrayCloseHint)
 	if _, err := p.Next(); err != io.EOF {
 		t.Fatalf("expected EOF, but got %v", err)
 	}
@@ -193,14 +207,14 @@ func TestParseValidNestedArray(t *testing.T) {
 func TestParseInvalidNestedArray(t *testing.T) {
 	s := `[[[[1]]]`
 	p := NewParser([]byte(s))
-	expect(t, p.Next, ArrayOpenKind)
-	expect(t, p.Next, ArrayOpenKind)
-	expect(t, p.Next, ArrayOpenKind)
-	expect(t, p.Next, ArrayOpenKind)
-	expect(t, p.Next, NumberKind)
+	expect(t, p.Next, ArrayOpenHint)
+	expect(t, p.Next, ArrayOpenHint)
+	expect(t, p.Next, ArrayOpenHint)
+	expect(t, p.Next, ArrayOpenHint)
+	expect(t, p.Next, ValueHint)
 	expect(t, p.Int, 1)
-	expect(t, p.Next, ArrayCloseKind)
-	expect(t, p.Next, ArrayCloseKind)
-	expect(t, p.Next, ArrayCloseKind)
+	expect(t, p.Next, ArrayCloseHint)
+	expect(t, p.Next, ArrayCloseHint)
+	expect(t, p.Next, ArrayCloseHint)
 	expectErr(t, p.Next)
 }

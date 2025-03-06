@@ -22,45 +22,45 @@ import (
 func TestParseExample(t *testing.T) {
 	s := `{"num":3.14,"arr":[null,false,true,1,2],"obj":{"k":"v","a":[1,2,3],"b":1,"c":2}}`
 	p := NewParser([]byte(s))
-	expect(t, p.Next, ObjectOpenKind)
+	expect(t, p.Next, ObjectOpenHint)
 
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "num")
 
-	expect(t, p.Next, NumberKind)
+	expect(t, p.Next, ValueHint)
 	expectErr(t, p.Int)
 	expectErr(t, p.Uint)
 	expect(t, p.Double, 3.14)
 
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "arr")
 
-	expect(t, p.Next, ArrayOpenKind)
+	expect(t, p.Next, ArrayOpenHint)
 
-	expect(t, p.Next, NullKind)
+	expect(t, p.Next, ValueHint)
 
-	expect(t, p.Next, BoolKind)
+	expect(t, p.Next, ValueHint)
 	expect(t, p.Bool, false)
 
-	expect(t, p.Next, BoolKind)
+	expect(t, p.Next, ValueHint)
 	expect(t, p.Bool, true)
 
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
 
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "obj")
 
-	expect(t, p.Next, ObjectOpenKind)
+	expect(t, p.Next, ObjectOpenHint)
 
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "k")
 
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, ValueHint)
 	expect(t, p.String, "v")
 
-	expect(t, p.Next, StringKind)
+	expect(t, p.Next, KeyHint)
 	expect(t, p.String, "a")
 
 	if err := p.Skip(); err != nil {
@@ -71,7 +71,7 @@ func TestParseExample(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expect(t, p.Next, ObjectCloseKind)
+	expect(t, p.Next, ObjectCloseHint)
 	if _, err := p.Next(); err != io.EOF {
 		t.Fatalf("expected EOF, but got %v", err)
 	}

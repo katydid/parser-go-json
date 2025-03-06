@@ -18,7 +18,7 @@ import "github.com/katydid/parser-go-json/json/parse"
 
 type state struct {
 	kind          stateKind
-	arrayElemKind parse.Kind
+	arrayElemHint parse.Hint
 	arrayIndex    int64
 }
 

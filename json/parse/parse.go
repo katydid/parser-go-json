@@ -22,8 +22,8 @@ import (
 )
 
 type Parser interface {
-	// Next returns the Kind of the token or an error.
-	Next() (Kind, error)
+	// Next returns the Hint of the token or an error.
+	Next() (Hint, error)
 	// Skip skips over some of the json string.
 	// If the kind '{' was returned by Next, then the whole object is skipped.
 	// If a object key was just parsed, then that key's value is skipped.
@@ -92,151 +92,149 @@ func (p *parser) nextToken() (scan.Kind, error) {
 	return scanKind, err
 }
 
-func (p *parser) assertValue(scanKind scan.Kind) (Kind, error) {
+func (p *parser) assertValue(scanKind scan.Kind) (Hint, error) {
 	switch scanKind {
-	case scan.NullKind, scan.NumberKind, scan.StringKind:
-		return Kind(scanKind), nil
-	case scan.FalseKind, scan.TrueKind:
-		return BoolKind, nil
+	case scan.NullKind, scan.FalseKind, scan.TrueKind, scan.NumberKind, scan.StringKind:
+		return ValueHint, nil
 	case scan.ArrayOpenKind:
-		return Kind(scanKind), nil
+		return ArrayOpenHint, nil
 	case scan.ObjectOpenKind:
-		return Kind(scanKind), nil
+		return ObjectOpenHint, nil
 	}
-	return UnknownKind, errExpectedValue
+	return UnknownHint, errExpectedValue
 }
 
-func (p *parser) nextStart() (Kind, error) {
+func (p *parser) nextStart() (Hint, error) {
 	scanKind, err := p.nextToken()
 	if err != nil {
-		return UnknownKind, err
+		return UnknownHint, err
 	}
-	kind, err := p.assertValue(scanKind)
+	hint, err := p.assertValue(scanKind)
 	if err != nil {
-		return UnknownKind, err
+		return UnknownHint, err
 	}
-	if kind == ObjectOpenKind {
+	if hint == ObjectOpenHint {
 		p.state = objectOpenState
 		p.down(objectOpenState)
-	} else if kind == ArrayOpenKind {
+	} else if hint == ArrayOpenHint {
 		p.state = arrayOpenState
 		p.down(arrayOpenState)
 	} else {
 		p.state = leafState
 	}
-	return kind, nil
+	return hint, nil
 }
 
-func (p *parser) maybeDown(kind Kind) {
-	if kind == ObjectOpenKind {
+func (p *parser) maybeDown(hint Hint) {
+	if hint == ObjectOpenHint {
 		p.down(objectOpenState)
 	}
-	if kind == ArrayOpenKind {
+	if hint == ArrayOpenHint {
 		p.down(arrayOpenState)
 	}
 }
 
-func (p *parser) nextValue() (Kind, error) {
+func (p *parser) nextValue() (Hint, error) {
 	scanKind, err := p.nextToken()
 	if err != nil {
-		return UnknownKind, err
+		return UnknownHint, err
 	}
-	kind, err := p.assertValue(scanKind)
+	hint, err := p.assertValue(scanKind)
 	if err != nil {
-		return kind, err
+		return hint, err
 	}
-	p.maybeDown(kind)
-	return kind, nil
+	p.maybeDown(hint)
+	return hint, nil
 }
 
-func (p *parser) firstArrayElement() (Kind, error) {
+func (p *parser) firstArrayElement() (Hint, error) {
 	scanKind, err := p.nextToken()
 	if err != nil {
-		return UnknownKind, err
+		return UnknownHint, err
 	}
 	if scanKind == scan.ArrayCloseKind {
 		if err := p.up(); err != nil {
-			return UnknownKind, err
+			return UnknownHint, err
 		}
-		return ArrayCloseKind, nil
+		return ArrayCloseHint, nil
 	}
-	kind, err := p.assertValue(scanKind)
+	hint, err := p.assertValue(scanKind)
 	if err != nil {
-		return UnknownKind, err
+		return UnknownHint, err
 	}
 	p.state = arrayElementState
-	p.maybeDown(kind)
-	return kind, nil
+	p.maybeDown(hint)
+	return hint, nil
 }
 
-func (p *parser) nextArrayElement() (Kind, error) {
+func (p *parser) nextArrayElement() (Hint, error) {
 	scanKind, err := p.nextToken()
 	if err != nil {
-		return UnknownKind, err
+		return UnknownHint, err
 	}
 	if scanKind == scan.ArrayCloseKind {
 		if err := p.up(); err != nil {
-			return UnknownKind, err
+			return UnknownHint, err
 		}
-		return ArrayCloseKind, nil
+		return ArrayCloseHint, nil
 	}
 	if scanKind == scan.CommaKind {
 		return p.nextValue()
 	}
-	return UnknownKind, errExpectedCommaOrCloseBracket
+	return UnknownHint, errExpectedCommaOrCloseBracket
 }
 
-func (p *parser) firstObjectKey() (Kind, error) {
+func (p *parser) firstObjectKey() (Hint, error) {
 	scanKind, err := p.nextToken()
 	if err != nil {
-		return UnknownKind, err
+		return UnknownHint, err
 	}
 	if scanKind == scan.ObjectCloseKind {
 		if err := p.up(); err != nil {
-			return UnknownKind, err
+			return UnknownHint, err
 		}
-		return ObjectCloseKind, nil
+		return ObjectCloseHint, nil
 	}
 	if scanKind == scan.StringKind {
 		p.state = objectValueState
-		return StringKind, nil
+		return KeyHint, nil
 	}
-	return UnknownKind, errExpectedStringOrCloseCurly
+	return UnknownHint, errExpectedStringOrCloseCurly
 }
 
-func (p *parser) nextObjectKey() (Kind, error) {
+func (p *parser) nextObjectKey() (Hint, error) {
 	scanKind, err := p.nextToken()
 	if err != nil {
-		return UnknownKind, err
+		return UnknownHint, err
 	}
 	if scanKind == scan.ObjectCloseKind {
 		if err := p.up(); err != nil {
-			return UnknownKind, err
+			return UnknownHint, err
 		}
-		return ObjectCloseKind, nil
+		return ObjectCloseHint, nil
 	}
 	if scanKind == scan.CommaKind {
 		nextScanKind, err := p.nextToken()
 		if err != nil {
-			return UnknownKind, err
+			return UnknownHint, err
 		}
 		if nextScanKind == scan.StringKind {
 			p.state = objectValueState
-			return StringKind, nil
+			return KeyHint, nil
 		} else {
-			return UnknownKind, errExpectedCommaOrCloseBracket
+			return UnknownHint, errExpectedCommaOrCloseBracket
 		}
 	}
-	return UnknownKind, errExpectedCommaOrCloseBracket
+	return UnknownHint, errExpectedCommaOrCloseBracket
 }
 
-func (p *parser) nextObjectValue() (Kind, error) {
+func (p *parser) nextObjectValue() (Hint, error) {
 	scanKind, err := p.nextToken()
 	if err != nil {
-		return UnknownKind, err
+		return UnknownHint, err
 	}
 	if scanKind != scan.ColonKind {
-		return UnknownKind, errExpectedColon
+		return UnknownHint, errExpectedColon
 	}
 	p.state = objectKeyState
 	return p.nextValue()
@@ -253,13 +251,13 @@ func (p *parser) eof() error {
 	return io.ErrShortBuffer
 }
 
-func (p *parser) Next() (Kind, error) {
+func (p *parser) Next() (Hint, error) {
 	switch p.state {
 	case startState:
 		return p.nextStart()
 	case leafState:
 		// leaf was already parsed, so there should be nothing left to parse
-		return UnknownKind, p.eof()
+		return UnknownHint, p.eof()
 	case arrayOpenState:
 		return p.firstArrayElement()
 	case arrayElementState:
@@ -271,7 +269,7 @@ func (p *parser) Next() (Kind, error) {
 	case objectValueState:
 		return p.nextObjectValue()
 	case endState:
-		return UnknownKind, p.eof()
+		return UnknownHint, p.eof()
 	default:
 		panic("unreachable")
 	}
