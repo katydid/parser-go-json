@@ -24,42 +24,6 @@ func (k kind) IsUnknown() bool {
 	return k == UnknownKind
 }
 
-const ObjectOpenKind = kind('{')
-
-func (k kind) IsObjectOpen() bool {
-	return k == ObjectOpenKind
-}
-
-const ObjectCloseKind = kind('}')
-
-func (k kind) IsObjectClose() bool {
-	return k == ObjectCloseKind
-}
-
-const ColonKind = kind(':')
-
-func (k kind) IsColon() bool {
-	return k == ColonKind
-}
-
-const ArrayOpenKind = kind('[')
-
-func (k kind) IsArrayOpen() bool {
-	return k == ArrayOpenKind
-}
-
-const ArrayCloseKind = kind(']')
-
-func (k kind) IsArrayClose() bool {
-	return k == ArrayCloseKind
-}
-
-const CommaKind = kind(',')
-
-func (k kind) IsComma() bool {
-	return k == CommaKind
-}
-
 const StringKind = kind('"')
 
 func (k kind) IsString() bool {
@@ -128,18 +92,6 @@ func (k kind) String() string {
 		return "number"
 	case StringKind:
 		return "string"
-	case ArrayOpenKind:
-		return "arrayOpen"
-	case CommaKind:
-		return "comma"
-	case ArrayCloseKind:
-		return "arrayClose"
-	case ObjectOpenKind:
-		return "objectOpen"
-	case ColonKind:
-		return "colon"
-	case ObjectCloseKind:
-		return "objectClose"
 	case TooLargeNumberKind:
 		return "tooLargeNumberKind"
 	case NegativeNumberKind:

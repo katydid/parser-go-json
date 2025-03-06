@@ -15,7 +15,7 @@
 package parse
 
 // Hint of the token that is parsed.
-// This is represented by one for following bytes: {kv}[e]
+// This is represented by one for following bytes: {k}[v]
 type Hint byte
 
 const UnknownHint = Hint(0)
