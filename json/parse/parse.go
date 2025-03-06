@@ -32,6 +32,8 @@ type Parser interface {
 	// If an array element was parsed, then the rest of the array is skipped.
 	// In any other case, Skip simply calls Next.
 	Skip() error
+	// Tokenize parses the current token.
+	Tokenize() (token.Kind, error)
 
 	// Bool attempts to convert the current token to a bool.
 	Bool() (bool, error)
@@ -271,6 +273,10 @@ func (p *parser) Next() (Hint, error) {
 	default:
 		panic("unreachable")
 	}
+}
+
+func (p *parser) Tokenize() (token.Kind, error) {
+	return p.tokenizer.Tokenize()
 }
 
 func (p *parser) Skip() error {
