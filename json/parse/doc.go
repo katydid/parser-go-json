@@ -18,42 +18,41 @@
 //
 //	p.Next() // {
 //
-//	p.Next() // "
-//	p.String() // "num"
+//	p.Next() // k
+//	p.Token() // StringKind, "num"
 //
-//	p.Next() // 0
-//	p.Int() // token.ErrNotInt
-//	p.Uint() // token.ErrNotInt
-//	p.Double() // 3.14
+//	p.Next() // v
+//	p.Token() // Float64Kind, 3.14
 //
-//	p.Next() // "
-//	p.String() // "arr"
+//	p.Next() // k
+//	p.Token() // StringKind, "arr"
 //
 //	p.Next() // [
 //
-//	p.Next() // n
+//	p.Next() // v
+//	p.Token() // NullKind
 //
-//	p.Next() // ?
-//	p.Bool() // false
+//	p.Next() // v
+//	p.Token() // FalseKind
 //
-//	p.Next() // ?
-//	p.Bool() // true
+//	p.Next() // v
+//	p.Token() // TrueKind
 //
 //	p.Skip()
 //
-//	p.Next() // "
-//	p.String() // "obj"
+//	p.Next() // k
+//	p.Token() // StringKind, "obj"
 //
 //	p.Next() // {
 //
-//	p.Next() // "
-//	p.String() // "k"
+//	p.Next() // k
+//	p.Token() // StringKind, "k"
 //
-//	p.Next() // "
-//	p.String() // "v"
+//	p.Next() // v
+//	p.Token() // StringKind, "v"
 //
-//	p.Next() // "
-//	p.String() // "a"
+//	p.Next() // k
+//	p.Token() // StringKind, "a"
 //
 //	p.Skip()
 //
