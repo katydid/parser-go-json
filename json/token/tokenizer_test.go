@@ -26,18 +26,17 @@ func TestTokenizerExample(t *testing.T) {
 	expect(t, tzer.Next, scan.ObjectOpenKind)
 
 	expect(t, tzer.Next, scan.StringKind)
-	expectStr(t, tzer.Bytes, "num")
+	expectStr(t, tzer, "num")
 
 	expect(t, tzer.Next, scan.ColonKind)
 
 	expect(t, tzer.Next, scan.NumberKind)
-	expectErr(t, tzer.Int)
-	expect(t, tzer.Double, 3.14)
+	expectFloat(t, tzer, 3.14)
 
 	expect(t, tzer.Next, scan.CommaKind)
 
 	expect(t, tzer.Next, scan.StringKind)
-	expectStr(t, tzer.Bytes, "arr")
+	expectStr(t, tzer, "arr")
 
 	expect(t, tzer.Next, scan.ColonKind)
 
@@ -60,19 +59,19 @@ func TestTokenizerExample(t *testing.T) {
 	expect(t, tzer.Next, scan.CommaKind)
 
 	expect(t, tzer.Next, scan.StringKind)
-	expectStr(t, tzer.Bytes, "obj")
+	expectStr(t, tzer, "obj")
 
 	expect(t, tzer.Next, scan.ColonKind)
 
 	expect(t, tzer.Next, scan.ObjectOpenKind)
 
 	expect(t, tzer.Next, scan.StringKind)
-	expectStr(t, tzer.Bytes, "k")
+	expectStr(t, tzer, "k")
 
 	expect(t, tzer.Next, scan.ColonKind)
 
 	expect(t, tzer.Next, scan.StringKind)
-	expectStr(t, tzer.Bytes, "v")
+	expectStr(t, tzer, "v")
 
 	expect(t, tzer.Next, scan.ObjectCloseKind)
 
@@ -84,14 +83,13 @@ func TestTokenizerExampleWithSpaces(t *testing.T) {
 	tzer := NewTokenizer([]byte(str))
 	expect(t, tzer.Next, scan.ObjectOpenKind)
 	expect(t, tzer.Next, scan.StringKind)
-	expectStr(t, tzer.Bytes, "num")
+	expectStr(t, tzer, "num")
 	expect(t, tzer.Next, scan.ColonKind)
 	expect(t, tzer.Next, scan.NumberKind)
-	expectErr(t, tzer.Int)
-	expect(t, tzer.Double, 3.14)
+	expectFloat(t, tzer, 3.14)
 	expect(t, tzer.Next, scan.CommaKind)
 	expect(t, tzer.Next, scan.StringKind)
-	expectStr(t, tzer.Bytes, "arr")
+	expectStr(t, tzer, "arr")
 	expect(t, tzer.Next, scan.ColonKind)
 	expect(t, tzer.Next, scan.ArrayOpenKind)
 	expect(t, tzer.Next, scan.NullKind)
