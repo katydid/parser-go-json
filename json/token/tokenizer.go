@@ -26,10 +26,6 @@ type Tokenizer interface {
 	Next() (scan.Kind, error)
 	// Tokenize parses the current token.
 	Tokenize() (Kind, error)
-	// Int attempts to convert the current token to an int64.
-	Int() (int64, error)
-	// Double attempts to convert the current token to a float64.
-	Double() (float64, error)
 	// Bytes returns the bytes token or a unquoted string or decimal.
 	Bytes() ([]byte, error)
 	// Init restarts the tokenizer with a new byte buffer, without allocating a new tokenizer.
@@ -80,36 +76,6 @@ func (t *tokenizer) Next() (scan.Kind, error) {
 	t.scanKind = kind
 	t.scanToken = token
 	return kind, nil
-}
-
-// Int attempts to convert the current token to an int64.
-func (t *tokenizer) Int() (int64, error) {
-	if !t.scanKind.IsNumber() {
-		return 0, ErrNotInt
-	}
-	bs, err := t.Bytes()
-	if err != nil {
-		return 0, err
-	}
-	if t.tokenKind == Int64Kind {
-		return castToInt64(bs), nil
-	}
-	return 0, ErrNotInt
-}
-
-// Double attempts to convert the current token to a float64.
-func (t *tokenizer) Double() (float64, error) {
-	if !t.scanKind.IsNumber() {
-		return 0, ErrNotDouble
-	}
-	bs, err := t.Bytes()
-	if err != nil {
-		return 0, err
-	}
-	if t.tokenKind == Float64Kind {
-		return castToFloat64(bs), nil
-	}
-	return 0, ErrNotDouble
 }
 
 // Bytes returns the raw current token.

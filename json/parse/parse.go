@@ -354,11 +354,33 @@ func (p *parser) up() error {
 }
 
 func (p *parser) Int() (int64, error) {
-	return p.tokenizer.Int()
+	tokenKind, err := p.tokenizer.Tokenize()
+	if err != nil {
+		return 0, err
+	}
+	if tokenKind != token.Int64Kind {
+		return 0, errNotInt
+	}
+	bs, err := p.tokenizer.Bytes()
+	if err != nil {
+		return 0, err
+	}
+	return castToInt64(bs), nil
 }
 
 func (p *parser) Double() (float64, error) {
-	return p.tokenizer.Double()
+	tokenKind, err := p.tokenizer.Tokenize()
+	if err != nil {
+		return 0, err
+	}
+	if tokenKind != token.Float64Kind {
+		return 0, errNotInt
+	}
+	bs, err := p.tokenizer.Bytes()
+	if err != nil {
+		return 0, err
+	}
+	return castToFloat64(bs), nil
 }
 
 func (p *parser) Bytes() ([]byte, error) {

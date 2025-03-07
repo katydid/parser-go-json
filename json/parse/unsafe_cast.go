@@ -12,9 +12,10 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package json
+package parse
 
 import (
+	"math"
 	"reflect"
 	"unsafe"
 )
@@ -24,4 +25,13 @@ func castToString(buf []byte) string {
 	header := (*reflect.SliceHeader)(unsafe.Pointer(&buf))
 	strHeader := reflect.StringHeader{Data: header.Data, Len: header.Len}
 	return *(*string)(unsafe.Pointer(&strHeader))
+}
+
+func castToInt64(bs []byte) int64 {
+	return *(*int64)(unsafe.Pointer(&bs[0]))
+}
+
+func castToFloat64(bs []byte) float64 {
+	u := *(*uint64)(unsafe.Pointer(&bs[0]))
+	return math.Float64frombits(u)
 }
