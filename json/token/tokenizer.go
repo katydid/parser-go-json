@@ -146,6 +146,34 @@ func (t *tokenizer) Token() (Kind, []byte, error) {
 	return t.tokenKind, t.tokenBytes, nil
 }
 
+func (t *tokenizer) Tokenize() (Kind, error) {
+	if err := t.tokenize(); err != nil {
+		return UnknownKind, err
+	}
+	return t.tokenKind, nil
+}
+
+func (t *tokenizer) Int() (int64, error) {
+	if t.tokenKind == Int64Kind {
+		return t.tokenInt, nil
+	}
+	return 0, ErrNotInt
+}
+
+func (t *tokenizer) Double() (float64, error) {
+	if t.tokenKind == Float64Kind {
+		return t.tokenDouble, nil
+	}
+	return 0, ErrNotDouble
+}
+
+func (t *tokenizer) Bytes() ([]byte, error) {
+	if t.tokenKind == BytesKind || t.tokenKind == StringKind || t.tokenKind == DecimalKind {
+		return t.tokenBytes, nil
+	}
+	return nil, ErrNotBytes
+}
+
 func (t *tokenizer) tokenize() error {
 	if !t.tokenized {
 		var err error
