@@ -12,26 +12,24 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package json
+//go:build purego
+
+package parse
 
 import (
+	"encoding/binary"
 	"math"
-	"reflect"
-	"unsafe"
 )
 
-// castToString uses unsafe to cast a byte slice to a string without copying or allocating memory.
 func castToString(buf []byte) string {
-	header := (*reflect.SliceHeader)(unsafe.Pointer(&buf))
-	strHeader := reflect.StringHeader{Data: header.Data, Len: header.Len}
-	return *(*string)(unsafe.Pointer(&strHeader))
+	return string(buf)
 }
 
 func castToInt64(bs []byte) int64 {
-	return *(*int64)(unsafe.Pointer(&bs[0]))
+	return binary.LittleEndian.Uint64(bs)
 }
 
 func castToFloat64(bs []byte) float64 {
-	u := *(*uint64)(unsafe.Pointer(&bs[0]))
+	u := binary.LittleEndian.Uint64(bs)
 	return math.Float64frombits(u)
 }
