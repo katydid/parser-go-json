@@ -24,10 +24,8 @@ import (
 type Tokenizer interface {
 	// Next returns the Kind of the token or an error.
 	Next() (scan.Kind, error)
-	// Tokenize parses the current token.
-	Tokenize() (Kind, error)
-	// Bytes returns the bytes token or a unquoted string or decimal.
-	Bytes() ([]byte, error)
+	// Token parses and returns the current token.
+	Token() (Kind, []byte, error)
 	// Init restarts the tokenizer with a new byte buffer, without allocating a new tokenizer.
 	Init([]byte)
 }
@@ -76,23 +74,6 @@ func (t *tokenizer) Next() (scan.Kind, error) {
 	t.scanKind = kind
 	t.scanToken = token
 	return kind, nil
-}
-
-// Bytes returns the raw current token.
-func (t *tokenizer) Bytes() ([]byte, error) {
-	if err := t.tokenize(); err != nil {
-		return nil, err
-	}
-	if t.tokenKind == Int64Kind {
-		return deprecatedCastFromInt64(t.tokenInt), nil
-	}
-	if t.tokenKind == Float64Kind {
-		return deprecatedCastFromFloat64(t.tokenDouble), nil
-	}
-	if t.tokenKind != BytesKind && t.tokenKind != StringKind && t.tokenKind != DecimalKind {
-		return nil, ErrNotBytes
-	}
-	return t.tokenBytes, nil
 }
 
 func (t *tokenizer) notParseableInteger() bool {
@@ -152,11 +133,17 @@ func (t *tokenizer) tokenizeString() error {
 	return nil
 }
 
-func (t *tokenizer) Tokenize() (Kind, error) {
+func (t *tokenizer) Token() (Kind, []byte, error) {
 	if err := t.tokenize(); err != nil {
-		return 0, err
+		return UnknownKind, nil, err
 	}
-	return t.tokenKind, nil
+	if t.tokenKind == Int64Kind {
+		return t.tokenKind, deprecatedCastFromInt64(t.tokenInt), nil
+	}
+	if t.tokenKind == Float64Kind {
+		return t.tokenKind, deprecatedCastFromFloat64(t.tokenDouble), nil
+	}
+	return t.tokenKind, t.tokenBytes, nil
 }
 
 func (t *tokenizer) tokenize() error {

@@ -31,7 +31,7 @@ func TestNumbersMaxInt64(t *testing.T) {
 	if !kind.IsNumber() {
 		t.Fatal("expected number")
 	}
-	got, err := tzer.Bytes()
+	_, got, err := tzer.Token()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +51,7 @@ func TestNumbersMaxInt64Plus1(t *testing.T) {
 	if !kind.IsNumber() {
 		t.Fatal("expected number")
 	}
-	tokenKind, err := tzer.Tokenize()
+	tokenKind, got, err := tzer.Token()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,10 +59,6 @@ func TestNumbersMaxInt64Plus1(t *testing.T) {
 		t.Fatalf("expected decimal")
 	}
 	var want string = input
-	got, err := tzer.Bytes()
-	if err != nil {
-		t.Fatal(err)
-	}
 	if string(got) != want {
 		t.Fatalf("got %v, but want %v", string(got), want)
 	}
@@ -79,7 +75,7 @@ func TestNumbersMinInt64(t *testing.T) {
 	if !kind.IsNumber() {
 		t.Fatal("expected number")
 	}
-	got, err := tzer.Bytes()
+	_, got, err := tzer.Token()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,16 +95,12 @@ func TestNumbersMinInt64Min1(t *testing.T) {
 	if !kind.IsNumber() {
 		t.Fatal("expected number")
 	}
-	tokenKind, err := tzer.Tokenize()
+	tokenKind, gotb, err := tzer.Token()
 	if err != nil {
 		t.Fatal(err)
 	}
 	if tokenKind != DecimalKind {
 		t.Fatalf("expected decimal")
-	}
-	gotb, err := tzer.Bytes()
-	if err != nil {
-		t.Fatal(err)
 	}
 	want := input
 	got := string(gotb)
@@ -128,7 +120,7 @@ func TestNumbersMaxUint64(t *testing.T) {
 	if !kind.IsNumber() {
 		t.Fatal("expected number")
 	}
-	got, err := tzer.Bytes()
+	_, got, err := tzer.Token()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -147,16 +139,12 @@ func TestNumbersMaxUint64Plus1(t *testing.T) {
 	if !kind.IsNumber() {
 		t.Fatal("expected number")
 	}
-	tokenKind, err := tzer.Tokenize()
+	tokenKind, gotb, err := tzer.Token()
 	if err != nil {
 		t.Fatal(err)
 	}
 	if tokenKind != DecimalKind {
 		t.Fatalf("expected decimal")
-	}
-	gotb, err := tzer.Bytes()
-	if err != nil {
-		t.Fatal(err)
 	}
 	want := input
 	got := string(gotb)
@@ -176,13 +164,9 @@ func TestNumbersMaxFloat64(t *testing.T) {
 	if !kind.IsNumber() {
 		t.Fatal("expected number")
 	}
-	tokenKind, err := tzer.Tokenize()
+	tokenKind, got, err := tzer.Token()
 	if tokenKind != Float64Kind {
 		t.Fatalf("expected float64")
-	}
-	got, err := tzer.Bytes()
-	if err != nil {
-		t.Fatal(err)
 	}
 	gotf := castToFloat64(got)
 	if gotf != want {
@@ -200,16 +184,12 @@ func TestNumbersLargerThanMaxFloat64(t *testing.T) {
 	if !kind.IsNumber() {
 		t.Fatal("expected number")
 	}
-	tokenKind, err := tzer.Tokenize()
+	tokenKind, gotb, err := tzer.Token()
 	if err != nil {
 		t.Fatal(err)
 	}
 	if tokenKind != DecimalKind {
 		t.Fatal("expected decimal")
-	}
-	gotb, err := tzer.Bytes()
-	if err != nil {
-		t.Fatal(err)
 	}
 	want := input
 	got := string(gotb)
@@ -229,16 +209,12 @@ func TestNumbersSmallestNonZeroFloat64(t *testing.T) {
 	if !kind.IsNumber() {
 		t.Fatal("expected number")
 	}
-	tokenKind, err := tzer.Tokenize()
+	tokenKind, got, err := tzer.Token()
 	if err != nil {
 		t.Fatal(err)
 	}
 	if tokenKind != Float64Kind {
 		t.Fatal("expected float64")
-	}
-	got, err := tzer.Bytes()
-	if err != nil {
-		t.Fatal(err)
 	}
 	gotf := castToFloat64(got)
 	if gotf != want {
@@ -264,16 +240,12 @@ func TestNumbersIntOutsideOfFloatingPointPrecision(t *testing.T) {
 				t.Fatal("expected number")
 			}
 			want := input
-			tokenKind, err := tzer.Tokenize()
+			tokenKind, gotb, err := tzer.Token()
 			if err != nil {
 				t.Fatal(err)
 			}
 			if tokenKind != Int64Kind {
 				t.Fatal("expected int64")
-			}
-			gotb, err := tzer.Bytes()
-			if err != nil {
-				t.Fatal(err)
 			}
 			goti := castToInt64(gotb)
 			got := fmt.Sprintf("%v", goti)
@@ -302,16 +274,12 @@ func TestNumbersUintOutsideOfFloatingPointPrecision(t *testing.T) {
 				t.Fatal("expected number")
 			}
 			want := input
-			tokenKind, err := tzer.Tokenize()
+			tokenKind, gotb, err := tzer.Token()
 			if err != nil {
 				t.Fatal(err)
 			}
 			if tokenKind != Int64Kind {
 				t.Fatal("expected int64")
-			}
-			gotb, err := tzer.Bytes()
-			if err != nil {
-				t.Fatal(err)
 			}
 			goti := castToInt64(gotb)
 			got := fmt.Sprintf("%v", goti)
