@@ -30,18 +30,36 @@ func expect[A comparable](t *testing.T, f func() (A, error), want A) {
 	}
 }
 
+func expectFalse(t *testing.T, tzer Tokenizer) {
+	t.Helper()
+	tokenKind, _, err := tzer.Token()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tokenKind != FalseKind {
+		t.Fatalf("expected false, but got %v", tokenKind)
+	}
+}
+
+func expectTrue(t *testing.T, tzer Tokenizer) {
+	t.Helper()
+	tokenKind, _, err := tzer.Token()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tokenKind != TrueKind {
+		t.Fatalf("expected true, but got %v", tokenKind)
+	}
+}
+
 func expectInt(t *testing.T, tzer Tokenizer, want int64) {
 	t.Helper()
-	tokenKind, err := tzer.Tokenize()
+	tokenKind, gotb, err := tzer.Token()
 	if err != nil {
 		t.Fatal(err)
 	}
 	if tokenKind != Int64Kind {
 		t.Fatalf("expected int64, but got %v", tokenKind)
-	}
-	gotb, err := tzer.Bytes()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
 	}
 	got := castToInt64(gotb)
 	if got != want {
@@ -51,16 +69,12 @@ func expectInt(t *testing.T, tzer Tokenizer, want int64) {
 
 func expectFloat(t *testing.T, tzer Tokenizer, want float64) {
 	t.Helper()
-	tokenKind, err := tzer.Tokenize()
+	tokenKind, gotb, err := tzer.Token()
 	if err != nil {
 		t.Fatal(err)
 	}
 	if tokenKind != Float64Kind {
 		t.Fatalf("expected float64, but got %v", tokenKind)
-	}
-	gotb, err := tzer.Bytes()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
 	}
 	got := castToFloat64(gotb)
 	if got != want {
@@ -70,16 +84,12 @@ func expectFloat(t *testing.T, tzer Tokenizer, want float64) {
 
 func expectStr(t *testing.T, tzer Tokenizer, want string) {
 	t.Helper()
-	tokenKind, err := tzer.Tokenize()
+	tokenKind, gotb, err := tzer.Token()
 	if err != nil {
 		t.Fatal(err)
 	}
 	if tokenKind != StringKind {
 		t.Fatalf("expected string, but got %v", tokenKind)
-	}
-	gotb, err := tzer.Bytes()
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
 	}
 	gotf := string(gotb)
 	got := fmt.Sprintf("%v", gotf)

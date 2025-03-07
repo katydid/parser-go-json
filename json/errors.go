@@ -31,3 +31,5 @@ var errExpectedEOF = errors.New("expected EOF")
 var errNotUint = errors.New("not a uint")
 
 var errNotBool = errors.New("not a bool")
+
+var errNotString = errors.New("not a string")
