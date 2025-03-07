@@ -138,10 +138,10 @@ func (t *tokenizer) Token() (Kind, []byte, error) {
 		return UnknownKind, nil, err
 	}
 	if t.tokenKind == Int64Kind {
-		return t.tokenKind, deprecatedCastFromInt64(t.tokenInt), nil
+		return t.tokenKind, castFromInt64(t.tokenInt, t.alloc), nil
 	}
 	if t.tokenKind == Float64Kind {
-		return t.tokenKind, deprecatedCastFromFloat64(t.tokenDouble), nil
+		return t.tokenKind, castFromFloat64(t.tokenDouble, t.alloc), nil
 	}
 	return t.tokenKind, t.tokenBytes, nil
 }
