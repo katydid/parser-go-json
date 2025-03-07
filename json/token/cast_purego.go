@@ -12,24 +12,33 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
+//go:build purego
+
 package token
 
 import (
+	"encoding/binary"
 	"math"
-	"reflect"
-	"unsafe"
 )
 
+func castToInt64(bs []byte) int64 {
+	return binary.LittleEndian.Uint64(bs)
+}
+
+func castFromInt64(i int64, alloc func(size int) []byte) []byte {
+	bs := alloc(8)
+	binary.LittleEndian.PutUint64(bs, uint64(i))
+	return bs
+}
+
 func castToFloat64(bs []byte) float64 {
-	u := *(*uint64)(unsafe.Pointer(&bs[0]))
+	u := binary.LittleEndian.Uint64(bs)
 	return math.Float64frombits(u)
 }
 
-func deprecatedCastFromFloat64(f float64) []byte {
+func castFromFloat64(f float64, alloc func(size int) []byte) []byte {
+	bs := alloc(8)
 	u := math.Float64bits(f)
-	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
-		Len:  8,
-		Cap:  8,
-		Data: uintptr(unsafe.Pointer(&u)),
-	}))
+	binary.LittleEndian.PutUint64(bs, u)
+	return bs
 }
