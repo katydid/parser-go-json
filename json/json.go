@@ -468,14 +468,15 @@ func (p *jsonParser) Int() (int64, error) {
 }
 
 func (p *jsonParser) Uint() (uint64, error) {
-	if p.state.kind != inArrayIndexStateKind {
-		i, err := p.Int()
-		if err != nil {
-			return 0, err
-		}
-		if i >= 0 {
-			return uint64(i), nil
-		}
+	if p.state.kind == inArrayIndexStateKind {
+		return 0, errNotUint
+	}
+	i, err := p.Int()
+	if err != nil {
+		return 0, err
+	}
+	if i >= 0 {
+		return uint64(i), nil
 	}
 	return 0, errNotUint
 }
