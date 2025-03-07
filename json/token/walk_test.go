@@ -27,7 +27,7 @@ var errExpectedBool = errors.New("expected bool")
 
 var errExpectedString = errors.New("expected string")
 
-func walkValue(t Tokenizer, scanKind scan.Kind) error {
+func walkValue(t Tokenizer) error {
 	_, _, err := t.Token()
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func walk(t Tokenizer) error {
 	for err == nil {
 		switch kind {
 		case scan.NullKind, scan.FalseKind, scan.TrueKind, scan.NumberKind, scan.StringKind:
-			if err := walkValue(t, kind); err != nil {
+			if err := walkValue(t); err != nil {
 				return err
 			}
 		}

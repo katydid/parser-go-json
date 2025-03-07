@@ -51,7 +51,7 @@ func TestSkipUnknownArrayOpen(t *testing.T) {
 		t.Fatal(err)
 	}
 	expect(t, p.Next, ValueHint)
-	expect(t, p.Int, 1)
+	expectInt(t, p, 1)
 	expect(t, p.Next, ArrayCloseHint)
 	if _, err := p.Next(); err != io.EOF {
 		t.Fatalf("expected EOF, but got %v", err)
@@ -104,7 +104,7 @@ func TestSkipArrayElement(t *testing.T) {
 	p := NewParser([]byte(str))
 	expect(t, p.Next, ArrayOpenHint)
 	expect(t, p.Next, ValueHint)
-	expect(t, p.Int, 1)
+	expectInt(t, p, 1)
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
@@ -119,16 +119,16 @@ func TestSkipArrayNestedElement(t *testing.T) {
 	p := NewParser([]byte(str))
 	expect(t, p.Next, ArrayOpenHint)
 	expect(t, p.Next, ValueHint)
-	expect(t, p.Int, 1)
+	expectInt(t, p, 1)
 	expect(t, p.Next, ArrayOpenHint)
 	expect(t, p.Next, ValueHint)
-	expect(t, p.Int, 2)
+	expectInt(t, p, 2)
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
 	// skipped over 3,4]
 	expect(t, p.Next, ValueHint)
-	expect(t, p.Int, 5)
+	expectInt(t, p, 5)
 	expect(t, p.Next, ArrayCloseHint)
 	if _, err := p.Next(); err != io.EOF {
 		t.Fatalf("expected EOF, but got %v", err)
@@ -140,7 +140,7 @@ func TestSkipArrayRecursiveElement(t *testing.T) {
 	p := NewParser([]byte(str))
 	expect(t, p.Next, ArrayOpenHint)
 	expect(t, p.Next, ValueHint)
-	expect(t, p.Int, 1)
+	expectInt(t, p, 1)
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
@@ -169,7 +169,7 @@ func TestSkipObjectNestedOpen(t *testing.T) {
 	p := NewParser([]byte(str))
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
-	expectStr(t, p.Bytes, "a")
+	expectStr(t, p, "a")
 	expect(t, p.Next, ObjectOpenHint)
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
@@ -187,9 +187,9 @@ func TestSkipObjectKey(t *testing.T) {
 	p := NewParser([]byte(str))
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
-	expectStr(t, p.Bytes, "a")
+	expectStr(t, p, "a")
 	expect(t, p.Next, ValueHint)
-	expect(t, p.Int, 1)
+	expectInt(t, p, 1)
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
@@ -204,12 +204,12 @@ func TestSkipObjectNestedKey(t *testing.T) {
 	p := NewParser([]byte(str))
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
-	expectStr(t, p.Bytes, "a")
+	expectStr(t, p, "a")
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
-	expectStr(t, p.Bytes, "b")
+	expectStr(t, p, "b")
 	expect(t, p.Next, ValueHint)
-	expect(t, p.Int, 1)
+	expectInt(t, p, 1)
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
@@ -226,12 +226,12 @@ func TestSkipObjectValue(t *testing.T) {
 	p := NewParser([]byte(str))
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
-	expectStr(t, p.Bytes, "a")
+	expectStr(t, p, "a")
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
 	expect(t, p.Next, KeyHint)
-	expectStr(t, p.Bytes, "b")
+	expectStr(t, p, "b")
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
@@ -247,12 +247,12 @@ func TestSkipObjectRecursiveValue(t *testing.T) {
 	p := NewParser([]byte(str))
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
-	expectStr(t, p.Bytes, "a")
+	expectStr(t, p, "a")
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
 	expect(t, p.Next, KeyHint)
-	expectStr(t, p.Bytes, "b")
+	expectStr(t, p, "b")
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
@@ -268,16 +268,16 @@ func TestSkipObjectDeepRecursiveValue(t *testing.T) {
 	p := NewParser([]byte(str))
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
-	expectStr(t, p.Bytes, "a")
+	expectStr(t, p, "a")
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
 	expect(t, p.Next, KeyHint)
-	expectStr(t, p.Bytes, "b")
+	expectStr(t, p, "b")
 
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
-	expectStr(t, p.Bytes, "c")
+	expectStr(t, p, "c")
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}

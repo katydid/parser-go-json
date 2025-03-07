@@ -17,8 +17,6 @@ package parse
 import (
 	"io"
 	"testing"
-
-	"github.com/katydid/parser-go-json/json/token"
 )
 
 func TestParseExample(t *testing.T) {
@@ -27,42 +25,41 @@ func TestParseExample(t *testing.T) {
 	expect(t, p.Next, ObjectOpenHint)
 
 	expect(t, p.Next, KeyHint)
-	expectStr(t, p.Bytes, "num")
+	expectStr(t, p, "num")
 
 	expect(t, p.Next, ValueHint)
-	expectErr(t, p.Int)
-	expect(t, p.Double, 3.14)
+	expectFloat(t, p, 3.14)
 
 	expect(t, p.Next, KeyHint)
-	expectStr(t, p.Bytes, "arr")
+	expectStr(t, p, "arr")
 
 	expect(t, p.Next, ArrayOpenHint)
 
 	expect(t, p.Next, ValueHint)
 
 	expect(t, p.Next, ValueHint)
-	expect(t, p.Tokenize, token.FalseKind)
+	expectFalse(t, p)
 
 	expect(t, p.Next, ValueHint)
-	expect(t, p.Tokenize, token.TrueKind)
+	expectTrue(t, p)
 
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
 
 	expect(t, p.Next, KeyHint)
-	expectStr(t, p.Bytes, "obj")
+	expectStr(t, p, "obj")
 
 	expect(t, p.Next, ObjectOpenHint)
 
 	expect(t, p.Next, KeyHint)
-	expectStr(t, p.Bytes, "k")
+	expectStr(t, p, "k")
 
 	expect(t, p.Next, ValueHint)
-	expectStr(t, p.Bytes, "v")
+	expectStr(t, p, "v")
 
 	expect(t, p.Next, KeyHint)
-	expectStr(t, p.Bytes, "a")
+	expectStr(t, p, "a")
 
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
