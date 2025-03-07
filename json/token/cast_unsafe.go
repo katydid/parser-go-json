@@ -27,7 +27,11 @@ func castToInt64(bs []byte) int64 {
 }
 
 func castFromInt64(i int64, _alloc func(size int) []byte) []byte {
-	return unsafe.Slice((*byte)(unsafe.Pointer(&i)), 8)
+	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
+		Len:  8,
+		Cap:  8,
+		Data: uintptr(unsafe.Pointer(&i)),
+	}))
 }
 
 func castToFloat64(bs []byte) float64 {
@@ -37,7 +41,11 @@ func castToFloat64(bs []byte) float64 {
 
 func castFromFloat64(f float64, _alloc func(size int) []byte) []byte {
 	u := math.Float64bits(f)
-	return unsafe.Slice((*byte)(unsafe.Pointer(&u)), 8)
+	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
+		Len:  8,
+		Cap:  8,
+		Data: uintptr(unsafe.Pointer(&u)),
+	}))
 }
 
 func castToString(buf []byte) string {
