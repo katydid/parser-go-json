@@ -19,7 +19,6 @@ import (
 	"io"
 
 	"github.com/katydid/parser-go-json/json/rand"
-	"github.com/katydid/parser-go-json/json/token"
 )
 
 var errUnknownToken = errors.New("unknown token")
@@ -28,22 +27,12 @@ var errExpectedBool = errors.New("expected bool")
 
 var errExpectedString = errors.New("expected string")
 
-func walkValue(p Parser, hint Hint) error {
-	if tokenKind, err := p.Tokenize(); err == nil {
-		if tokenKind == token.TrueKind || tokenKind == token.FalseKind || tokenKind == token.NullKind {
-			return nil
-		}
+func walkValue(t Parser) error {
+	_, _, err := t.Token()
+	if err != nil {
+		return err
 	}
-	if _, err := p.Int(); err == nil {
-		return nil
-	}
-	if _, err := p.Double(); err == nil {
-		return nil
-	}
-	if _, err := p.Bytes(); err == nil {
-		return nil
-	}
-	return errUnknownToken
+	return nil
 }
 
 func walk(p Parser) error {
@@ -51,7 +40,7 @@ func walk(p Parser) error {
 	for err == nil {
 		switch kind {
 		case ValueHint, KeyHint:
-			if err := walkValue(p, kind); err != nil {
+			if err := walkValue(p); err != nil {
 				return err
 			}
 		}
@@ -79,7 +68,7 @@ func randWalk(r rand.Rand, p Parser) error {
 	for err == nil {
 		switch hint {
 		case ValueHint, KeyHint:
-			if err := walkValue(p, hint); err != nil {
+			if err := walkValue(p); err != nil {
 				return err
 			}
 		}

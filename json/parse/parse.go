@@ -37,14 +37,8 @@ type Parser interface {
 	Skip() error
 
 	// Tokenize parses the current token.
-	Tokenize() (token.Kind, error)
+	Token() (token.Kind, []byte, error)
 
-	// Int attempts to convert the current token to an int64.
-	Int() (int64, error)
-	// Double attempts to convert the current token to a float64.
-	Double() (float64, error)
-	// Bytes returns the bytes token or a unquoted string or decimal.
-	Bytes() ([]byte, error)
 	// Init restarts the parser with a new byte buffer, without allocating a new parser.
 	Init([]byte)
 }
@@ -275,9 +269,8 @@ func (p *parser) Next() (Hint, error) {
 	}
 }
 
-func (p *parser) Tokenize() (token.Kind, error) {
-	tokenKind, _, err := p.tokenizer.Token()
-	return tokenKind, err
+func (p *parser) Token() (token.Kind, []byte, error) {
+	return p.tokenizer.Token()
 }
 
 func (p *parser) Skip() error {
@@ -352,28 +345,6 @@ func (p *parser) up() error {
 		p.state = endState
 	}
 	return nil
-}
-
-func (p *parser) Int() (int64, error) {
-	tokenKind, bs, err := p.tokenizer.Token()
-	if err != nil {
-		return 0, err
-	}
-	if tokenKind != token.Int64Kind {
-		return 0, errNotInt
-	}
-	return castToInt64(bs), nil
-}
-
-func (p *parser) Double() (float64, error) {
-	tokenKind, bs, err := p.tokenizer.Token()
-	if err != nil {
-		return 0, err
-	}
-	if tokenKind != token.Float64Kind {
-		return 0, errNotFloat
-	}
-	return castToFloat64(bs), nil
 }
 
 func (p *parser) Bytes() ([]byte, error) {
