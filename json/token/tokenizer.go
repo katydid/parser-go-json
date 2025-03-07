@@ -102,13 +102,14 @@ func (t *tokenizer) Double() (float64, error) {
 	if !t.scanKind.IsNumber() {
 		return 0, ErrNotDouble
 	}
-	if err := t.tokenize(); err != nil {
+	bs, err := t.Bytes()
+	if err != nil {
 		return 0, err
 	}
-	if !t.tokenKind.IsFloat64() {
-		return 0, ErrNotDouble
+	if t.tokenKind == Float64Kind {
+		return castToFloat64(bs), nil
 	}
-	return t.tokenDouble, nil
+	return 0, ErrNotDouble
 }
 
 // Bytes returns the raw current token.
@@ -118,6 +119,9 @@ func (t *tokenizer) Bytes() ([]byte, error) {
 	}
 	if t.tokenKind == Int64Kind {
 		return deprecatedCastFromInt64(t.tokenInt), nil
+	}
+	if t.tokenKind == Float64Kind {
+		return deprecatedCastFromFloat64(t.tokenDouble), nil
 	}
 	if t.tokenKind != BytesKind && t.tokenKind != StringKind && t.tokenKind != DecimalKind {
 		return nil, ErrNotBytes
