@@ -24,14 +24,8 @@ import (
 type Tokenizer interface {
 	// Next returns the Kind of the token or an error.
 	Next() (scan.Kind, error)
-	// Tokenize parses the current token.
-	Tokenize() (Kind, error)
-	// Int attempts to convert the current token to an int64.
-	Int() (int64, error)
-	// Double attempts to convert the current token to a float64.
-	Double() (float64, error)
-	// Bytes returns the bytes token or a unquoted string or decimal.
-	Bytes() ([]byte, error)
+	// Token parses and returns the current token.
+	Token() (Kind, []byte, error)
 	// Init restarts the tokenizer with a new byte buffer, without allocating a new tokenizer.
 	Init([]byte)
 }
@@ -82,62 +76,6 @@ func (t *tokenizer) Next() (scan.Kind, error) {
 	return kind, nil
 }
 
-// Bool attempts to convert the current token to a bool.
-func (t *tokenizer) Bool() (bool, error) {
-	if !t.scanKind.IsTrue() && !t.scanKind.IsFalse() {
-		return false, ErrNotBool
-	}
-	if err := t.tokenize(); err != nil {
-		return false, err
-	}
-	if t.tokenKind.IsTrue() && t.scanKind.IsTrue() {
-		return true, nil
-	}
-	if t.tokenKind.IsFalse() && t.scanKind.IsFalse() {
-		return false, nil
-	}
-	return false, ErrNotBool
-}
-
-// Int attempts to convert the current token to an int64.
-func (t *tokenizer) Int() (int64, error) {
-	if !t.scanKind.IsNumber() {
-		return 0, ErrNotInt
-	}
-	if err := t.tokenize(); err != nil {
-		return 0, err
-	}
-	if !t.tokenKind.IsInt64() {
-		return 0, ErrNotInt
-	}
-	return t.tokenInt, nil
-}
-
-// Double attempts to convert the current token to a float64.
-func (t *tokenizer) Double() (float64, error) {
-	if !t.scanKind.IsNumber() {
-		return 0, ErrNotDouble
-	}
-	if err := t.tokenize(); err != nil {
-		return 0, err
-	}
-	if !t.tokenKind.IsFloat64() {
-		return 0, ErrNotDouble
-	}
-	return t.tokenDouble, nil
-}
-
-// Bytes returns the raw current token.
-func (t *tokenizer) Bytes() ([]byte, error) {
-	if !t.scanKind.IsString() && !t.scanKind.IsNumber() {
-		return nil, ErrNotBytes
-	}
-	if err := t.tokenize(); err != nil {
-		return nil, err
-	}
-	return t.tokenBytes, nil
-}
-
 func (t *tokenizer) notParseableInteger() bool {
 	for _, b := range t.scanToken {
 		if b == '.' || b == 'e' || b == 'E' {
@@ -162,15 +100,16 @@ func (t *tokenizer) tokenizeNumber() error {
 		// This can only be a float, so we return and do not try others.
 		return nil
 	}
-	t.tokenInt, err = strconv.ParseInt(t.scanToken)
-	if err == nil {
-		t.tokenKind = Int64Kind
+	parsedInt, err := strconv.ParseInt(t.scanToken)
+	if err != nil {
+		// scan already passed, so we know this is a valid number.
+		// The number is just too large represent in signed 64 bits.
+		t.tokenKind = DecimalKind
+		t.tokenBytes = t.scanToken
 		return nil
 	}
-	// scan already passed, so we know this is a valid number.
-	// The number is just too large represent in signed 64 bits.
-	t.tokenKind = DecimalKind
-	t.tokenBytes = t.scanToken
+	t.tokenKind = Int64Kind
+	t.tokenInt = parsedInt
 	return nil
 }
 
@@ -194,11 +133,45 @@ func (t *tokenizer) tokenizeString() error {
 	return nil
 }
 
+func (t *tokenizer) Token() (Kind, []byte, error) {
+	if err := t.tokenize(); err != nil {
+		return UnknownKind, nil, err
+	}
+	if t.tokenKind == Int64Kind {
+		return t.tokenKind, castFromInt64(t.tokenInt, t.alloc), nil
+	}
+	if t.tokenKind == Float64Kind {
+		return t.tokenKind, castFromFloat64(t.tokenDouble, t.alloc), nil
+	}
+	return t.tokenKind, t.tokenBytes, nil
+}
+
 func (t *tokenizer) Tokenize() (Kind, error) {
 	if err := t.tokenize(); err != nil {
-		return 0, err
+		return UnknownKind, err
 	}
 	return t.tokenKind, nil
+}
+
+func (t *tokenizer) Int() (int64, error) {
+	if t.tokenKind == Int64Kind {
+		return t.tokenInt, nil
+	}
+	return 0, ErrNotInt
+}
+
+func (t *tokenizer) Double() (float64, error) {
+	if t.tokenKind == Float64Kind {
+		return t.tokenDouble, nil
+	}
+	return 0, ErrNotDouble
+}
+
+func (t *tokenizer) Bytes() ([]byte, error) {
+	if t.tokenKind == BytesKind || t.tokenKind == StringKind || t.tokenKind == DecimalKind {
+		return t.tokenBytes, nil
+	}
+	return nil, ErrNotBytes
 }
 
 func (t *tokenizer) tokenize() error {

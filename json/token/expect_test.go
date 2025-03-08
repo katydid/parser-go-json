@@ -15,7 +15,7 @@
 package token
 
 import (
-	"bytes"
+	"fmt"
 	"testing"
 )
 
@@ -30,14 +30,71 @@ func expect[A comparable](t *testing.T, f func() (A, error), want A) {
 	}
 }
 
-func expectStr(t *testing.T, f func() ([]byte, error), want string) {
+func expectFalse(t *testing.T, tzer Tokenizer) {
 	t.Helper()
-	got, err := f()
+	tokenKind, _, err := tzer.Token()
 	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+		t.Fatal(err)
 	}
-	if !bytes.Equal(got, []byte(want)) {
-		t.Fatalf("want %v, but got %v", want, string(got))
+	if tokenKind != FalseKind {
+		t.Fatalf("expected false, but got %v", tokenKind)
+	}
+}
+
+func expectTrue(t *testing.T, tzer Tokenizer) {
+	t.Helper()
+	tokenKind, _, err := tzer.Token()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tokenKind != TrueKind {
+		t.Fatalf("expected true, but got %v", tokenKind)
+	}
+}
+
+func expectInt(t *testing.T, tzer Tokenizer, want int64) {
+	t.Helper()
+	tokenKind, gotb, err := tzer.Token()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tokenKind != Int64Kind {
+		t.Fatalf("expected int64, but got %v", tokenKind)
+	}
+	got := castToInt64(gotb)
+	if got != want {
+		t.Fatalf("want %v, but got %v", want, got)
+	}
+}
+
+func expectFloat(t *testing.T, tzer Tokenizer, want float64) {
+	t.Helper()
+	tokenKind, gotb, err := tzer.Token()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tokenKind != Float64Kind {
+		t.Fatalf("expected float64, but got %v", tokenKind)
+	}
+	got := castToFloat64(gotb)
+	if got != want {
+		t.Fatalf("want %v, but got %v", want, got)
+	}
+}
+
+func expectStr(t *testing.T, tzer Tokenizer, want string) {
+	t.Helper()
+	tokenKind, gotb, err := tzer.Token()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tokenKind != StringKind {
+		t.Fatalf("expected string, but got %v", tokenKind)
+	}
+	gotf := string(gotb)
+	got := fmt.Sprintf("%v", gotf)
+	if got != want {
+		t.Fatalf("want %v, but got %v", want, got)
 	}
 }
 

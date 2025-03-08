@@ -26,6 +26,7 @@ checklicense:
 	COPIED_FROM_GO
 
 test:
+	go clean -testcache
 	go test -v ./...
 
 build:

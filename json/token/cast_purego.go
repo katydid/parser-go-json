@@ -12,20 +12,33 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package parse
+//go:build purego
 
-import "errors"
+package token
 
-var errExpectedValue = errors.New("expected value")
+import (
+	"encoding/binary"
+	"math"
+)
 
-var errExpectedCommaOrCloseBracket = errors.New("expected ',' or ']'")
+func castToInt64(bs []byte) int64 {
+	return binary.LittleEndian.Uint64(bs)
+}
 
-var errExpectedStringOrCloseCurly = errors.New("expected '\"' or '}'")
+func castFromInt64(i int64, alloc func(size int) []byte) []byte {
+	bs := alloc(8)
+	binary.LittleEndian.PutUint64(bs, uint64(i))
+	return bs
+}
 
-var errExpectedColon = errors.New("expected ':'")
+func castToFloat64(bs []byte) float64 {
+	u := binary.LittleEndian.Uint64(bs)
+	return math.Float64frombits(u)
+}
 
-var errCannotSkipUnknown = errors.New("cannot Skip before parsing")
-
-var errNotInt = errors.New("not an int")
-
-var errNotFloat = errors.New("not a float")
+func castFromFloat64(f float64, alloc func(size int) []byte) []byte {
+	bs := alloc(8)
+	u := math.Float64bits(f)
+	binary.LittleEndian.PutUint64(bs, u)
+	return bs
+}

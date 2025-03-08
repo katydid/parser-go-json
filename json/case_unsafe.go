@@ -12,20 +12,25 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package parse
+//go:build !purego
 
-import "errors"
+package json
 
-var errExpectedValue = errors.New("expected value")
+import (
+	"math"
+	"unsafe"
+)
 
-var errExpectedCommaOrCloseBracket = errors.New("expected ',' or ']'")
+// castToString uses unsafe to cast a byte slice to a string without copying or allocating memory.
+func castToString(buf []byte) string {
+	return unsafe.String(unsafe.SliceData(buf), len(buf))
+}
 
-var errExpectedStringOrCloseCurly = errors.New("expected '\"' or '}'")
+func castToInt64(bs []byte) int64 {
+	return *(*int64)(unsafe.Pointer(&bs[0]))
+}
 
-var errExpectedColon = errors.New("expected ':'")
-
-var errCannotSkipUnknown = errors.New("cannot Skip before parsing")
-
-var errNotInt = errors.New("not an int")
-
-var errNotFloat = errors.New("not a float")
+func castToFloat64(bs []byte) float64 {
+	u := *(*uint64)(unsafe.Pointer(&bs[0]))
+	return math.Float64frombits(u)
+}

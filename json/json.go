@@ -447,7 +447,7 @@ func (p *jsonParser) IsLeaf() bool {
 }
 
 func (p *jsonParser) Bool() (bool, error) {
-	tokenKind, err := p.parser.Tokenize()
+	tokenKind, _, err := p.parser.Token()
 	if err != nil {
 		return false, err
 	}
@@ -464,30 +464,48 @@ func (p *jsonParser) Int() (int64, error) {
 	if p.state.kind == inArrayIndexStateKind {
 		return p.state.arrayIndex, nil
 	}
-	return p.parser.Int()
+	tokenKind, bs, err := p.parser.Token()
+	if err != nil {
+		return 0, err
+	}
+	if tokenKind != token.Int64Kind {
+		return 0, errNotInt
+	}
+	return castToInt64(bs), nil
 }
 
 func (p *jsonParser) Uint() (uint64, error) {
-	if p.state.kind != inArrayIndexStateKind {
-		i, err := p.Int()
-		if err != nil {
-			return 0, err
-		}
-		if i >= 0 {
-			return uint64(i), nil
-		}
+	if p.state.kind == inArrayIndexStateKind {
+		return 0, errNotUint
+	}
+	i, err := p.Int()
+	if err != nil {
+		return 0, err
+	}
+	if i >= 0 {
+		return uint64(i), nil
 	}
 	return 0, errNotUint
 }
 
 func (p *jsonParser) Double() (float64, error) {
-	return p.parser.Double()
+	tokenKind, bs, err := p.parser.Token()
+	if err != nil {
+		return 0, err
+	}
+	if tokenKind != token.Float64Kind {
+		return 0, errNotFloat
+	}
+	return castToFloat64(bs), nil
 }
 
 func (p *jsonParser) String() (string, error) {
-	bs, err := p.parser.Bytes()
+	tokenKind, bs, err := p.parser.Token()
 	if err != nil {
 		return "", err
+	}
+	if tokenKind != token.StringKind && tokenKind != token.DecimalKind {
+		return "", errNotString
 	}
 	return castToString(bs), nil
 }
@@ -495,12 +513,12 @@ func (p *jsonParser) String() (string, error) {
 var nullBytes = []byte{'n', 'u', 'l', 'l'}
 
 func (p *jsonParser) Bytes() ([]byte, error) {
-	tokenKind, err := p.parser.Tokenize()
+	tokenKind, bs, err := p.parser.Token()
 	if err != nil {
 		return nil, err
 	}
 	if tokenKind == token.NullKind {
 		return nullBytes, nil
 	}
-	return p.parser.Bytes()
+	return bs, nil
 }

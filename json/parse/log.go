@@ -49,26 +49,8 @@ func (l *l) Next() (Hint, error) {
 	return v, err
 }
 
-func (l *l) Tokenize() (token.Kind, error) {
-	v, err := l.p.Tokenize()
-	l.l.Printf(l.name+".Tokenize() (%v, %v)", v, err)
-	return v, err
-}
-
-func (l *l) Double() (float64, error) {
-	v, err := l.p.Double()
-	l.l.Printf(l.name+".Double() (%v, %v)", v, err)
-	return v, err
-}
-
-func (l *l) Int() (int64, error) {
-	v, err := l.p.Int()
-	l.l.Printf(l.name+".Int() (%v, %v)", v, err)
-	return v, err
-}
-
-func (l *l) Bytes() ([]byte, error) {
-	v, err := l.p.Bytes()
-	l.l.Printf(l.name+".Bytes() (%v, %v)", v, err)
-	return v, err
+func (l *l) Token() (token.Kind, []byte, error) {
+	k, bs, err := l.p.Token()
+	l.l.Printf(l.name+".Token() (%v, %v, %v)", k, bs, err)
+	return k, bs, err
 }

@@ -15,9 +15,10 @@
 package parse
 
 import (
-	"bytes"
-	"io"
+	"fmt"
 	"testing"
+
+	"github.com/katydid/parser-go-json/json/token"
 )
 
 func expect[A comparable](t *testing.T, f func() (A, error), want A) {
@@ -31,21 +32,78 @@ func expect[A comparable](t *testing.T, f func() (A, error), want A) {
 	}
 }
 
-func expectStr(t *testing.T, f func() ([]byte, error), want string) {
+func expectFalse(t *testing.T, tzer Parser) {
 	t.Helper()
-	got, err := f()
+	tokenKind, _, err := tzer.Token()
 	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
+		t.Fatal(err)
 	}
-	if !bytes.Equal(got, []byte(want)) {
-		t.Fatalf("want %v, but got %v", want, string(got))
+	if tokenKind != token.FalseKind {
+		t.Fatalf("expected false, but got %v", tokenKind)
+	}
+}
+
+func expectTrue(t *testing.T, tzer Parser) {
+	t.Helper()
+	tokenKind, _, err := tzer.Token()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tokenKind != token.TrueKind {
+		t.Fatalf("expected true, but got %v", tokenKind)
+	}
+}
+
+func expectInt(t *testing.T, tzer Parser, want int64) {
+	t.Helper()
+	tokenKind, gotb, err := tzer.Token()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tokenKind != token.Int64Kind {
+		t.Fatalf("expected int64, but got %v", tokenKind)
+	}
+	got := castToInt64(gotb)
+	if got != want {
+		t.Fatalf("want %v, but got %v", want, got)
+	}
+}
+
+func expectFloat(t *testing.T, tzer Parser, want float64) {
+	t.Helper()
+	tokenKind, gotb, err := tzer.Token()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tokenKind != token.Float64Kind {
+		t.Fatalf("expected float64, but got %v", tokenKind)
+	}
+	got := castToFloat64(gotb)
+	if got != want {
+		t.Fatalf("want %v, but got %v", want, got)
+	}
+}
+
+func expectStr(t *testing.T, tzer Parser, want string) {
+	t.Helper()
+	tokenKind, gotb, err := tzer.Token()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tokenKind != token.StringKind {
+		t.Fatalf("expected string, but got %v", tokenKind)
+	}
+	gotf := string(gotb)
+	got := fmt.Sprintf("%v", gotf)
+	if got != want {
+		t.Fatalf("want %v, but got %v", want, got)
 	}
 }
 
 func expectErr[A any](t *testing.T, f func() (A, error)) {
 	t.Helper()
 	got, err := f()
-	if err == nil || err == io.EOF {
-		t.Fatalf("expected error, but got %v with err = %v", got, err)
+	if err == nil {
+		t.Fatalf("expected error, but got %v", got)
 	}
 }
