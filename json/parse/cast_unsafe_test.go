@@ -23,7 +23,7 @@ import (
 
 // castToString uses unsafe to cast a byte slice to a string without copying or allocating memory.
 func castToString(buf []byte) string {
-	return *(*string)(unsafe.Pointer(&buf))
+	return unsafe.String(unsafe.SliceData(buf), len(buf))
 }
 
 func castToInt64(bs []byte) int64 {

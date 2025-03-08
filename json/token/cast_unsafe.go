@@ -49,5 +49,5 @@ func castFromFloat64(f float64, _alloc func(size int) []byte) []byte {
 }
 
 func castToString(buf []byte) string {
-	return *(*string)(unsafe.Pointer(&buf))
+	return unsafe.String(unsafe.SliceData(buf), len(buf))
 }
