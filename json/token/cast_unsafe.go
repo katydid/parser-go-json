@@ -49,7 +49,5 @@ func castFromFloat64(f float64, _alloc func(size int) []byte) []byte {
 }
 
 func castToString(buf []byte) string {
-	header := (*reflect.SliceHeader)(unsafe.Pointer(&buf))
-	strHeader := reflect.StringHeader{Data: header.Data, Len: header.Len}
-	return *(*string)(unsafe.Pointer(&strHeader))
+	return *(*string)(unsafe.Pointer(&buf))
 }
