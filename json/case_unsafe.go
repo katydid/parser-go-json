@@ -18,15 +18,12 @@ package json
 
 import (
 	"math"
-	"reflect"
 	"unsafe"
 )
 
 // castToString uses unsafe to cast a byte slice to a string without copying or allocating memory.
 func castToString(buf []byte) string {
-	header := (*reflect.SliceHeader)(unsafe.Pointer(&buf))
-	strHeader := reflect.StringHeader{Data: header.Data, Len: header.Len}
-	return *(*string)(unsafe.Pointer(&strHeader))
+	return *(*string)(unsafe.Pointer(&buf))
 }
 
 func castToInt64(bs []byte) int64 {
