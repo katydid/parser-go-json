@@ -25,7 +25,7 @@ func WithObjectTag(a string) func(*parser) {
 }
 
 // WithArrayTag tags each array with an array key, for example `{"a": []}` is parsed as `{"a": {"array": []}}`.
-func WithElemPrefix(e string) func(*parser) {
+func WithArrayTag(e string) func(*parser) {
 	return func(p *parser) {
 		p.tagArrays = true
 	}
