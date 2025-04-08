@@ -22,7 +22,7 @@ import (
 // Skip returns an error if nothing has been parsed yet.
 func TestSkipUnknownObject(t *testing.T) {
 	str := `{}`
-	p := NewParser([]byte(str))
+	p := NewParser(WithBuffer([]byte(str)))
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
@@ -34,7 +34,7 @@ func TestSkipUnknownObject(t *testing.T) {
 
 func TestSkipUnknownArray(t *testing.T) {
 	str := `[]`
-	p := NewParser([]byte(str))
+	p := NewParser(WithBuffer([]byte(str)))
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +46,7 @@ func TestSkipUnknownArray(t *testing.T) {
 
 func TestSkipUnknownArrayOpen(t *testing.T) {
 	str := `[1]`
-	p := NewParser([]byte(str))
+	p := NewParser(WithBuffer([]byte(str)))
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
@@ -60,7 +60,7 @@ func TestSkipUnknownArrayOpen(t *testing.T) {
 
 func TestSkipUnknownString(t *testing.T) {
 	str := `"abc"`
-	p := NewParser([]byte(str))
+	p := NewParser(WithBuffer([]byte(str)))
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
@@ -72,7 +72,7 @@ func TestSkipUnknownString(t *testing.T) {
 // If the kind '[' was returned by Next, then the whole array is skipped.
 func TestSkipArrayOpen(t *testing.T) {
 	str := `[1,2]`
-	p := NewParser([]byte(str))
+	p := NewParser(WithBuffer([]byte(str)))
 	expect(t, p.Next, ArrayOpenHint)
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
@@ -85,7 +85,7 @@ func TestSkipArrayOpen(t *testing.T) {
 
 func TestSkipArrayNestedOpen(t *testing.T) {
 	str := `[[1,2]]`
-	p := NewParser([]byte(str))
+	p := NewParser(WithBuffer([]byte(str)))
 	expect(t, p.Next, ArrayOpenHint)
 	expect(t, p.Next, ArrayOpenHint)
 	if err := p.Skip(); err != nil {
@@ -101,7 +101,7 @@ func TestSkipArrayNestedOpen(t *testing.T) {
 // If an array element was parsed, then the rest of the array is skipped.
 func TestSkipArrayElement(t *testing.T) {
 	str := `[1,2,3]`
-	p := NewParser([]byte(str))
+	p := NewParser(WithBuffer([]byte(str)))
 	expect(t, p.Next, ArrayOpenHint)
 	expect(t, p.Next, ValueHint)
 	expectInt(t, p, 1)
@@ -116,7 +116,7 @@ func TestSkipArrayElement(t *testing.T) {
 
 func TestSkipArrayNestedElement(t *testing.T) {
 	str := `[1,[2,3,4],5]`
-	p := NewParser([]byte(str))
+	p := NewParser(WithBuffer([]byte(str)))
 	expect(t, p.Next, ArrayOpenHint)
 	expect(t, p.Next, ValueHint)
 	expectInt(t, p, 1)
@@ -137,7 +137,7 @@ func TestSkipArrayNestedElement(t *testing.T) {
 
 func TestSkipArrayRecursiveElement(t *testing.T) {
 	str := `[1,[2,3],[[4,5,6]]]`
-	p := NewParser([]byte(str))
+	p := NewParser(WithBuffer([]byte(str)))
 	expect(t, p.Next, ArrayOpenHint)
 	expect(t, p.Next, ValueHint)
 	expectInt(t, p, 1)
@@ -153,7 +153,7 @@ func TestSkipArrayRecursiveElement(t *testing.T) {
 // If the kind '{' was returned by Next, then the whole object is skipped.
 func TestSkipObjectOpen(t *testing.T) {
 	str := `{"a":1,"b":2}`
-	p := NewParser([]byte(str))
+	p := NewParser(WithBuffer([]byte(str)))
 	expect(t, p.Next, ObjectOpenHint)
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
@@ -166,7 +166,7 @@ func TestSkipObjectOpen(t *testing.T) {
 
 func TestSkipObjectNestedOpen(t *testing.T) {
 	str := `{"a":{"b":1,"c":2}}`
-	p := NewParser([]byte(str))
+	p := NewParser(WithBuffer([]byte(str)))
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
 	expectStr(t, p, "a")
@@ -184,7 +184,7 @@ func TestSkipObjectNestedOpen(t *testing.T) {
 // If an object value was just parsed, then the rest of the object is skipped.
 func TestSkipObjectKey(t *testing.T) {
 	str := `{"a":1,"b":2,"c":3}`
-	p := NewParser([]byte(str))
+	p := NewParser(WithBuffer([]byte(str)))
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
 	expectStr(t, p, "a")
@@ -201,7 +201,7 @@ func TestSkipObjectKey(t *testing.T) {
 
 func TestSkipObjectNestedKey(t *testing.T) {
 	str := `{"a":{"b":1,"c":2,"d":3}}`
-	p := NewParser([]byte(str))
+	p := NewParser(WithBuffer([]byte(str)))
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
 	expectStr(t, p, "a")
@@ -223,7 +223,7 @@ func TestSkipObjectNestedKey(t *testing.T) {
 // If a object key was just parsed, then that key's value is skipped.
 func TestSkipObjectValue(t *testing.T) {
 	str := `{"a":1,"b":2}`
-	p := NewParser([]byte(str))
+	p := NewParser(WithBuffer([]byte(str)))
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
 	expectStr(t, p, "a")
@@ -244,7 +244,7 @@ func TestSkipObjectValue(t *testing.T) {
 
 func TestSkipObjectRecursiveValue(t *testing.T) {
 	str := `{"a":1,"b":{"c":{"d":{"e":"f"},"g":[1,2]}}}`
-	p := NewParser([]byte(str))
+	p := NewParser(WithBuffer([]byte(str)))
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
 	expectStr(t, p, "a")
@@ -265,7 +265,7 @@ func TestSkipObjectRecursiveValue(t *testing.T) {
 
 func TestSkipObjectDeepRecursiveValue(t *testing.T) {
 	str := `{"a":1,"b":{"c":{"d":{"e":"f"},"g":[1,2]}}}`
-	p := NewParser([]byte(str))
+	p := NewParser(WithBuffer([]byte(str)))
 	expect(t, p.Next, ObjectOpenHint)
 	expect(t, p.Next, KeyHint)
 	expectStr(t, p, "a")

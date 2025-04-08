@@ -43,7 +43,7 @@ func TestDebugParse(t *testing.T) {
 
 func TestDebugRandomWalk(t *testing.T) {
 	p := NewParser()
-	p.(*jsonParser).parser = parse.NewLogger(parse.NewParser(nil))
+	p.(*jsonParser).parser = parse.NewLogger(parse.NewParser())
 	data, err := json.Marshal(debug.Input)
 	if err != nil {
 		t.Fatal(err)

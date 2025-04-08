@@ -23,7 +23,7 @@ import (
 
 func TestNoAllocsOnAverage(t *testing.T) {
 	pool := pool.New()
-	p := NewParserWithCustomAllocator(nil, pool.Alloc)
+	p := NewParser(WithAllocator(pool.Alloc))
 	testrun.NoAllocsOnAverage(t, func(input []byte) {
 		p.Init(input)
 		if err := walk(p); err != nil {
@@ -35,7 +35,7 @@ func TestNoAllocsOnAverage(t *testing.T) {
 
 func TestNotASingleAllocAfterWarmUp(t *testing.T) {
 	pool := pool.New()
-	p := NewParserWithCustomAllocator(nil, pool.Alloc)
+	p := NewParser(WithAllocator(pool.Alloc))
 	testrun.NotASingleAllocAfterWarmUp(t, pool, func(bs []byte) {
 		p.Init(bs)
 		if err := walk(p); err != nil {

@@ -21,7 +21,7 @@ import (
 
 func TestParseExample(t *testing.T) {
 	s := `{"num":3.14,"arr":[null,false,true,1,2],"obj":{"k":"v","a":[1,2,3],"b":1,"c":2}}`
-	p := NewParser([]byte(s))
+	p := NewParser(WithBuffer([]byte(s)))
 	expect(t, p.Next, ObjectOpenHint)
 
 	expect(t, p.Next, KeyHint)
