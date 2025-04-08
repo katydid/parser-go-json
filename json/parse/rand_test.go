@@ -27,7 +27,7 @@ func TestParseRandomValues(t *testing.T) {
 	for _, value := range values {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
-			tokenizer := NewParser([]byte(value))
+			tokenizer := NewParser(WithBuffer([]byte(value)))
 			if err := walk(tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v", err)
 			}
@@ -41,7 +41,7 @@ func TestRandomlyParseRandomValues(t *testing.T) {
 	for _, value := range values {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
-			tokenizer := NewParser([]byte(value))
+			tokenizer := NewParser(WithBuffer([]byte(value)))
 			if err := randWalk(r, tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v", err)
 			}

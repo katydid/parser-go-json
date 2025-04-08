@@ -46,7 +46,7 @@ func NewParser() Interface {
 	return &jsonParser{
 		stack:   make([]state, 0, 10),
 		actions: make([]action, 0, 10),
-		parser:  parse.NewParserWithCustomAllocator(nil, p.Alloc),
+		parser:  parse.NewParser(parse.WithAllocator(p.Alloc)),
 		pool:    p,
 	}
 }
