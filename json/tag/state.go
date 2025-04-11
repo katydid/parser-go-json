@@ -12,24 +12,16 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-//go:build purego
+package tag
 
-package parse
+type state byte
 
-import (
-	"encoding/binary"
-	"math"
-)
+const startState = state(0)
 
-func castToString(buf []byte) string {
-	return string(buf)
-}
+const objectTagOpenState = state('{')
 
-func castToInt64(bs []byte) int64 {
-	return int64(binary.LittleEndian.Uint64(bs))
-}
+const objectTagKeyState = state('#')
 
-func castToFloat64(bs []byte) float64 {
-	u := binary.LittleEndian.Uint64(bs)
-	return math.Float64frombits(u)
-}
+const objectTagCloseState = state('}')
+
+const endState = state('$')
