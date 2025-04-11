@@ -12,24 +12,21 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-//go:build purego
+package tag
 
-package parse
+// Option is used set options when creating a new JSON Parser.
+type Option func(*tagger)
 
-import (
-	"encoding/binary"
-	"math"
-)
-
-func castToString(buf []byte) string {
-	return string(buf)
+// WithObjectTag tags each object with an object key, for example `{"a": null}` is parsed as `{"object": {"a": null}}`.
+func WithObjectTag(a string) func(*tagger) {
+	return func(t *tagger) {
+		t.tagObjects = true
+	}
 }
 
-func castToInt64(bs []byte) int64 {
-	return int64(binary.LittleEndian.Uint64(bs))
-}
-
-func castToFloat64(bs []byte) float64 {
-	u := binary.LittleEndian.Uint64(bs)
-	return math.Float64frombits(u)
+// WithArrayTag tags each array with an array key, for example `{"a": []}` is parsed as `{"a": {"array": []}}`.
+func WithArrayTag(e string) func(*tagger) {
+	return func(t *tagger) {
+		t.tagArrays = true
+	}
 }

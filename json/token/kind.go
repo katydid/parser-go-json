@@ -26,6 +26,7 @@ package token
 // * '/': Decimal (String)
 // * '9': Nanoseconds (Int64)
 // * 'T': DateTime ISO 8601 (String)
+// * '#': User defined tags (String)
 type Kind byte
 
 const UnknownKind = Kind(0)
@@ -94,6 +95,12 @@ func (k Kind) IsDateTimeKind() bool {
 	return k == DateTimeKind
 }
 
+const TagKind = Kind('#')
+
+func (k Kind) IsTag() bool {
+	return k == TagKind
+}
+
 func (k Kind) String() string {
 	switch k {
 	case UnknownKind:
@@ -118,6 +125,8 @@ func (k Kind) String() string {
 		return "nanoseconds"
 	case DateTimeKind:
 		return "dateTime"
+	case TagKind:
+		return "tag"
 	}
 	panic("unreachable")
 }

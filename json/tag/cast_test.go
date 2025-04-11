@@ -12,9 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-//go:build purego
-
-package parse
+package tag
 
 import (
 	"encoding/binary"

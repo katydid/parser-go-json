@@ -353,8 +353,3 @@ func (p *parser) up() error {
 	}
 	return nil
 }
-
-func (p *parser) Bytes() ([]byte, error) {
-	_, bs, err := p.tokenizer.Token()
-	return bs, err
-}
