@@ -18,14 +18,14 @@ package tag
 type Option func(*tagger)
 
 // WithObjectTag tags each object with an object key, for example `{"a": null}` is parsed as `{"object": {"a": null}}`.
-func WithObjectTag(a string) func(*tagger) {
+func WithObjectTag() func(*tagger) {
 	return func(t *tagger) {
 		t.tagObjects = true
 	}
 }
 
 // WithArrayTag tags each array with an array key, for example `{"a": []}` is parsed as `{"a": {"array": []}}`.
-func WithArrayTag(e string) func(*tagger) {
+func WithArrayTag() func(*tagger) {
 	return func(t *tagger) {
 		t.tagArrays = true
 	}

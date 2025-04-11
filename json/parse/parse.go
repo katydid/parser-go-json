@@ -48,12 +48,6 @@ type parser struct {
 	state state
 	stack []state
 
-	// options
-	buf        []byte
-	alloc      func(int) []byte
-	tagObjects bool
-	tagArrays  bool
-
 	// initialized via options
 	tokenizer token.Tokenizer
 }
@@ -62,17 +56,13 @@ func NewParser(opts ...Option) Parser {
 	p := &parser{
 		state: startState,
 		stack: make([]state, 0, 10),
-		alloc: func(size int) []byte { return make([]byte, size) },
 	}
-	for _, opt := range opts {
-		opt(p)
-	}
-	p.tokenizer = token.NewTokenizerWithCustomAllocator(p.buf, p.alloc)
+	options := newOptions(opts...)
+	p.tokenizer = token.NewTokenizerWithCustomAllocator(options.buf, options.alloc)
 	return p
 }
 
 func (p *parser) Init(buf []byte) {
-	p.buf = buf
 	// Reset the tokenizer with the new buffer.
 	p.tokenizer.Init(buf)
 	// Reset the state.
