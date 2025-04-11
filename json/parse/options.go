@@ -14,35 +14,53 @@
 
 package parse
 
+type options struct {
+	tagObjects bool
+	tagArrays  bool
+	alloc      func(int) []byte
+	buf        []byte
+}
+
+func newOptions(opts ...Option) *options {
+	o := &options{
+		// set default allocator.
+		alloc: func(size int) []byte { return make([]byte, size) },
+	}
+	for _, opt := range opts {
+		opt(o)
+	}
+	return o
+}
+
 // Option is used set options when creating a new JSON Parser.
-type Option func(*parser)
+type Option func(*options)
 
 // WithObjectTag tags each object with an object key, for example `{"a": null}` is parsed as `{"object": {"a": null}}`.
-func WithObjectTag(a string) func(*parser) {
-	return func(p *parser) {
-		p.tagObjects = true
+func WithObjectTag() func(*options) {
+	return func(o *options) {
+		o.tagObjects = true
 	}
 }
 
 // WithArrayTag tags each array with an array key, for example `{"a": []}` is parsed as `{"a": {"array": []}}`.
-func WithArrayTag(e string) func(*parser) {
-	return func(p *parser) {
-		p.tagArrays = true
+func WithArrayTag() func(*options) {
+	return func(o *options) {
+		o.tagArrays = true
 	}
 }
 
 // WithAllocator replaces the default `func(size int) []byte { return make([]byte, size) }` allocator
 // with a different allocator function.
 // Usually an allocator that uses a pool.
-func WithAllocator(alloc func(int) []byte) func(*parser) {
-	return func(p *parser) {
-		p.alloc = alloc
+func WithAllocator(alloc func(int) []byte) func(*options) {
+	return func(o *options) {
+		o.alloc = alloc
 	}
 }
 
 // WithBuffer passes in a buffer to parse.
-func WithBuffer(buf []byte) func(*parser) {
-	return func(p *parser) {
-		p.buf = buf
+func WithBuffer(buf []byte) func(*options) {
+	return func(o *options) {
+		o.buf = buf
 	}
 }

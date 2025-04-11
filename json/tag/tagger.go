@@ -32,6 +32,14 @@ type tagger struct {
 	stack []state
 }
 
+var objectTagToken = []byte("object")
+var arrayTagToken = []byte("array")
+
+// NewTagger can tag objects and arrays.
+// If both options are enabled then `{"a": []}`
+// is parsed as `{"object": {"a": {"array": []}}}`.
+// The kind returned from the Token method for
+// "object" and "array" will be token.TagKind.
 func NewTagger(p parse.Parser, opts ...Option) parse.Parser {
 	t := &tagger{
 		p:     p,
@@ -51,19 +59,27 @@ func (t *tagger) Next() (parse.Hint, error) {
 		if err != nil {
 			return h, err
 		}
-		if !t.tagObjects {
-			return h, nil
+		if t.tagObjects {
+			switch h {
+			case parse.ObjectOpenHint:
+				t.down(objectTagOpenState)
+				return parse.ObjectOpenHint, nil
+			case parse.ObjectCloseHint:
+				t.state = objectTagCloseState
+				return parse.ObjectCloseHint, nil
+			}
 		}
-		switch h {
-		case parse.ObjectOpenHint:
-			t.down(objectTagOpenState)
-			return parse.ObjectOpenHint, nil
-		case parse.ObjectCloseHint:
-			t.state = objectTagCloseState
-			return parse.ObjectCloseHint, nil
-		default:
-			return h, nil
+		if t.tagArrays {
+			switch h {
+			case parse.ArrayOpenHint:
+				t.down(arrayTagOpenState)
+				return parse.ObjectOpenHint, nil
+			case parse.ArrayCloseHint:
+				t.state = arrayTagCloseState
+				return parse.ArrayCloseHint, nil
+			}
 		}
+		return h, nil
 	case objectTagOpenState:
 		t.state = objectTagKeyState
 		return parse.KeyHint, nil
@@ -71,6 +87,15 @@ func (t *tagger) Next() (parse.Hint, error) {
 		t.state = startState
 		return parse.ObjectOpenHint, nil
 	case objectTagCloseState:
+		t.up()
+		return parse.ObjectCloseHint, nil
+	case arrayTagOpenState:
+		t.state = arrayTagKeyState
+		return parse.KeyHint, nil
+	case arrayTagKeyState:
+		t.state = startState
+		return parse.ArrayOpenHint, nil
+	case arrayTagCloseState:
 		t.up()
 		return parse.ObjectCloseHint, nil
 	case endState:
@@ -85,12 +110,10 @@ func (t *tagger) Skip() error {
 
 func (t *tagger) Token() (token.Kind, []byte, error) {
 	switch t.state {
-	case startState:
-	case objectTagOpenState:
 	case objectTagKeyState:
-		return token.TagKind, []byte("object"), nil
-	case objectTagCloseState:
-	case endState:
+		return token.TagKind, objectTagToken, nil
+	case arrayTagKeyState:
+		return token.TagKind, arrayTagToken, nil
 	}
 	return t.p.Token()
 }

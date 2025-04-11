@@ -24,4 +24,10 @@ const objectTagKeyState = state('#')
 
 const objectTagCloseState = state('}')
 
+const arrayTagOpenState = state('[')
+
+const arrayTagKeyState = state('E')
+
+const arrayTagCloseState = state(']')
+
 const endState = state('$')
