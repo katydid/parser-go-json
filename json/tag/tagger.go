@@ -18,12 +18,19 @@ import (
 	"fmt"
 	"io"
 
-	jsonparse "github.com/katydid/parser-go-json/json/parse"
 	"github.com/katydid/parser-go/parse"
 )
 
+// Parser is a copy of the json.Parse interface.
+type Parser interface {
+	Next() (parse.Hint, error)
+	Skip() error
+	Token() (parse.Kind, []byte, error)
+	Init([]byte)
+}
+
 type tagger struct {
-	p jsonparse.Parser
+	p Parser
 	// options
 	tagObjects bool
 	tagArrays  bool
@@ -40,7 +47,7 @@ var arrayTagToken = []byte("array")
 // is parsed as `{"object": {"a": {"array": []}}}`.
 // The kind returned from the Token method for
 // "object" and "array" will be parse.TagKind.
-func NewTagger(p jsonparse.Parser, opts ...Option) jsonparse.Parser {
+func NewTagger(p Parser, opts ...Option) Parser {
 	t := &tagger{
 		p:     p,
 		state: startState,

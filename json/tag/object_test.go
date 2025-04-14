@@ -12,20 +12,21 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package tag
+package tag_test
 
 import (
 	"io"
 	"testing"
 
 	jsonparse "github.com/katydid/parser-go-json/json/parse"
+	"github.com/katydid/parser-go-json/json/tag"
 	"github.com/katydid/parser-go/parse"
 )
 
 func TestTagObjectForEmptyObject(t *testing.T) {
 	s := `{}`
 	// will be parsed the same as : {"object": {}}
-	p := NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), WithObjectTag())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithObjectTag())
 
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
 	expect(t, p.Next, parse.ObjectOpenHint)
@@ -50,7 +51,7 @@ func TestTagObjectForEmptyObject(t *testing.T) {
 func TestTagObjectForNonEmptyObject(t *testing.T) {
 	s := `{"mykey": "myvalue"}`
 	// will be parsed the same as : {"object": {"mykey": "myvalue"}}
-	p := NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), WithObjectTag())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithObjectTag())
 
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
 	expect(t, p.Next, parse.ObjectOpenHint)
@@ -84,7 +85,7 @@ func TestTagObjectForNonEmptyObject(t *testing.T) {
 func TestTagObjectForNonEmptyObjectWithEmptyObjectValue(t *testing.T) {
 	s := `{"mykey": {}}`
 	// will be parsed the same as : {"object": {"mykey": {"object": {}}}}
-	p := NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), WithObjectTag())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithObjectTag())
 
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
 	expect(t, p.Next, parse.ObjectOpenHint)
@@ -130,7 +131,7 @@ func TestTagObjectForNonEmptyObjectWithEmptyObjectValue(t *testing.T) {
 func TestTagObjectForNonEmptyObjectWithNonEmptyObjectValue(t *testing.T) {
 	s := `{"mykey": {"mykey2": {}}}`
 	// will be parsed the same as : {"object": {"mykey": {"object": {"mykey2": {"object": {}}}}}}
-	p := NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), WithObjectTag())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithObjectTag())
 
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
 	expect(t, p.Next, parse.ObjectOpenHint)

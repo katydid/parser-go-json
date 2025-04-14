@@ -12,21 +12,19 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package tag_test
+package parse
 
 import (
 	"io"
 	"testing"
 
-	jsonparse "github.com/katydid/parser-go-json/json/parse"
-	"github.com/katydid/parser-go-json/json/tag"
 	"github.com/katydid/parser-go/parse"
 )
 
 func TestTagMixObject(t *testing.T) {
 	s := `[{"mykey1":[{"mykey2":[]}]}]`
 	// will be parsed the same as : {"array":[{"object":{"mykey":{"array":[{"object":{"mykey2":{"array":[]}}}]}}}]}
-	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithObjectTag(), tag.WithArrayTag())
+	p := NewParser(WithBuffer([]byte(s)), WithObjectTag(), WithArrayTag())
 
 	// 1: first array
 	expect(t, p.Next, parse.ObjectOpenHint)
