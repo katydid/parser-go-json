@@ -12,20 +12,21 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package tag
+package tag_test
 
 import (
 	"io"
 	"testing"
 
 	jsonparse "github.com/katydid/parser-go-json/json/parse"
+	"github.com/katydid/parser-go-json/json/tag"
 	"github.com/katydid/parser-go/parse"
 )
 
 func TestTagArrayForEmptyArray(t *testing.T) {
 	s := `[]`
 	// will be parsed the same as : {"array": []}
-	p := NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), WithArrayTag())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithArrayTag())
 
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect(t, p.Next, parse.ObjectOpenHint)
@@ -50,7 +51,7 @@ func TestTagArrayForEmptyArray(t *testing.T) {
 func TestTagArrayForNonEmptyArray(t *testing.T) {
 	s := `["myelem"]`
 	// will be parsed the same as : {"array": ["myelem"]}
-	p := NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), WithArrayTag())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithArrayTag())
 
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect(t, p.Next, parse.ObjectOpenHint)
@@ -80,7 +81,7 @@ func TestTagArrayForNonEmptyArray(t *testing.T) {
 func TestTagArrayWithEmptyArray(t *testing.T) {
 	s := `[[]]`
 	// will be parsed the same as : {"array": [{"array": []}]}
-	p := NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), WithArrayTag())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithArrayTag())
 
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect(t, p.Next, parse.ObjectOpenHint)

@@ -12,7 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package tag
+package tag_test
 
 import (
 	"testing"
@@ -20,6 +20,7 @@ import (
 	"github.com/katydid/parser-go-json/json/internal/testrun"
 	"github.com/katydid/parser-go-json/json/parse"
 	"github.com/katydid/parser-go-json/json/rand"
+	"github.com/katydid/parser-go-json/json/tag"
 )
 
 func TestParseRandomValuesWithObjectTag(t *testing.T) {
@@ -28,7 +29,7 @@ func TestParseRandomValuesWithObjectTag(t *testing.T) {
 	for _, value := range values {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
-			tokenizer := NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), WithObjectTag())
+			tokenizer := tag.NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), tag.WithObjectTag())
 			if err := walk(tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v", err)
 			}
@@ -42,7 +43,7 @@ func TestRandomlyParseRandomValuesWithObjectTag(t *testing.T) {
 	for _, value := range values {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
-			tokenizer := NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), WithObjectTag())
+			tokenizer := tag.NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), tag.WithObjectTag())
 			if err := randWalk(r, tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v", err)
 			}
@@ -56,7 +57,7 @@ func TestParseRandomValuesWithArrayTag(t *testing.T) {
 	for _, value := range values {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
-			tokenizer := NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), WithArrayTag())
+			tokenizer := tag.NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), tag.WithArrayTag())
 			if err := walk(tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v", err)
 			}
@@ -70,7 +71,7 @@ func TestRandomlyParseRandomValuesWithArrayTag(t *testing.T) {
 	for _, value := range values {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
-			tokenizer := NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), WithArrayTag())
+			tokenizer := tag.NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), tag.WithArrayTag())
 			if err := randWalk(r, tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v", err)
 			}
@@ -84,7 +85,7 @@ func TestParseRandomValuesWithArrayTagAndObjectTag(t *testing.T) {
 	for _, value := range values {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
-			tokenizer := NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), WithArrayTag(), WithObjectTag())
+			tokenizer := tag.NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), tag.WithArrayTag(), tag.WithObjectTag())
 			if err := walk(tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v", err)
 			}
@@ -98,7 +99,7 @@ func TestRandomlyParseRandomValuesWithArrayTagAndObjectTag(t *testing.T) {
 	for _, value := range values {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
-			tokenizer := NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), WithArrayTag(), WithObjectTag())
+			tokenizer := tag.NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), tag.WithArrayTag(), tag.WithObjectTag())
 			if err := randWalk(r, tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v", err)
 			}

@@ -100,6 +100,22 @@ func expectStr(t *testing.T, tzer Parser, want string) {
 	}
 }
 
+func expectTag(t *testing.T, tzer Parser, want string) {
+	t.Helper()
+	tokenKind, gotb, err := tzer.Token()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tokenKind != parse.TagKind {
+		t.Fatalf("expected string, but got %v", tokenKind)
+	}
+	gotf := string(gotb)
+	got := fmt.Sprintf("%v", gotf)
+	if got != want {
+		t.Fatalf("want %v, but got %v", want, got)
+	}
+}
+
 func expectErr[A any](t *testing.T, f func() (A, error)) {
 	t.Helper()
 	got, err := f()

@@ -18,6 +18,7 @@ import (
 	"io"
 
 	"github.com/katydid/parser-go-json/json/scan"
+	"github.com/katydid/parser-go-json/json/tag"
 	"github.com/katydid/parser-go-json/json/token"
 	"github.com/katydid/parser-go/parse"
 )
@@ -60,7 +61,17 @@ func NewParser(opts ...Option) Parser {
 	}
 	options := newOptions(opts...)
 	p.tokenizer = token.NewTokenizerWithCustomAllocator(options.buf, options.alloc)
-	return p
+	if !options.tagArrays && !options.tagObjects {
+		return p
+	}
+	tagOptions := []tag.Option{}
+	if options.tagArrays {
+		tagOptions = append(tagOptions, tag.WithArrayTag())
+	}
+	if options.tagObjects {
+		tagOptions = append(tagOptions, tag.WithObjectTag())
+	}
+	return tag.NewTagger(p, tagOptions...)
 }
 
 func (p *parser) Init(buf []byte) {
