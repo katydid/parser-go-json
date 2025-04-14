@@ -15,7 +15,7 @@
 package parse
 
 import (
-	"github.com/katydid/parser-go-json/json/token"
+	"github.com/katydid/parser-go/parse"
 	"github.com/katydid/parser-go/parser/debug"
 )
 
@@ -43,13 +43,13 @@ func (l *l) Skip() error {
 	return err
 }
 
-func (l *l) Next() (Hint, error) {
+func (l *l) Next() (parse.Hint, error) {
 	v, err := l.p.Next()
 	l.l.Printf(l.name+".Next() (%v, %v)", v, err)
 	return v, err
 }
 
-func (l *l) Token() (token.Kind, []byte, error) {
+func (l *l) Token() (parse.Kind, []byte, error) {
 	k, bs, err := l.p.Token()
 	l.l.Printf(l.name+".Token() (%v, %v, %v)", k, bs, err)
 	return k, bs, err

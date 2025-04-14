@@ -18,13 +18,14 @@ import (
 	"io"
 	"testing"
 
-	"github.com/katydid/parser-go-json/json/parse"
+	jsonparse "github.com/katydid/parser-go-json/json/parse"
+	"github.com/katydid/parser-go/parse"
 )
 
 func TestTagArrayForEmptyArray(t *testing.T) {
 	s := `[]`
 	// will be parsed the same as : {"array": []}
-	p := NewTagger(parse.NewParser(parse.WithBuffer([]byte(s))), WithArrayTag())
+	p := NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), WithArrayTag())
 
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect(t, p.Next, parse.ObjectOpenHint)
@@ -49,7 +50,7 @@ func TestTagArrayForEmptyArray(t *testing.T) {
 func TestTagArrayForNonEmptyArray(t *testing.T) {
 	s := `["myelem"]`
 	// will be parsed the same as : {"array": ["myelem"]}
-	p := NewTagger(parse.NewParser(parse.WithBuffer([]byte(s))), WithArrayTag())
+	p := NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), WithArrayTag())
 
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect(t, p.Next, parse.ObjectOpenHint)
@@ -79,7 +80,7 @@ func TestTagArrayForNonEmptyArray(t *testing.T) {
 func TestTagArrayWithEmptyArray(t *testing.T) {
 	s := `[[]]`
 	// will be parsed the same as : {"array": [{"array": []}]}
-	p := NewTagger(parse.NewParser(parse.WithBuffer([]byte(s))), WithArrayTag())
+	p := NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), WithArrayTag())
 
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect(t, p.Next, parse.ObjectOpenHint)

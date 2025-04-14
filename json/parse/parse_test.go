@@ -17,48 +17,50 @@ package parse
 import (
 	"io"
 	"testing"
+
+	"github.com/katydid/parser-go/parse"
 )
 
 func TestParseExample(t *testing.T) {
 	s := `{"num":3.14,"arr":[null,false,true,1,2],"obj":{"k":"v","a":[1,2,3],"b":1,"c":2}}`
 	p := NewParser(WithBuffer([]byte(s)))
-	expect(t, p.Next, ObjectOpenHint)
+	expect(t, p.Next, parse.ObjectOpenHint)
 
-	expect(t, p.Next, KeyHint)
+	expect(t, p.Next, parse.KeyHint)
 	expectStr(t, p, "num")
 
-	expect(t, p.Next, ValueHint)
+	expect(t, p.Next, parse.ValueHint)
 	expectFloat(t, p, 3.14)
 
-	expect(t, p.Next, KeyHint)
+	expect(t, p.Next, parse.KeyHint)
 	expectStr(t, p, "arr")
 
-	expect(t, p.Next, ArrayOpenHint)
+	expect(t, p.Next, parse.ArrayOpenHint)
 
-	expect(t, p.Next, ValueHint)
+	expect(t, p.Next, parse.ValueHint)
 
-	expect(t, p.Next, ValueHint)
+	expect(t, p.Next, parse.ValueHint)
 	expectFalse(t, p)
 
-	expect(t, p.Next, ValueHint)
+	expect(t, p.Next, parse.ValueHint)
 	expectTrue(t, p)
 
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
 
-	expect(t, p.Next, KeyHint)
+	expect(t, p.Next, parse.KeyHint)
 	expectStr(t, p, "obj")
 
-	expect(t, p.Next, ObjectOpenHint)
+	expect(t, p.Next, parse.ObjectOpenHint)
 
-	expect(t, p.Next, KeyHint)
+	expect(t, p.Next, parse.KeyHint)
 	expectStr(t, p, "k")
 
-	expect(t, p.Next, ValueHint)
+	expect(t, p.Next, parse.ValueHint)
 	expectStr(t, p, "v")
 
-	expect(t, p.Next, KeyHint)
+	expect(t, p.Next, parse.KeyHint)
 	expectStr(t, p, "a")
 
 	if err := p.Skip(); err != nil {
@@ -69,7 +71,7 @@ func TestParseExample(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	expect(t, p.Next, ObjectCloseHint)
+	expect(t, p.Next, parse.ObjectCloseHint)
 	if _, err := p.Next(); err != io.EOF {
 		t.Fatalf("expected EOF, but got %v", err)
 	}

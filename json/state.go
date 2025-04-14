@@ -14,7 +14,7 @@
 
 package json
 
-import "github.com/katydid/parser-go-json/json/parse"
+import "github.com/katydid/parser-go/parse"
 
 type state struct {
 	kind          stateKind

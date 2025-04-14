@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/katydid/parser-go-json/json/token"
+	"github.com/katydid/parser-go/parse"
 )
 
 func expect[A comparable](t *testing.T, f func() (A, error), want A) {
@@ -38,7 +38,7 @@ func expectFalse(t *testing.T, tzer Parser) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if tokenKind != token.FalseKind {
+	if tokenKind != parse.FalseKind {
 		t.Fatalf("expected false, but got %v", tokenKind)
 	}
 }
@@ -49,7 +49,7 @@ func expectTrue(t *testing.T, tzer Parser) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if tokenKind != token.TrueKind {
+	if tokenKind != parse.TrueKind {
 		t.Fatalf("expected true, but got %v", tokenKind)
 	}
 }
@@ -60,7 +60,7 @@ func expectInt(t *testing.T, tzer Parser, want int64) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if tokenKind != token.Int64Kind {
+	if tokenKind != parse.Int64Kind {
 		t.Fatalf("expected int64, but got %v", tokenKind)
 	}
 	got := castToInt64(gotb)
@@ -75,7 +75,7 @@ func expectFloat(t *testing.T, tzer Parser, want float64) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if tokenKind != token.Float64Kind {
+	if tokenKind != parse.Float64Kind {
 		t.Fatalf("expected float64, but got %v", tokenKind)
 	}
 	got := castToFloat64(gotb)
@@ -90,7 +90,7 @@ func expectStr(t *testing.T, tzer Parser, want string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if tokenKind != token.StringKind {
+	if tokenKind != parse.StringKind {
 		t.Fatalf("expected string, but got %v", tokenKind)
 	}
 	gotf := string(gotb)

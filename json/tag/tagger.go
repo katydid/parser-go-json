@@ -18,12 +18,12 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/katydid/parser-go-json/json/parse"
-	"github.com/katydid/parser-go-json/json/token"
+	jsonparse "github.com/katydid/parser-go-json/json/parse"
+	"github.com/katydid/parser-go/parse"
 )
 
 type tagger struct {
-	p parse.Parser
+	p jsonparse.Parser
 	// options
 	tagObjects bool
 	tagArrays  bool
@@ -39,8 +39,8 @@ var arrayTagToken = []byte("array")
 // If both options are enabled then `{"a": []}`
 // is parsed as `{"object": {"a": {"array": []}}}`.
 // The kind returned from the Token method for
-// "object" and "array" will be token.TagKind.
-func NewTagger(p parse.Parser, opts ...Option) parse.Parser {
+// "object" and "array" will be parse.TagKind.
+func NewTagger(p jsonparse.Parser, opts ...Option) jsonparse.Parser {
 	t := &tagger{
 		p:     p,
 		state: startState,
@@ -108,12 +108,12 @@ func (t *tagger) Skip() error {
 	return t.p.Skip()
 }
 
-func (t *tagger) Token() (token.Kind, []byte, error) {
+func (t *tagger) Token() (parse.Kind, []byte, error) {
 	switch t.state {
 	case objectTagKeyState:
-		return token.TagKind, objectTagToken, nil
+		return parse.TagKind, objectTagToken, nil
 	case arrayTagKeyState:
-		return token.TagKind, arrayTagToken, nil
+		return parse.TagKind, arrayTagToken, nil
 	}
 	return t.p.Token()
 }
