@@ -18,13 +18,14 @@ import (
 	"io"
 	"testing"
 
-	"github.com/katydid/parser-go-json/json/parse"
+	jsonparse "github.com/katydid/parser-go-json/json/parse"
+	"github.com/katydid/parser-go/parse"
 )
 
 func TestTagMixObject(t *testing.T) {
 	s := `[{"mykey1":[{"mykey2":[]}]}]`
 	// will be parsed the same as : {"array":[{"object":{"mykey":{"array":[{"object":{"mykey2":{"array":[]}}}]}}}]}
-	p := NewTagger(parse.NewParser(parse.WithBuffer([]byte(s))), WithObjectTag(), WithArrayTag())
+	p := NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), WithObjectTag(), WithArrayTag())
 
 	// 1: first array
 	expect(t, p.Next, parse.ObjectOpenHint)

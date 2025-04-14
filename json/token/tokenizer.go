@@ -18,6 +18,7 @@ import (
 	"github.com/katydid/parser-go-json/json/internal/fork/strconv"
 	"github.com/katydid/parser-go-json/json/internal/fork/unquote"
 	"github.com/katydid/parser-go-json/json/scan"
+	"github.com/katydid/parser-go/parse"
 )
 
 // Tokenizer is a scanner that provides the ability to buffers returned by the scanner into native Go types.
@@ -25,7 +26,7 @@ type Tokenizer interface {
 	// Next returns the Kind of the token or an error.
 	Next() (scan.Kind, error)
 	// Token parses and returns the current token.
-	Token() (Kind, []byte, error)
+	Token() (parse.Kind, []byte, error)
 	// Init restarts the tokenizer with a new byte buffer, without allocating a new tokenizer.
 	Init([]byte)
 }
@@ -38,7 +39,7 @@ type tokenizer struct {
 	scanKind  scan.Kind
 
 	tokenized   bool
-	tokenKind   Kind
+	tokenKind   parse.Kind
 	tokenErr    error
 	tokenDouble float64
 	tokenInt    int64
@@ -90,13 +91,13 @@ func (t *tokenizer) tokenizeNumber() error {
 	if t.notParseableInteger() {
 		t.tokenDouble, err = strconv.ParseFloat(t.scanToken)
 		if err != nil {
-			t.tokenKind = DecimalKind
+			t.tokenKind = parse.DecimalKind
 			t.tokenBytes = t.scanToken
 			// scan already passed, so we know this is a valid number.
 			// The number is just too large represent in 64 float bits.
 			return nil
 		}
-		t.tokenKind = Float64Kind
+		t.tokenKind = parse.Float64Kind
 		// This can only be a float, so we return and do not try others.
 		return nil
 	}
@@ -104,11 +105,11 @@ func (t *tokenizer) tokenizeNumber() error {
 	if err != nil {
 		// scan already passed, so we know this is a valid number.
 		// The number is just too large represent in signed 64 bits.
-		t.tokenKind = DecimalKind
+		t.tokenKind = parse.DecimalKind
 		t.tokenBytes = t.scanToken
 		return nil
 	}
-	t.tokenKind = Int64Kind
+	t.tokenKind = parse.Int64Kind
 	t.tokenInt = parsedInt
 	return nil
 }
@@ -129,46 +130,46 @@ func (t *tokenizer) tokenizeString() error {
 		return err
 	}
 	t.tokenBytes = res
-	t.tokenKind = StringKind
+	t.tokenKind = parse.StringKind
 	return nil
 }
 
-func (t *tokenizer) Token() (Kind, []byte, error) {
+func (t *tokenizer) Token() (parse.Kind, []byte, error) {
 	if err := t.tokenize(); err != nil {
-		return UnknownKind, nil, err
+		return parse.UnknownKind, nil, err
 	}
-	if t.tokenKind == Int64Kind {
+	if t.tokenKind == parse.Int64Kind {
 		return t.tokenKind, castFromInt64(t.tokenInt, t.alloc), nil
 	}
-	if t.tokenKind == Float64Kind {
+	if t.tokenKind == parse.Float64Kind {
 		return t.tokenKind, castFromFloat64(t.tokenDouble, t.alloc), nil
 	}
 	return t.tokenKind, t.tokenBytes, nil
 }
 
-func (t *tokenizer) Tokenize() (Kind, error) {
+func (t *tokenizer) Tokenize() (parse.Kind, error) {
 	if err := t.tokenize(); err != nil {
-		return UnknownKind, err
+		return parse.UnknownKind, err
 	}
 	return t.tokenKind, nil
 }
 
 func (t *tokenizer) Int() (int64, error) {
-	if t.tokenKind == Int64Kind {
+	if t.tokenKind == parse.Int64Kind {
 		return t.tokenInt, nil
 	}
 	return 0, ErrNotInt
 }
 
 func (t *tokenizer) Double() (float64, error) {
-	if t.tokenKind == Float64Kind {
+	if t.tokenKind == parse.Float64Kind {
 		return t.tokenDouble, nil
 	}
 	return 0, ErrNotDouble
 }
 
 func (t *tokenizer) Bytes() ([]byte, error) {
-	if t.tokenKind == BytesKind || t.tokenKind == StringKind || t.tokenKind == DecimalKind {
+	if t.tokenKind == parse.BytesKind || t.tokenKind == parse.StringKind || t.tokenKind == parse.DecimalKind {
 		return t.tokenBytes, nil
 	}
 	return nil, ErrNotBytes
@@ -183,11 +184,11 @@ func (t *tokenizer) tokenize() error {
 		case scan.NumberKind:
 			err = t.tokenizeNumber()
 		case scan.TrueKind:
-			t.tokenKind = TrueKind
+			t.tokenKind = parse.TrueKind
 		case scan.FalseKind:
-			t.tokenKind = FalseKind
+			t.tokenKind = parse.FalseKind
 		case scan.NullKind:
-			t.tokenKind = NullKind
+			t.tokenKind = parse.NullKind
 		}
 		t.tokenized = true
 		if err != nil {

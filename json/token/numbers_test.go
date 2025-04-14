@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"math"
 	"testing"
+
+	"github.com/katydid/parser-go/parse"
 )
 
 func TestNumbersMaxInt64(t *testing.T) {
@@ -55,7 +57,7 @@ func TestNumbersMaxInt64Plus1(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if tokenKind != DecimalKind {
+	if tokenKind != parse.DecimalKind {
 		t.Fatalf("expected decimal")
 	}
 	var want string = input
@@ -99,7 +101,7 @@ func TestNumbersMinInt64Min1(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if tokenKind != DecimalKind {
+	if tokenKind != parse.DecimalKind {
 		t.Fatalf("expected decimal")
 	}
 	want := input
@@ -143,7 +145,7 @@ func TestNumbersMaxUint64Plus1(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if tokenKind != DecimalKind {
+	if tokenKind != parse.DecimalKind {
 		t.Fatalf("expected decimal")
 	}
 	want := input
@@ -165,7 +167,7 @@ func TestNumbersMaxFloat64(t *testing.T) {
 		t.Fatal("expected number")
 	}
 	tokenKind, got, err := tzer.Token()
-	if tokenKind != Float64Kind {
+	if tokenKind != parse.Float64Kind {
 		t.Fatalf("expected float64")
 	}
 	gotf := castToFloat64(got)
@@ -188,7 +190,7 @@ func TestNumbersLargerThanMaxFloat64(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if tokenKind != DecimalKind {
+	if tokenKind != parse.DecimalKind {
 		t.Fatal("expected decimal")
 	}
 	want := input
@@ -213,7 +215,7 @@ func TestNumbersSmallestNonZeroFloat64(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if tokenKind != Float64Kind {
+	if tokenKind != parse.Float64Kind {
 		t.Fatal("expected float64")
 	}
 	gotf := castToFloat64(got)
@@ -244,7 +246,7 @@ func TestNumbersIntOutsideOfFloatingPointPrecision(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if tokenKind != Int64Kind {
+			if tokenKind != parse.Int64Kind {
 				t.Fatal("expected int64")
 			}
 			goti := castToInt64(gotb)
@@ -278,7 +280,7 @@ func TestNumbersUintOutsideOfFloatingPointPrecision(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			if tokenKind != Int64Kind {
+			if tokenKind != parse.Int64Kind {
 				t.Fatal("expected int64")
 			}
 			goti := castToInt64(gotb)

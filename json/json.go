@@ -19,8 +19,8 @@ import (
 	"io"
 
 	"github.com/katydid/parser-go-json/json/internal/pool"
-	"github.com/katydid/parser-go-json/json/parse"
-	"github.com/katydid/parser-go-json/json/token"
+	jsonparse "github.com/katydid/parser-go-json/json/parse"
+	"github.com/katydid/parser-go/parse"
 	"github.com/katydid/parser-go/parser"
 )
 
@@ -36,7 +36,7 @@ type jsonParser struct {
 	actions []action
 	state   state
 	stack   []state
-	parser  parse.Parser
+	parser  jsonparse.Parser
 	pool    pool.Pool
 }
 
@@ -46,7 +46,7 @@ func NewParser() Interface {
 	return &jsonParser{
 		stack:   make([]state, 0, 10),
 		actions: make([]action, 0, 10),
-		parser:  parse.NewParser(parse.WithAllocator(p.Alloc)),
+		parser:  jsonparse.NewParser(jsonparse.WithAllocator(p.Alloc)),
 		pool:    p,
 	}
 }
@@ -451,10 +451,10 @@ func (p *jsonParser) Bool() (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if tokenKind == token.FalseKind {
+	if tokenKind == parse.FalseKind {
 		return false, nil
 	}
-	if tokenKind == token.TrueKind {
+	if tokenKind == parse.TrueKind {
 		return true, nil
 	}
 	return false, errNotBool
@@ -468,7 +468,7 @@ func (p *jsonParser) Int() (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	if tokenKind != token.Int64Kind {
+	if tokenKind != parse.Int64Kind {
 		return 0, errNotInt
 	}
 	return castToInt64(bs), nil
@@ -493,7 +493,7 @@ func (p *jsonParser) Double() (float64, error) {
 	if err != nil {
 		return 0, err
 	}
-	if tokenKind != token.Float64Kind {
+	if tokenKind != parse.Float64Kind {
 		return 0, errNotFloat
 	}
 	return castToFloat64(bs), nil
@@ -504,7 +504,7 @@ func (p *jsonParser) String() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if tokenKind != token.StringKind && tokenKind != token.DecimalKind {
+	if tokenKind != parse.StringKind && tokenKind != parse.DecimalKind {
 		return "", errNotString
 	}
 	return castToString(bs), nil
@@ -517,7 +517,7 @@ func (p *jsonParser) Bytes() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if tokenKind == token.NullKind {
+	if tokenKind == parse.NullKind {
 		return nullBytes, nil
 	}
 	return bs, nil
