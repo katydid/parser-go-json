@@ -18,10 +18,6 @@ jobs:
       run: |
         cd gopath/github.com/katydid/parser-go-json
         go mod download -x
-    - name: Install tools
-      run: |
-        cd gopath/github.com/katydid/parser-go-json
-        go install -x github.com/awalterschulze/checklicense
     - name: env
       run: env && go env && pwd
     - name: tree
@@ -35,9 +31,10 @@ jobs:
         cd gopath/github.com/katydid/parser-go-json
         make test
     - name: Checklicencse
-      run: |
-        cd gopath/github.com/katydid/parser-go-json
-        make checklicense
+      uses: awalterschulze/checklicense@v1.0.6
+      with:
+        path: gopath/github.com/katydid/parser-go-json
+        ignores: doc.go .png .svg .txt
     - name: Diff
       run: |
         cd gopath/github.com/katydid/parser-go-json
