@@ -15,6 +15,7 @@
 package token
 
 import (
+	"github.com/katydid/parser-go-json/json/internal/cast"
 	"github.com/katydid/parser-go-json/json/internal/fork/strconv"
 	"github.com/katydid/parser-go-json/json/internal/fork/unquote"
 	"github.com/katydid/parser-go-json/json/scan"
@@ -139,10 +140,10 @@ func (t *tokenizer) Token() (parse.Kind, []byte, error) {
 		return parse.UnknownKind, nil, err
 	}
 	if t.tokenKind == parse.Int64Kind {
-		return t.tokenKind, castFromInt64(t.tokenInt, t.alloc), nil
+		return t.tokenKind, cast.FromInt64(t.tokenInt, t.alloc), nil
 	}
 	if t.tokenKind == parse.Float64Kind {
-		return t.tokenKind, castFromFloat64(t.tokenDouble, t.alloc), nil
+		return t.tokenKind, cast.FromFloat64(t.tokenDouble, t.alloc), nil
 	}
 	return t.tokenKind, t.tokenBytes, nil
 }

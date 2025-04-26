@@ -12,7 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package token
+package cast
 
 import (
 	"math"
@@ -22,8 +22,8 @@ import (
 func TestCastInt64(t *testing.T) {
 	alloc := func(size int) []byte { return make([]byte, size) }
 	want := int64(123)
-	bs := castFromInt64(want, alloc)
-	got := castToInt64(bs)
+	bs := FromInt64(want, alloc)
+	got := ToInt64(bs)
 	if got != want {
 		t.Fatalf("want %d got %d", want, got)
 	}
@@ -32,8 +32,8 @@ func TestCastInt64(t *testing.T) {
 func TestCastMaxInt64(t *testing.T) {
 	alloc := func(size int) []byte { return make([]byte, size) }
 	want := int64(math.MaxInt64)
-	bs := castFromInt64(want, alloc)
-	got := castToInt64(bs)
+	bs := FromInt64(want, alloc)
+	got := ToInt64(bs)
 	if got != want {
 		t.Fatalf("want %d got %d", want, got)
 	}
@@ -42,20 +42,20 @@ func TestCastMaxInt64(t *testing.T) {
 func TestCastMinInt64(t *testing.T) {
 	alloc := func(size int) []byte { return make([]byte, size) }
 	want := int64(math.MinInt64)
-	bs := castFromInt64(want, alloc)
-	got := castToInt64(bs)
+	bs := FromInt64(want, alloc)
+	got := ToInt64(bs)
 	if got != want {
 		t.Fatalf("want %d got %d", want, got)
 	}
 }
 
-// The deprecated unsafe version of castFromInt64 never allocates.
+// The deprecated unsafe version of FromInt64 never allocates.
 func TestAllocCastInt64(t *testing.T) {
 	alloc := func(size int) []byte { return make([]byte, size) }
 	f := func() {
 		want := int64(1233456578)
-		bs := castFromInt64(want, alloc)
-		got := castToInt64(bs)
+		bs := FromInt64(want, alloc)
+		got := ToInt64(bs)
 		if got != want {
 			t.Fatalf("want %d got %d", want, got)
 		}
@@ -71,8 +71,8 @@ func TestAllocCastInt64(t *testing.T) {
 func TestCastFloat64(t *testing.T) {
 	alloc := func(size int) []byte { return make([]byte, size) }
 	want := float64(123)
-	bs := castFromFloat64(want, alloc)
-	got := castToFloat64(bs)
+	bs := FromFloat64(want, alloc)
+	got := ToFloat64(bs)
 	if got != want {
 		t.Fatalf("want %f got %f", want, got)
 	}
@@ -81,8 +81,8 @@ func TestCastFloat64(t *testing.T) {
 func TestCastMaxFloat64(t *testing.T) {
 	alloc := func(size int) []byte { return make([]byte, size) }
 	want := float64(math.MaxFloat64)
-	bs := castFromFloat64(want, alloc)
-	got := castToFloat64(bs)
+	bs := FromFloat64(want, alloc)
+	got := ToFloat64(bs)
 	if got != want {
 		t.Fatalf("want %f got %f", want, got)
 	}
@@ -91,20 +91,20 @@ func TestCastMaxFloat64(t *testing.T) {
 func TestCastSmallestNonzeroFloat64(t *testing.T) {
 	alloc := func(size int) []byte { return make([]byte, size) }
 	want := float64(math.SmallestNonzeroFloat64)
-	bs := castFromFloat64(want, alloc)
-	got := castToFloat64(bs)
+	bs := FromFloat64(want, alloc)
+	got := ToFloat64(bs)
 	if got != want {
 		t.Fatalf("want %f got %f", want, got)
 	}
 }
 
-// The deprecated unsafe version of castFromFloat64 never allocates.
+// The deprecated unsafe version of FromFloat64 never allocates.
 func TestAllocCastFloat64(t *testing.T) {
 	alloc := func(size int) []byte { return make([]byte, size) }
 	f := func() {
 		want := float64(1233456578)
-		bs := castFromFloat64(want, alloc)
-		got := castToFloat64(bs)
+		bs := FromFloat64(want, alloc)
+		got := ToFloat64(bs)
 		if got != want {
 			t.Fatalf("want %f got %f", want, got)
 		}

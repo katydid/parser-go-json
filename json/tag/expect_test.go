@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/katydid/parser-go-json/json/internal/cast"
 	jsonparse "github.com/katydid/parser-go-json/json/parse"
 	"github.com/katydid/parser-go/parse"
 )
@@ -64,7 +65,7 @@ func expectInt(t *testing.T, tzer jsonparse.Parser, want int64) {
 	if tokenKind != parse.Int64Kind {
 		t.Fatalf("expected int64, but got %v", tokenKind)
 	}
-	got := castToInt64(gotb)
+	got := cast.ToInt64(gotb)
 	if got != want {
 		t.Fatalf("want %v, but got %v", want, got)
 	}
@@ -79,7 +80,7 @@ func expectFloat(t *testing.T, tzer jsonparse.Parser, want float64) {
 	if tokenKind != parse.Float64Kind {
 		t.Fatalf("expected float64, but got %v", tokenKind)
 	}
-	got := castToFloat64(gotb)
+	got := cast.ToFloat64(gotb)
 	if got != want {
 		t.Fatalf("want %v, but got %v", want, got)
 	}

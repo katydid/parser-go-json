@@ -14,22 +14,35 @@
 
 //go:build purego
 
-package parse
+package cast
 
 import (
 	"encoding/binary"
 	"math"
 )
 
-func castToString(buf []byte) string {
+func ToString(buf []byte) string {
 	return string(buf)
 }
 
-func castToInt64(bs []byte) int64 {
-	return int64(binary.LittleEndian.Uint64(bs))
+func ToInt64(bs []byte) int64 {
+	return binary.LittleEndian.Uint64(bs)
 }
 
-func castToFloat64(bs []byte) float64 {
+func ToFloat64(bs []byte) float64 {
 	u := binary.LittleEndian.Uint64(bs)
 	return math.Float64frombits(u)
+}
+
+func FromFloat64(f float64, alloc func(size int) []byte) []byte {
+	bs := alloc(8)
+	u := math.Float64bits(f)
+	binary.LittleEndian.PutUint64(bs, u)
+	return bs
+}
+
+func FromInt64(i int64, alloc func(size int) []byte) []byte {
+	bs := alloc(8)
+	binary.LittleEndian.PutUint64(bs, uint64(i))
+	return bs
 }

@@ -19,6 +19,7 @@ import (
 	"math"
 	"testing"
 
+	"github.com/katydid/parser-go-json/json/internal/cast"
 	"github.com/katydid/parser-go/parse"
 )
 
@@ -37,7 +38,7 @@ func TestNumbersMaxInt64(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	goti := castToInt64(got)
+	goti := cast.ToInt64(got)
 	if goti != want {
 		t.Fatalf("got %v, but want %v", goti, want)
 	}
@@ -81,7 +82,7 @@ func TestNumbersMinInt64(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	goti := castToInt64(got)
+	goti := cast.ToInt64(got)
 	if goti != want {
 		t.Fatalf("got %v, but want %v", goti, want)
 	}
@@ -170,7 +171,7 @@ func TestNumbersMaxFloat64(t *testing.T) {
 	if tokenKind != parse.Float64Kind {
 		t.Fatalf("expected float64")
 	}
-	gotf := castToFloat64(got)
+	gotf := cast.ToFloat64(got)
 	if gotf != want {
 		t.Fatalf("got %v, but want %v", gotf, want)
 	}
@@ -218,7 +219,7 @@ func TestNumbersSmallestNonZeroFloat64(t *testing.T) {
 	if tokenKind != parse.Float64Kind {
 		t.Fatal("expected float64")
 	}
-	gotf := castToFloat64(got)
+	gotf := cast.ToFloat64(got)
 	if gotf != want {
 		t.Fatalf("got %v, but want %v", gotf, want)
 	}
@@ -249,7 +250,7 @@ func TestNumbersIntOutsideOfFloatingPointPrecision(t *testing.T) {
 			if tokenKind != parse.Int64Kind {
 				t.Fatal("expected int64")
 			}
-			goti := castToInt64(gotb)
+			goti := cast.ToInt64(gotb)
 			got := fmt.Sprintf("%v", goti)
 			if got != want {
 				t.Fatalf("got %v, but want %v", got, want)
@@ -283,7 +284,7 @@ func TestNumbersUintOutsideOfFloatingPointPrecision(t *testing.T) {
 			if tokenKind != parse.Int64Kind {
 				t.Fatal("expected int64")
 			}
-			goti := castToInt64(gotb)
+			goti := cast.ToInt64(gotb)
 			got := fmt.Sprintf("%v", goti)
 			if got != want {
 				t.Fatalf("got %v, but want %v", got, want)
