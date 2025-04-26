@@ -18,6 +18,7 @@ import (
 	"io"
 	"testing"
 
+	"github.com/katydid/parser-go-json/json/internal/expect"
 	jsonparse "github.com/katydid/parser-go-json/json/parse"
 	"github.com/katydid/parser-go-json/json/tag"
 	"github.com/katydid/parser-go/parse"
@@ -29,19 +30,19 @@ func TestTagArrayForEmptyArray(t *testing.T) {
 	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithArrayTag())
 
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
-	expect(t, p.Next, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.ObjectOpenHint)
 
 	// in arrayTagOpenState, go to arrayTagKeyState and return fake key "array"
-	expect(t, p.Next, parse.KeyHint)
-	expectTag(t, p, "array")
+	expect.Hint(t, p, parse.KeyHint)
+	expect.Tag(t, p, "array")
 
 	// in arrayTagKeyState, go to startState return real "["
-	expect(t, p.Next, parse.ArrayOpenHint)
+	expect.Hint(t, p, parse.ArrayOpenHint)
 	// in startState, see "]", go to arrayTagCloseState return real "]"
-	expect(t, p.Next, parse.ArrayCloseHint)
+	expect.Hint(t, p, parse.ArrayCloseHint)
 
 	// in arrayTagCloseState, go up and return fake "}"
-	expect(t, p.Next, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.ObjectCloseHint)
 	// in endState, at top of stack return EOF
 	if _, err := p.Next(); err != io.EOF {
 		t.Fatalf("expected EOF, but got %v", err)
@@ -54,24 +55,24 @@ func TestTagArrayForNonEmptyArray(t *testing.T) {
 	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithArrayTag())
 
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
-	expect(t, p.Next, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.ObjectOpenHint)
 
 	// in arrayTagOpenState, go to arrayTagKeyState and return fake key "array"
-	expect(t, p.Next, parse.KeyHint)
-	expectTag(t, p, "array")
+	expect.Hint(t, p, parse.KeyHint)
+	expect.Tag(t, p, "array")
 
 	// in arrayTagKeyState, go to startState return real "["
-	expect(t, p.Next, parse.ArrayOpenHint)
+	expect.Hint(t, p, parse.ArrayOpenHint)
 
 	// in startState, see "myelem"
-	expect(t, p.Next, parse.ValueHint)
-	expectStr(t, p, "myelem")
+	expect.Hint(t, p, parse.ValueHint)
+	expect.String(t, p, "myelem")
 
 	// in startState, see "]", go to arrayTagCloseState return real "]"
-	expect(t, p.Next, parse.ArrayCloseHint)
+	expect.Hint(t, p, parse.ArrayCloseHint)
 
 	// in arrayTagCloseState, go up and return fake "}"
-	expect(t, p.Next, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.ObjectCloseHint)
 	// in endState, at top of stack return EOF
 	if _, err := p.Next(); err != io.EOF {
 		t.Fatalf("expected EOF, but got %v", err)
@@ -84,36 +85,36 @@ func TestTagArrayWithEmptyArray(t *testing.T) {
 	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithArrayTag())
 
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
-	expect(t, p.Next, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.ObjectOpenHint)
 
 	// in arrayTagOpenState, go to arrayTagKeyState and return fake key "array"
-	expect(t, p.Next, parse.KeyHint)
-	expectTag(t, p, "array")
+	expect.Hint(t, p, parse.KeyHint)
+	expect.Tag(t, p, "array")
 
 	// in arrayTagKeyState, go to startState return real "["
-	expect(t, p.Next, parse.ArrayOpenHint)
+	expect.Hint(t, p, parse.ArrayOpenHint)
 
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
-	expect(t, p.Next, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.ObjectOpenHint)
 
 	// in arrayTagOpenState, go to arrayTagKeyState and return fake key "array"
-	expect(t, p.Next, parse.KeyHint)
-	expectTag(t, p, "array")
+	expect.Hint(t, p, parse.KeyHint)
+	expect.Tag(t, p, "array")
 
 	// in arrayTagKeyState, go to startState return real "["
-	expect(t, p.Next, parse.ArrayOpenHint)
+	expect.Hint(t, p, parse.ArrayOpenHint)
 
 	// in startState, see "]", go to arrayTagCloseState return real "]"
-	expect(t, p.Next, parse.ArrayCloseHint)
+	expect.Hint(t, p, parse.ArrayCloseHint)
 
 	// in arrayTagCloseState, go up and return fake "}"
-	expect(t, p.Next, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.ObjectCloseHint)
 
 	// in startState, see "]", go to arrayTagCloseState return real "]"
-	expect(t, p.Next, parse.ArrayCloseHint)
+	expect.Hint(t, p, parse.ArrayCloseHint)
 
 	// in arrayTagCloseState, go up and return fake "}"
-	expect(t, p.Next, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.ObjectCloseHint)
 	// in endState, at top of stack return EOF
 	if _, err := p.Next(); err != io.EOF {
 		t.Fatalf("expected EOF, but got %v", err)

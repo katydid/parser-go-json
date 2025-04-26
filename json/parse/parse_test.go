@@ -18,60 +18,61 @@ import (
 	"io"
 	"testing"
 
+	"github.com/katydid/parser-go-json/json/internal/expect"
 	"github.com/katydid/parser-go/parse"
 )
 
 func TestParseExample(t *testing.T) {
 	s := `{"num":3.14,"arr":[null,false,true,1,2],"obj":{"k":"v","a":[1,2,3],"b":1,"c":2}}`
 	p := NewParser(WithBuffer([]byte(s)))
-	expect(t, p.Next, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	expect(t, p.Next, parse.KeyHint)
-	expectStr(t, p, "num")
+	expect.Hint(t, p, parse.KeyHint)
+	expect.String(t, p, "num")
 
-	expect(t, p.Next, parse.ValueHint)
-	expectFloat(t, p, 3.14)
+	expect.Hint(t, p, parse.ValueHint)
+	expect.Float(t, p, 3.14)
 
-	expect(t, p.Next, parse.KeyHint)
-	expectStr(t, p, "arr")
+	expect.Hint(t, p, parse.KeyHint)
+	expect.String(t, p, "arr")
 
-	expect(t, p.Next, parse.ArrayOpenHint)
+	expect.Hint(t, p, parse.ArrayOpenHint)
 
-	expect(t, p.Next, parse.ValueHint)
+	expect.Hint(t, p, parse.ValueHint)
 
-	expect(t, p.Next, parse.ValueHint)
-	expectFalse(t, p)
+	expect.Hint(t, p, parse.ValueHint)
+	expect.False(t, p)
 
-	expect(t, p.Next, parse.ValueHint)
-	expectTrue(t, p)
-
-	if err := p.Skip(); err != nil {
-		t.Fatal(err)
-	}
-
-	expect(t, p.Next, parse.KeyHint)
-	expectStr(t, p, "obj")
-
-	expect(t, p.Next, parse.ObjectOpenHint)
-
-	expect(t, p.Next, parse.KeyHint)
-	expectStr(t, p, "k")
-
-	expect(t, p.Next, parse.ValueHint)
-	expectStr(t, p, "v")
-
-	expect(t, p.Next, parse.KeyHint)
-	expectStr(t, p, "a")
+	expect.Hint(t, p, parse.ValueHint)
+	expect.True(t, p)
 
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
 
+	expect.Hint(t, p, parse.KeyHint)
+	expect.String(t, p, "obj")
+
+	expect.Hint(t, p, parse.ObjectOpenHint)
+
+	expect.Hint(t, p, parse.KeyHint)
+	expect.String(t, p, "k")
+
+	expect.Hint(t, p, parse.ValueHint)
+	expect.String(t, p, "v")
+
+	expect.Hint(t, p, parse.KeyHint)
+	expect.String(t, p, "a")
+
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
 
-	expect(t, p.Next, parse.ObjectCloseHint)
+	if err := p.Skip(); err != nil {
+		t.Fatal(err)
+	}
+
+	expect.Hint(t, p, parse.ObjectCloseHint)
 	if _, err := p.Next(); err != io.EOF {
 		t.Fatalf("expected EOF, but got %v", err)
 	}
