@@ -19,8 +19,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/katydid/parser-go-json/json/parse"
+	jsonparse "github.com/katydid/parser-go-json/json/parse"
 	"github.com/katydid/parser-go/compat/downgrade"
+	"github.com/katydid/parser-go/parse"
 	"github.com/katydid/parser-go/parser/debug"
 	"github.com/katydid/parser-go/pool"
 )
@@ -45,7 +46,7 @@ func TestDebugParse(t *testing.T) {
 
 func TestDebugRandomWalk(t *testing.T) {
 	p := &jsonParser{
-		Interface: downgrade.ParserWithInit(parse.NewLogger(parse.NewParser())),
+		Interface: downgrade.ParserWithInit(parse.NewLogger(jsonparse.NewParser())),
 		pool:      pool.None(),
 	}
 	data, err := json.Marshal(debug.Input)
