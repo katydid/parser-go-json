@@ -15,10 +15,10 @@
 package token
 
 import (
-	"github.com/katydid/parser-go-json/json/internal/cast"
 	"github.com/katydid/parser-go-json/json/internal/fork/strconv"
 	"github.com/katydid/parser-go-json/json/internal/fork/unquote"
 	"github.com/katydid/parser-go-json/json/scan"
+	"github.com/katydid/parser-go/cast"
 	"github.com/katydid/parser-go/parse"
 )
 

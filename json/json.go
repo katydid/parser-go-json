@@ -18,11 +18,11 @@ package json
 import (
 	"io"
 
-	"github.com/katydid/parser-go-json/json/internal/cast"
-	"github.com/katydid/parser-go-json/json/internal/pool"
 	jsonparse "github.com/katydid/parser-go-json/json/parse"
+	"github.com/katydid/parser-go/cast"
 	"github.com/katydid/parser-go/parse"
 	"github.com/katydid/parser-go/parser"
+	"github.com/katydid/parser-go/pool"
 )
 
 // Interface is a parser for JSON

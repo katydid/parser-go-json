@@ -17,7 +17,7 @@ package parse
 import (
 	"testing"
 
-	"github.com/katydid/parser-go-json/json/internal/expect"
+	"github.com/katydid/parser-go/expect"
 	"github.com/katydid/parser-go/parse"
 )
 

@@ -19,7 +19,7 @@ import (
 	"math"
 	"testing"
 
-	"github.com/katydid/parser-go-json/json/internal/cast"
+	"github.com/katydid/parser-go/cast"
 	"github.com/katydid/parser-go/parse"
 )
 

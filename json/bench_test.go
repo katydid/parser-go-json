@@ -17,9 +17,9 @@ package json
 import (
 	"testing"
 
-	"github.com/katydid/parser-go-json/json/internal/pool"
 	"github.com/katydid/parser-go-json/json/rand"
 	"github.com/katydid/parser-go/parser/debug"
+	"github.com/katydid/parser-go/pool"
 )
 
 func BenchmarkPoolDefault(b *testing.B) {

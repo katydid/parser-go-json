@@ -17,8 +17,8 @@ package scan
 import (
 	"testing"
 
-	"github.com/katydid/parser-go-json/json/internal/pool"
 	"github.com/katydid/parser-go-json/json/internal/testrun"
+	"github.com/katydid/parser-go/pool"
 )
 
 func TestNoAllocsOnAverage(t *testing.T) {
