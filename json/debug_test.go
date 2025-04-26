@@ -20,7 +20,9 @@ import (
 	"testing"
 
 	"github.com/katydid/parser-go-json/json/parse"
+	"github.com/katydid/parser-go/compat/downgrade"
 	"github.com/katydid/parser-go/parser/debug"
+	"github.com/katydid/parser-go/pool"
 )
 
 func TestDebugParse(t *testing.T) {
@@ -42,8 +44,10 @@ func TestDebugParse(t *testing.T) {
 }
 
 func TestDebugRandomWalk(t *testing.T) {
-	p := NewParser()
-	p.(*jsonParser).parser = parse.NewLogger(parse.NewParser())
+	p := &jsonParser{
+		Interface: downgrade.ParserWithInit(parse.NewLogger(parse.NewParser())),
+		pool:      pool.None(),
+	}
 	data, err := json.Marshal(debug.Input)
 	if err != nil {
 		t.Fatal(err)
