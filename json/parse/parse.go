@@ -24,22 +24,7 @@ import (
 )
 
 type Parser interface {
-	// Next returns the Hint of the token or an error.
-	Next() (parse.Hint, error)
-
-	// Skip allows the user to skip over uninteresting parts of the parse tree.
-	// Based on the Hint skip has different intuitive behaviours.
-	// If the Hint was:
-	// * '{': the whole Map is skipped.
-	// * 'k': the key's value is skipped.
-	// * '[': the whole List is skipped.
-	// * 'v': the rest of the Map or List is skipped.
-	// * ']': same as calling Next and ignoring the Hint.
-	// * '}': same as calling Next and ignoring the Hint.
-	Skip() error
-
-	// Tokenize parses the current token.
-	Token() (parse.Kind, []byte, error)
+	parse.Parser
 
 	// Init restarts the parser with a new byte buffer, without allocating a new parser.
 	Init([]byte)

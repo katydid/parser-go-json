@@ -12,20 +12,20 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package tag_test
+package expect
 
 import (
 	"fmt"
+	"io"
 	"testing"
 
 	"github.com/katydid/parser-go-json/json/internal/cast"
-	jsonparse "github.com/katydid/parser-go-json/json/parse"
 	"github.com/katydid/parser-go/parse"
 )
 
-func expect[A comparable](t *testing.T, f func() (A, error), want A) {
+func Hint(t *testing.T, p parse.Parser, want parse.Hint) {
 	t.Helper()
-	got, err := f()
+	got, err := p.Next()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -34,7 +34,7 @@ func expect[A comparable](t *testing.T, f func() (A, error), want A) {
 	}
 }
 
-func expectFalse(t *testing.T, tzer jsonparse.Parser) {
+func False(t *testing.T, tzer parse.Parser) {
 	t.Helper()
 	tokenKind, _, err := tzer.Token()
 	if err != nil {
@@ -45,7 +45,7 @@ func expectFalse(t *testing.T, tzer jsonparse.Parser) {
 	}
 }
 
-func expectTrue(t *testing.T, tzer jsonparse.Parser) {
+func True(t *testing.T, tzer parse.Parser) {
 	t.Helper()
 	tokenKind, _, err := tzer.Token()
 	if err != nil {
@@ -56,7 +56,7 @@ func expectTrue(t *testing.T, tzer jsonparse.Parser) {
 	}
 }
 
-func expectInt(t *testing.T, tzer jsonparse.Parser, want int64) {
+func Int(t *testing.T, tzer parse.Parser, want int64) {
 	t.Helper()
 	tokenKind, gotb, err := tzer.Token()
 	if err != nil {
@@ -71,7 +71,7 @@ func expectInt(t *testing.T, tzer jsonparse.Parser, want int64) {
 	}
 }
 
-func expectFloat(t *testing.T, tzer jsonparse.Parser, want float64) {
+func Float(t *testing.T, tzer parse.Parser, want float64) {
 	t.Helper()
 	tokenKind, gotb, err := tzer.Token()
 	if err != nil {
@@ -86,7 +86,7 @@ func expectFloat(t *testing.T, tzer jsonparse.Parser, want float64) {
 	}
 }
 
-func expectStr(t *testing.T, tzer jsonparse.Parser, want string) {
+func String(t *testing.T, tzer parse.Parser, want string) {
 	t.Helper()
 	tokenKind, gotb, err := tzer.Token()
 	if err != nil {
@@ -102,7 +102,7 @@ func expectStr(t *testing.T, tzer jsonparse.Parser, want string) {
 	}
 }
 
-func expectTag(t *testing.T, tzer jsonparse.Parser, want string) {
+func Tag(t *testing.T, tzer parse.Parser, want string) {
 	t.Helper()
 	tokenKind, gotb, err := tzer.Token()
 	if err != nil {
@@ -118,10 +118,17 @@ func expectTag(t *testing.T, tzer jsonparse.Parser, want string) {
 	}
 }
 
-func expectErr[A any](t *testing.T, f func() (A, error)) {
+func Err[A any](t *testing.T, f func() (A, error)) {
 	t.Helper()
 	got, err := f()
 	if err == nil {
 		t.Fatalf("expected error, but got %v", got)
+	}
+}
+
+func EOF(t *testing.T, p parse.Parser) {
+	t.Helper()
+	if _, err := p.Next(); err != io.EOF {
+		t.Fatalf("expected EOF, but got %v", err)
 	}
 }
