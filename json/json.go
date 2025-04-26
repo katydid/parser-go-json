@@ -18,6 +18,7 @@ package json
 import (
 	"io"
 
+	"github.com/katydid/parser-go-json/json/internal/cast"
 	"github.com/katydid/parser-go-json/json/internal/pool"
 	jsonparse "github.com/katydid/parser-go-json/json/parse"
 	"github.com/katydid/parser-go/parse"
@@ -471,7 +472,7 @@ func (p *jsonParser) Int() (int64, error) {
 	if tokenKind != parse.Int64Kind {
 		return 0, errNotInt
 	}
-	return castToInt64(bs), nil
+	return cast.ToInt64(bs), nil
 }
 
 func (p *jsonParser) Uint() (uint64, error) {
@@ -496,7 +497,7 @@ func (p *jsonParser) Double() (float64, error) {
 	if tokenKind != parse.Float64Kind {
 		return 0, errNotFloat
 	}
-	return castToFloat64(bs), nil
+	return cast.ToFloat64(bs), nil
 }
 
 func (p *jsonParser) String() (string, error) {
@@ -507,7 +508,7 @@ func (p *jsonParser) String() (string, error) {
 	if tokenKind != parse.StringKind && tokenKind != parse.DecimalKind {
 		return "", errNotString
 	}
-	return castToString(bs), nil
+	return cast.ToString(bs), nil
 }
 
 var nullBytes = []byte{'n', 'u', 'l', 'l'}

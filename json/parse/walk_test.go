@@ -15,18 +15,11 @@
 package parse
 
 import (
-	"errors"
 	"io"
 
 	"github.com/katydid/parser-go-json/json/rand"
 	"github.com/katydid/parser-go/parse"
 )
-
-var errUnknownToken = errors.New("unknown token")
-
-var errExpectedBool = errors.New("expected bool")
-
-var errExpectedString = errors.New("expected string")
 
 func walkValue(t Parser) error {
 	_, _, err := t.Token()
