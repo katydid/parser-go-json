@@ -15,7 +15,6 @@
 package parse
 
 import (
-	"io"
 	"testing"
 
 	"github.com/katydid/parser-go/expect"
@@ -73,7 +72,5 @@ func TestParseExample(t *testing.T) {
 	}
 
 	expect.Hint(t, p, parse.ObjectCloseHint)
-	if _, err := p.Next(); err != io.EOF {
-		t.Fatalf("expected EOF, but got %v", err)
-	}
+	expect.EOF(t, p)
 }

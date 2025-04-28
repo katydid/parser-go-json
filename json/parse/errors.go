@@ -23,9 +23,3 @@ var errExpectedCommaOrCloseBracket = errors.New("expected ',' or ']'")
 var errExpectedStringOrCloseCurly = errors.New("expected '\"' or '}'")
 
 var errExpectedColon = errors.New("expected ':'")
-
-var errCannotSkipUnknown = errors.New("cannot Skip before parsing")
-
-var errNotInt = errors.New("not an int")
-
-var errNotFloat = errors.New("not a float")

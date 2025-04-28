@@ -15,7 +15,6 @@
 package parse
 
 import (
-	"io"
 	"testing"
 
 	"github.com/katydid/parser-go/expect"
@@ -79,7 +78,5 @@ func TestTagMixObject(t *testing.T) {
 	expect.Hint(t, p, parse.ArrayCloseHint)
 	expect.Hint(t, p, parse.ObjectCloseHint)
 	// in endState, at top of stack return EOF
-	if _, err := p.Next(); err != io.EOF {
-		t.Fatalf("expected EOF, but got %v", err)
-	}
+	expect.EOF(t, p)
 }
