@@ -45,9 +45,7 @@ func TestParseExample(t *testing.T) {
 	expect.Hint(t, p, parse.ValueHint)
 	expect.True(t, p)
 
-	if err := p.Skip(); err != nil {
-		t.Fatal(err)
-	}
+	expect.NoErr(t, p.Skip)
 
 	expect.Hint(t, p, parse.KeyHint)
 	expect.String(t, p, "obj")
@@ -63,13 +61,9 @@ func TestParseExample(t *testing.T) {
 	expect.Hint(t, p, parse.KeyHint)
 	expect.String(t, p, "a")
 
-	if err := p.Skip(); err != nil {
-		t.Fatal(err)
-	}
+	expect.NoErr(t, p.Skip)
 
-	if err := p.Skip(); err != nil {
-		t.Fatal(err)
-	}
+	expect.NoErr(t, p.Skip)
 
 	expect.Hint(t, p, parse.ObjectCloseHint)
 	expect.EOF(t, p)
