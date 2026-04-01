@@ -27,7 +27,7 @@ import (
 func TestTagObjectForEmptyObject(t *testing.T) {
 	s := `{}`
 	// will be parsed the same as : {"object": {}}
-	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithObjectTag())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))))
 
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
@@ -52,7 +52,7 @@ func TestTagObjectForEmptyObject(t *testing.T) {
 func TestTagObjectForNonEmptyObject(t *testing.T) {
 	s := `{"mykey": "myvalue"}`
 	// will be parsed the same as : {"object": {"mykey": "myvalue"}}
-	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithObjectTag())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))))
 
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
@@ -86,7 +86,7 @@ func TestTagObjectForNonEmptyObject(t *testing.T) {
 func TestTagObjectForNonEmptyObjectWithEmptyObjectValue(t *testing.T) {
 	s := `{"mykey": {}}`
 	// will be parsed the same as : {"object": {"mykey": {"object": {}}}}
-	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithObjectTag())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))))
 
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
@@ -132,7 +132,7 @@ func TestTagObjectForNonEmptyObjectWithEmptyObjectValue(t *testing.T) {
 func TestTagObjectForNonEmptyObjectWithNonEmptyObjectValue(t *testing.T) {
 	s := `{"mykey": {"mykey2": {}}}`
 	// will be parsed the same as : {"object": {"mykey": {"object": {"mykey2": {"object": {}}}}}}
-	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithObjectTag())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))))
 
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)

@@ -31,9 +31,6 @@ type Parser interface {
 
 type tagger struct {
 	p Parser
-	// options
-	tagObjects bool
-	tagArrays  bool
 	// state
 	state state
 	stack []state
@@ -43,18 +40,15 @@ var objectTagToken = []byte("object")
 var arrayTagToken = []byte("array")
 
 // NewTagger can tag objects and arrays.
-// If both options are enabled then `{"a": []}`
-// is parsed as `{"object": {"a": {"array": []}}}`.
+// The following json: `{"a": []}`
+// is parsed as: `{"object": {"a": {"array": []}}}`.
 // The kind returned from the Token method for
 // "object" and "array" will be parse.TagKind.
-func NewTagger(p Parser, opts ...Option) Parser {
+func NewTagger(p Parser) Parser {
 	t := &tagger{
 		p:     p,
 		state: startState,
 		stack: make([]state, 0, 10),
-	}
-	for _, opt := range opts {
-		opt(t)
 	}
 	return t
 }
@@ -66,25 +60,19 @@ func (t *tagger) Next() (parse.Hint, error) {
 		if err != nil {
 			return h, err
 		}
-		if t.tagObjects {
-			switch h {
-			case parse.ObjectOpenHint:
-				t.down(objectTagOpenState)
-				return parse.ObjectOpenHint, nil
-			case parse.ObjectCloseHint:
-				t.state = objectTagCloseState
-				return parse.ObjectCloseHint, nil
-			}
-		}
-		if t.tagArrays {
-			switch h {
-			case parse.ArrayOpenHint:
-				t.down(arrayTagOpenState)
-				return parse.ObjectOpenHint, nil
-			case parse.ArrayCloseHint:
-				t.state = arrayTagCloseState
-				return parse.ArrayCloseHint, nil
-			}
+		switch h {
+		case parse.ObjectOpenHint:
+			t.down(objectTagOpenState)
+			return parse.ObjectOpenHint, nil
+		case parse.ObjectCloseHint:
+			t.state = objectTagCloseState
+			return parse.ObjectCloseHint, nil
+		case parse.ArrayOpenHint:
+			t.down(arrayTagOpenState)
+			return parse.ObjectOpenHint, nil
+		case parse.ArrayCloseHint:
+			t.state = arrayTagCloseState
+			return parse.ArrayCloseHint, nil
 		}
 		return h, nil
 	case objectTagOpenState:

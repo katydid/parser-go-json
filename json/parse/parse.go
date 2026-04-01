@@ -46,17 +46,10 @@ func NewParser(opts ...Option) Parser {
 	}
 	options := newOptions(opts...)
 	p.tokenizer = token.NewTokenizerWithCustomAllocator(options.buf, options.alloc)
-	if !options.tagArrays && !options.tagObjects {
+	if !options.tags {
 		return p
 	}
-	tagOptions := []tag.Option{}
-	if options.tagArrays {
-		tagOptions = append(tagOptions, tag.WithArrayTag())
-	}
-	if options.tagObjects {
-		tagOptions = append(tagOptions, tag.WithObjectTag())
-	}
-	return tag.NewTagger(p, tagOptions...)
+	return tag.NewTagger(p)
 }
 
 func (p *parser) Init(buf []byte) {

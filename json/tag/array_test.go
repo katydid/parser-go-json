@@ -27,7 +27,7 @@ import (
 func TestTagArrayForEmptyArray(t *testing.T) {
 	s := `[]`
 	// will be parsed the same as : {"array": []}
-	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithArrayTag())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))))
 
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
@@ -52,7 +52,7 @@ func TestTagArrayForEmptyArray(t *testing.T) {
 func TestTagArrayForNonEmptyArray(t *testing.T) {
 	s := `["myelem"]`
 	// will be parsed the same as : {"array": ["myelem"]}
-	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithArrayTag())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))))
 
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
@@ -82,7 +82,7 @@ func TestTagArrayForNonEmptyArray(t *testing.T) {
 func TestTagArrayWithEmptyArray(t *testing.T) {
 	s := `[[]]`
 	// will be parsed the same as : {"array": [{"array": []}]}
-	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithArrayTag())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))))
 
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)

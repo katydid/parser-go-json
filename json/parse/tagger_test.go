@@ -24,7 +24,7 @@ import (
 func TestTagMixObject(t *testing.T) {
 	s := `[{"mykey1":[{"mykey2":[]}]}]`
 	// will be parsed the same as : {"array":[{"object":{"mykey":{"array":[{"object":{"mykey2":{"array":[]}}}]}}}]}
-	p := NewParser(WithBuffer([]byte(s)), WithObjectTag(), WithArrayTag())
+	p := NewParser(WithBuffer([]byte(s)), WithTags())
 
 	// 1: first array
 	expect.Hint(t, p, parse.ObjectOpenHint)

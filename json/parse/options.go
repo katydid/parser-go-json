@@ -15,10 +15,9 @@
 package parse
 
 type options struct {
-	tagObjects bool
-	tagArrays  bool
-	alloc      func(int) []byte
-	buf        []byte
+	tags  bool
+	alloc func(int) []byte
+	buf   []byte
 }
 
 func newOptions(opts ...Option) *options {
@@ -35,17 +34,12 @@ func newOptions(opts ...Option) *options {
 // Option is used set options when creating a new JSON Parser.
 type Option func(*options)
 
-// WithObjectTag tags each object with an object key, for example `{"a": null}` is parsed as `{"object": {"a": null}}`.
-func WithObjectTag() func(*options) {
+// WithTags
+// 1. tags each object with an object key, for example `{"a": null}` is parsed as `{"object": {"a": null}}`.
+// 2. tags each array with an array key, for example `{"a": []}` is parsed as `{"a": {"array": []}}`.
+func WithTags() func(*options) {
 	return func(o *options) {
-		o.tagObjects = true
-	}
-}
-
-// WithArrayTag tags each array with an array key, for example `{"a": []}` is parsed as `{"a": {"array": []}}`.
-func WithArrayTag() func(*options) {
-	return func(o *options) {
-		o.tagArrays = true
+		o.tags = true
 	}
 }
 
