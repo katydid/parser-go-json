@@ -16,6 +16,7 @@ package parse
 
 type options struct {
 	tags  bool
+	index bool
 	alloc func(int) []byte
 	buf   []byte
 }
@@ -40,6 +41,14 @@ type Option func(*options)
 func WithTags() func(*options) {
 	return func(o *options) {
 		o.tags = true
+	}
+}
+
+// WithIndexes tags each array item with an index:
+// for example `["a", "b"]` is parsed as `[0: "a", 1: "b"]`.
+func WithIndexes() func(*options) {
+	return func(o *options) {
+		o.index = true
 	}
 }
 

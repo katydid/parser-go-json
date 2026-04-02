@@ -14,20 +14,32 @@
 
 package tag
 
-type state byte
+import "github.com/katydid/parser-go/parse"
 
-const startState = state(0)
+type state struct {
+	kind          stateKind
+	arrayElemHint parse.Hint
+	arrayIndex    int64
+}
 
-const objectTagOpenState = state('{')
+type stateKind byte
 
-const objectTagKeyState = state('#')
+const startState = stateKind(0)
 
-const objectTagCloseState = state('}')
+const objectTagOpenState = stateKind('{')
 
-const arrayTagOpenState = state('[')
+const objectTagKeyState = stateKind('O')
 
-const arrayTagKeyState = state('E')
+const objectTagCloseState = stateKind('}')
 
-const arrayTagCloseState = state(']')
+const arrayTagOpenState = stateKind('[')
 
-const endState = state('$')
+const arrayTagKeyState = stateKind('A')
+
+const arrayTagIndexState = stateKind('I')
+
+const arrayTagElemState = stateKind('E')
+
+const arrayTagCloseState = stateKind(']')
+
+const endState = stateKind('$')
