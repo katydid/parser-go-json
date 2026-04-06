@@ -30,7 +30,7 @@ func TestParseRandomValuesWithTagsAndIndexes(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			tokenizer := parse.NewParser(parse.WithBuffer([]byte(value)), parse.WithTags(), parse.WithIndexes())
 			if err := walk(tokenizer); err != nil {
-				t.Fatalf("expected EOF, but got %v", err)
+				t.Fatalf("expected EOF, but got %v using seed %v", err, r.Seed())
 			}
 		})
 	}
@@ -44,7 +44,7 @@ func TestRandomlyParseRandomValuesWithTagsAndIndexes(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			tokenizer := parse.NewParser(parse.WithBuffer([]byte(value)), parse.WithTags(), parse.WithIndexes())
 			if err := randWalk(r, tokenizer); err != nil {
-				t.Fatalf("expected EOF, but got %v", err)
+				t.Fatalf("expected EOF, but got %v using seed %v", err, r.Seed())
 			}
 		})
 	}

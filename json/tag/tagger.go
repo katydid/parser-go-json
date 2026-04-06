@@ -72,51 +72,72 @@ func (t *tagger) Next() (parse.Hint, error) {
 		if err != nil {
 			return h, err
 		}
+		// helps to skip over object values
+		t.state.hint = h
 		if t.tag {
 			switch h {
 			case parse.ObjectOpenHint:
 				t.down(objectTagOpenState)
 				return parse.ObjectOpenHint, nil
 			case parse.ObjectCloseHint:
-				t.state.kind = objectTagCloseState
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
 				return parse.ObjectCloseHint, nil
 			case parse.ArrayOpenHint:
 				t.down(arrayTagOpenState)
 				return parse.ObjectOpenHint, nil
 			case parse.ArrayCloseHint:
-				t.state.kind = arrayTagCloseState
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
 				return parse.ArrayCloseHint, nil
 			}
 		}
 		return h, nil
 	case objectTagOpenState:
-		t.state.kind = objectTagKeyState
+		t.state.kind = objectTagKeyOpenState
 		return parse.KeyHint, nil
-	case objectTagKeyState:
-		t.state.kind = startState
+	case objectTagKeyOpenState:
+		t.state.kind = objectTagKeyCloseState
+		t.down(startState)
 		return parse.ObjectOpenHint, nil
+	case objectTagKeyCloseState:
+		if err := t.up(); err != nil {
+			return parse.UnknownHint, err
+		}
+		return parse.ObjectCloseHint, nil
 	case objectTagCloseState:
-		t.up()
+		if err := t.up(); err != nil {
+			return parse.UnknownHint, err
+		}
 		return parse.ObjectCloseHint, nil
 	case arrayTagOpenState:
-		t.state.kind = arrayTagKeyState
+		t.state.kind = arrayTagKeyOpenState
 		return parse.KeyHint, nil
-	case arrayTagKeyState:
+	case arrayTagKeyOpenState:
+		t.state.kind = arrayTagKeyCloseState
 		if t.index {
-			t.state.kind = arrayTagIndexState
-			t.state.arrayIndex = -1
-			return parse.ArrayOpenHint, nil
+			t.down(arrayTagIndexState)
+		} else {
+			t.down(startState)
 		}
-		t.state.kind = startState
 		return parse.ArrayOpenHint, nil
+	case arrayTagKeyCloseState:
+		if err := t.up(); err != nil {
+			return parse.UnknownHint, err
+		}
+		return parse.ObjectCloseHint, nil
 	case arrayTagIndexState:
 		h, err := t.p.Next()
 		if err != nil {
 			return h, err
 		}
-		t.state.arrayElemHint = h
-		if t.state.arrayElemHint == parse.ArrayCloseHint {
-			t.state.kind = arrayTagCloseState
+		t.state.hint = h
+		if t.state.hint == parse.ArrayCloseHint {
+			if err := t.up(); err != nil {
+				return parse.UnknownHint, err
+			}
 			return parse.ArrayCloseHint, nil
 		}
 		t.state.arrayIndex++
@@ -124,27 +145,28 @@ func (t *tagger) Next() (parse.Hint, error) {
 		return parse.KeyHint, nil
 	case arrayTagElemState:
 		t.state.kind = arrayTagIndexState
-		h := t.state.arrayElemHint
+		h := t.state.hint
 		if t.tag {
 			switch h {
 			case parse.ObjectOpenHint:
 				t.down(objectTagOpenState)
 				return parse.ObjectOpenHint, nil
 			case parse.ObjectCloseHint:
-				t.state.kind = objectTagCloseState
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
 				return parse.ObjectCloseHint, nil
 			case parse.ArrayOpenHint:
 				t.down(arrayTagOpenState)
 				return parse.ObjectOpenHint, nil
 			case parse.ArrayCloseHint:
-				t.state.kind = arrayTagCloseState
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
 				return parse.ArrayCloseHint, nil
 			}
 		}
 		return h, nil
-	case arrayTagCloseState:
-		t.up()
-		return parse.ObjectCloseHint, nil
 	case endState:
 		return parse.UnknownHint, io.EOF
 	}
@@ -152,14 +174,67 @@ func (t *tagger) Next() (parse.Hint, error) {
 }
 
 func (t *tagger) Skip() error {
-	return t.p.Skip()
+	switch t.state.kind {
+	case startState:
+		if !t.tag {
+			return t.p.Skip()
+		}
+		if len(t.stack) == 0 {
+			_, err := t.Next()
+			return err
+		}
+		if t.state.hint != parse.KeyHint {
+			// do not go up when it is an object value that needs to be skipped over
+			if err := t.up(); err != nil {
+				return err
+			}
+		}
+		return t.p.Skip()
+	case objectTagOpenState:
+		if err := t.up(); err != nil {
+			return err
+		}
+		return t.p.Skip()
+	case objectTagKeyOpenState:
+		t.state.kind = arrayTagKeyCloseState
+		return nil
+	case objectTagKeyCloseState:
+		_, err := t.Next()
+		return err
+	case arrayTagOpenState:
+		if err := t.up(); err != nil {
+			return err
+		}
+		return t.p.Skip()
+	case arrayTagKeyOpenState:
+		t.state.kind = arrayTagKeyCloseState
+		return nil
+	case arrayTagKeyCloseState:
+		_, err := t.Next()
+		return err
+	case arrayTagIndexState:
+		if err := t.up(); err != nil {
+			return err
+		}
+		return t.p.Skip()
+	case arrayTagElemState:
+		t.state.kind = arrayTagIndexState
+		if t.state.hint == parse.ValueHint {
+			// values do not need to be skipped, Next will take care of it.
+			return nil
+		}
+		return t.p.Skip()
+	case endState:
+		return t.p.Skip()
+	}
+	panic(fmt.Sprintf("unreachable: unknown state = %v", t.state))
 }
 
 func (t *tagger) Token() (parse.Kind, []byte, error) {
 	switch t.state.kind {
-	case objectTagKeyState:
+	case objectTagKeyOpenState:
 		return parse.TagKind, objectTagToken, nil
-	case arrayTagKeyState:
+	case arrayTagKeyOpenState:
 		return parse.TagKind, arrayTagToken, nil
 	case arrayTagElemState:
 		return parse.Int64Kind, cast.FromInt64(t.state.arrayIndex, t.alloc), nil
@@ -182,9 +257,13 @@ func (t *tagger) down(stateKind stateKind) {
 	t.stack = append(t.stack, t.state)
 	// Create a new state.
 	t.state.kind = stateKind
+	t.state.arrayIndex = -1
 }
 
 func (t *tagger) up() error {
+	if len(t.stack) == 0 {
+		return errUnexpectedClose
+	}
 	top := len(t.stack) - 1
 	// Set the current state to the state on top of the stack.
 	t.state = t.stack[top]

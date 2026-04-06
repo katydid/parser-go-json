@@ -325,6 +325,9 @@ func (p *parser) down(state state) {
 }
 
 func (p *parser) up() error {
+	if len(p.stack) == 0 {
+		return errUnexpectedClose
+	}
 	top := len(p.stack) - 1
 	// Set the current state to the state on top of the stack.
 	p.state = p.stack[top]

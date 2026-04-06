@@ -14,12 +14,20 @@
 
 package tag
 
-import "github.com/katydid/parser-go/parse"
+import (
+	"fmt"
+
+	"github.com/katydid/parser-go/parse"
+)
 
 type state struct {
-	kind          stateKind
-	arrayElemHint parse.Hint
-	arrayIndex    int64
+	kind       stateKind
+	hint       parse.Hint
+	arrayIndex int64
+}
+
+func (s state) String() string {
+	return fmt.Sprintf("%c %v %d", s.kind, s.hint, s.arrayIndex)
 }
 
 type stateKind byte
@@ -28,18 +36,20 @@ const startState = stateKind(0)
 
 const objectTagOpenState = stateKind('{')
 
-const objectTagKeyState = stateKind('O')
+const objectTagKeyOpenState = stateKind('O')
+
+const objectTagKeyCloseState = stateKind('C')
 
 const objectTagCloseState = stateKind('}')
 
 const arrayTagOpenState = stateKind('[')
 
-const arrayTagKeyState = stateKind('A')
+const arrayTagKeyOpenState = stateKind('A')
+
+const arrayTagKeyCloseState = stateKind('Z')
 
 const arrayTagIndexState = stateKind('I')
 
 const arrayTagElemState = stateKind('E')
-
-const arrayTagCloseState = stateKind(']')
 
 const endState = stateKind('$')

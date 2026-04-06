@@ -15,7 +15,6 @@
 package tag_test
 
 import (
-	"io"
 	"testing"
 
 	jsonparse "github.com/katydid/parser-go-json/json/parse"
@@ -31,21 +30,19 @@ func TestTagArrayForEmptyArrayWithIndex(t *testing.T) {
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in arrayTagOpenState, go to arrayTagKeyState and return fake key "array"
+	// in arrayTagOpenState, go down to arrayTagKeyOpenState and return fake key "array"
 	expect.Hint(t, p, parse.KeyHint)
 	expect.Tag(t, p, "array")
 
-	// in arrayTagKeyState, go to startState return real "["
+	// in arrayTagKeyOpenState, go to arrayTagKeyCloseState and down to arrayTagIndexState return real "["
 	expect.Hint(t, p, parse.ArrayOpenHint)
-	// in startState, see "]", go to arrayTagCloseState return real "]"
+	// in arrayTagIndexState, see "]", go up to arrayTagKeyCloseState and return real "]"
 	expect.Hint(t, p, parse.ArrayCloseHint)
 
-	// in arrayTagCloseState, go up and return fake "}"
+	// in arrayTagKeyCloseState, go up and return fake "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 	// in endState, at top of stack return EOF
-	if _, err := p.Next(); err != io.EOF {
-		t.Fatalf("expected EOF, but got %v", err)
-	}
+	expect.EOF(t, p)
 }
 
 func TestTagArrayForEmptyArrayWithoutIndex(t *testing.T) {
@@ -56,21 +53,19 @@ func TestTagArrayForEmptyArrayWithoutIndex(t *testing.T) {
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in arrayTagOpenState, go to arrayTagKeyState and return fake key "array"
+	// in arrayTagOpenState, go down to arrayTagKeyOpenState and return fake key "array"
 	expect.Hint(t, p, parse.KeyHint)
 	expect.Tag(t, p, "array")
 
-	// in arrayTagKeyState, go to startState return real "["
+	// in arrayTagKeyOpenState, go to arrayTagKeyCloseState and down to startState and return real "["
 	expect.Hint(t, p, parse.ArrayOpenHint)
-	// in startState, see "]", go to arrayTagCloseState return real "]"
+	// in startState, see "]", go up to arrayTagKeyCloseState return real "]"
 	expect.Hint(t, p, parse.ArrayCloseHint)
 
-	// in arrayTagCloseState, go up and return fake "}"
+	// in arrayTagKeyCloseState, go up and return fake "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 	// in endState, at top of stack return EOF
-	if _, err := p.Next(); err != io.EOF {
-		t.Fatalf("expected EOF, but got %v", err)
-	}
+	expect.EOF(t, p)
 }
 
 func TestTagArrayForNonEmptyArrayWithIndex(t *testing.T) {
@@ -81,11 +76,11 @@ func TestTagArrayForNonEmptyArrayWithIndex(t *testing.T) {
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in arrayTagOpenState, go to arrayTagKeyState and return fake key "array"
+	// in arrayTagOpenState, go down to arrayTagKeyOpenState and return fake key "array"
 	expect.Hint(t, p, parse.KeyHint)
 	expect.Tag(t, p, "array")
 
-	// in arrayTagKeyState, go to startState return real "["
+	// in arrayTagKeyOpenState, go to arrayTagKeyCloseState and down to arrayTagIndexState return real "["
 	expect.Hint(t, p, parse.ArrayOpenHint)
 
 	expect.Hint(t, p, parse.KeyHint)
@@ -95,15 +90,13 @@ func TestTagArrayForNonEmptyArrayWithIndex(t *testing.T) {
 	expect.Hint(t, p, parse.ValueHint)
 	expect.String(t, p, "myelem")
 
-	// in startState, see "]", go to arrayTagCloseState return real "]"
+	// in startState, see "]", go up to arrayTagKeyCloseState return real "]"
 	expect.Hint(t, p, parse.ArrayCloseHint)
 
-	// in arrayTagCloseState, go up and return fake "}"
+	// in arrayTagKeyCloseState, go up and return fake "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 	// in endState, at top of stack return EOF
-	if _, err := p.Next(); err != io.EOF {
-		t.Fatalf("expected EOF, but got %v", err)
-	}
+	expect.EOF(t, p)
 }
 
 func TestTagArrayForNonEmptyArrayWithoutIndex(t *testing.T) {
@@ -114,7 +107,7 @@ func TestTagArrayForNonEmptyArrayWithoutIndex(t *testing.T) {
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in arrayTagOpenState, go to arrayTagKeyState and return fake key "array"
+	// in arrayTagOpenState, go down to arrayTagKeyOpenState and return fake key "array"
 	expect.Hint(t, p, parse.KeyHint)
 	expect.Tag(t, p, "array")
 
@@ -125,15 +118,13 @@ func TestTagArrayForNonEmptyArrayWithoutIndex(t *testing.T) {
 	expect.Hint(t, p, parse.ValueHint)
 	expect.String(t, p, "myelem")
 
-	// in startState, see "]", go to arrayTagCloseState return real "]"
+	// in startState, see "]", go up to arrayTagKeyCloseState return real "]"
 	expect.Hint(t, p, parse.ArrayCloseHint)
 
 	// in arrayTagCloseState, go up and return fake "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 	// in endState, at top of stack return EOF
-	if _, err := p.Next(); err != io.EOF {
-		t.Fatalf("expected EOF, but got %v", err)
-	}
+	expect.EOF(t, p)
 }
 
 func TestTagArrayWithEmptyArrayWithIndex(t *testing.T) {
@@ -144,11 +135,11 @@ func TestTagArrayWithEmptyArrayWithIndex(t *testing.T) {
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in arrayTagOpenState, go to arrayTagKeyState and return fake key "array"
+	// in arrayTagOpenState, go down to arrayTagKeyOpenState and return fake key "array"
 	expect.Hint(t, p, parse.KeyHint)
 	expect.Tag(t, p, "array")
 
-	// in arrayTagKeyState, go to startState return real "["
+	// in arrayTagKeyOpenState, go to arrayTagKeyCloseState and down to arrayTagIndexState return real "["
 	expect.Hint(t, p, parse.ArrayOpenHint)
 
 	expect.Hint(t, p, parse.KeyHint)
@@ -157,28 +148,26 @@ func TestTagArrayWithEmptyArrayWithIndex(t *testing.T) {
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in arrayTagOpenState, go to arrayTagKeyState and return fake key "array"
+	// in arrayTagOpenState, go down to arrayTagKeyOpenState and return fake key "array"
 	expect.Hint(t, p, parse.KeyHint)
 	expect.Tag(t, p, "array")
 
-	// in arrayTagKeyState, go to startState return real "["
+	// in arrayTagKeyOpenState, go to arrayTagKeyCloseState and down to arrayTagIndexState return real "["
 	expect.Hint(t, p, parse.ArrayOpenHint)
 
-	// in startState, see "]", go to arrayTagCloseState return real "]"
+	// in startState, see "]", go up to arrayTagKeyCloseState return real "]"
 	expect.Hint(t, p, parse.ArrayCloseHint)
 
 	// in arrayTagCloseState, go up and return fake "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 
-	// in startState, see "]", go to arrayTagCloseState return real "]"
+	// in startState, see "]", go up to arrayTagKeyCloseState return real "]"
 	expect.Hint(t, p, parse.ArrayCloseHint)
 
 	// in arrayTagCloseState, go up and return fake "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 	// in endState, at top of stack return EOF
-	if _, err := p.Next(); err != io.EOF {
-		t.Fatalf("expected EOF, but got %v", err)
-	}
+	expect.EOF(t, p)
 }
 
 func TestTagArrayWithEmptyArrayWithoutIndex(t *testing.T) {
@@ -189,7 +178,7 @@ func TestTagArrayWithEmptyArrayWithoutIndex(t *testing.T) {
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in arrayTagOpenState, go to arrayTagKeyState and return fake key "array"
+	// in arrayTagOpenState, go down to arrayTagKeyOpenState and return fake key "array"
 	expect.Hint(t, p, parse.KeyHint)
 	expect.Tag(t, p, "array")
 
@@ -199,28 +188,26 @@ func TestTagArrayWithEmptyArrayWithoutIndex(t *testing.T) {
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in arrayTagOpenState, go to arrayTagKeyState and return fake key "array"
+	// in arrayTagOpenState, go down to arrayTagKeyOpenState and return fake key "array"
 	expect.Hint(t, p, parse.KeyHint)
 	expect.Tag(t, p, "array")
 
 	// in arrayTagKeyState, go to startState return real "["
 	expect.Hint(t, p, parse.ArrayOpenHint)
 
-	// in startState, see "]", go to arrayTagCloseState return real "]"
+	// in startState, see "]", go up to arrayTagKeyCloseState return real "]"
 	expect.Hint(t, p, parse.ArrayCloseHint)
 
 	// in arrayTagCloseState, go up and return fake "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 
-	// in startState, see "]", go to arrayTagCloseState return real "]"
+	// in startState, see "]", go up to arrayTagKeyCloseState return real "]"
 	expect.Hint(t, p, parse.ArrayCloseHint)
 
 	// in arrayTagCloseState, go up and return fake "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 	// in endState, at top of stack return EOF
-	if _, err := p.Next(); err != io.EOF {
-		t.Fatalf("expected EOF, but got %v", err)
-	}
+	expect.EOF(t, p)
 }
 
 func TestTagArrayForThreeElementsWithIndex(t *testing.T) {
@@ -231,11 +218,11 @@ func TestTagArrayForThreeElementsWithIndex(t *testing.T) {
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in arrayTagOpenState, go to arrayTagKeyState and return fake key "array"
+	// in arrayTagOpenState, go down to arrayTagKeyOpenState and return fake key "array"
 	expect.Hint(t, p, parse.KeyHint)
 	expect.Tag(t, p, "array")
 
-	// in arrayTagKeyState, go to startState return real "["
+	// in arrayTagKeyOpenState, go to arrayTagKeyCloseState and down to arrayTagIndexState return real "["
 	expect.Hint(t, p, parse.ArrayOpenHint)
 
 	// in startState, see "myelem"
@@ -254,15 +241,13 @@ func TestTagArrayForThreeElementsWithIndex(t *testing.T) {
 	expect.Hint(t, p, parse.ValueHint)
 	expect.True(t, p)
 
-	// in startState, see "]", go to arrayTagCloseState return real "]"
+	// in startState, see "]", go up to arrayTagKeyCloseState return real "]"
 	expect.Hint(t, p, parse.ArrayCloseHint)
 
 	// in arrayTagCloseState, go up and return fake "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 	// in endState, at top of stack return EOF
-	if _, err := p.Next(); err != io.EOF {
-		t.Fatalf("expected EOF, but got %v", err)
-	}
+	expect.EOF(t, p)
 }
 
 func TestTagArrayForThreeElementsWithoutIndex(t *testing.T) {
@@ -273,7 +258,7 @@ func TestTagArrayForThreeElementsWithoutIndex(t *testing.T) {
 	// in startState, see "[", go down to arrayTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in arrayTagOpenState, go to arrayTagKeyState and return fake key "array"
+	// in arrayTagOpenState, go down to arrayTagKeyOpenState and return fake key "array"
 	expect.Hint(t, p, parse.KeyHint)
 	expect.Tag(t, p, "array")
 
@@ -290,13 +275,11 @@ func TestTagArrayForThreeElementsWithoutIndex(t *testing.T) {
 	expect.Hint(t, p, parse.ValueHint)
 	expect.True(t, p)
 
-	// in startState, see "]", go to arrayTagCloseState return real "]"
+	// in startState, see "]", go up to arrayTagKeyCloseState return real "]"
 	expect.Hint(t, p, parse.ArrayCloseHint)
 
 	// in arrayTagCloseState, go up and return fake "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 	// in endState, at top of stack return EOF
-	if _, err := p.Next(); err != io.EOF {
-		t.Fatalf("expected EOF, but got %v", err)
-	}
+	expect.EOF(t, p)
 }

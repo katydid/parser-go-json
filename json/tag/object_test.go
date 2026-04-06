@@ -15,7 +15,6 @@
 package tag_test
 
 import (
-	"io"
 	"testing"
 
 	jsonparse "github.com/katydid/parser-go-json/json/parse"
@@ -31,21 +30,19 @@ func TestTagObjectForEmptyObject(t *testing.T) {
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in objectTagOpenState, go to objectTagKeyState and return fake key "object"
+	// in objectTagOpenState, go to objectTagKeyOpenState and return fake key "object"
 	expect.Hint(t, p, parse.KeyHint)
 	expect.Tag(t, p, "object")
 
-	// in objectTagKeyState, go to startState return real "{"
+	// in objectTagKeyOpenState, go to objectTagKeyCloseState and down to startState and return real "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
-	// in startState, see "}", go to objectTagCloseState return real "}"
+	// in startState, see "}", go up to objectTagKeyCloseState return real "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 
-	// in objectTagCloseState, go up and return fake "}"
+	// in objectTagKeyCloseState, go up and return fake "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 	// in endState, at top of stack return EOF
-	if _, err := p.Next(); err != io.EOF {
-		t.Fatalf("expected EOF, but got %v", err)
-	}
+	expect.EOF(t, p)
 }
 
 func TestTagObjectForNonEmptyObject(t *testing.T) {
@@ -56,11 +53,11 @@ func TestTagObjectForNonEmptyObject(t *testing.T) {
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in objectTagOpenState, go to objectTagKeyState and return fake key "object"
+	// in objectTagOpenState, go to objectTagKeyOpenState and return fake key "object"
 	expect.Hint(t, p, parse.KeyHint)
 	expect.Tag(t, p, "object")
 
-	// in objectTagKeyState, go to startState return real "{"
+	// in objectTagKeyOpenState, go to objectTagKeyCloseState and down to startState and return real "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
 	// in startState, see "mykey"
@@ -71,15 +68,13 @@ func TestTagObjectForNonEmptyObject(t *testing.T) {
 	expect.Hint(t, p, parse.ValueHint)
 	expect.String(t, p, "myvalue")
 
-	// in startState, see "}", go to objectTagCloseState return real "}"
+	// in startState, see "}", go up to objectTagKeyCloseState return real "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 
-	// in objectTagCloseState, go up and return fake "}"
+	// in objectTagKeyCloseState, go up and return fake "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 	// in endState, at top of stack return EOF
-	if _, err := p.Next(); err != io.EOF {
-		t.Fatalf("expected EOF, but got %v", err)
-	}
+	expect.EOF(t, p)
 }
 
 func TestTagObjectForNonEmptyObjectWithEmptyObjectValue(t *testing.T) {
@@ -90,11 +85,11 @@ func TestTagObjectForNonEmptyObjectWithEmptyObjectValue(t *testing.T) {
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in objectTagOpenState, go to objectTagKeyState and return fake key "object"
+	// in objectTagOpenState, go to objectTagKeyOpenState and return fake key "object"
 	expect.Hint(t, p, parse.KeyHint)
 	expect.Tag(t, p, "object")
 
-	// in objectTagKeyState, go to startState return real "{"
+	// in objectTagKeyOpenState, go to objectTagKeyCloseState and down to startState and return real "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
 	// in startState, see "mykey"
@@ -104,28 +99,26 @@ func TestTagObjectForNonEmptyObjectWithEmptyObjectValue(t *testing.T) {
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in objectTagOpenState, go to objectTagKeyState and return fake key "object"
+	// in objectTagOpenState, go to objectTagKeyOpenState and return fake key "object"
 	expect.Hint(t, p, parse.KeyHint)
 	expect.Tag(t, p, "object")
 
-	// in objectTagKeyState, go to startState return real "{"
+	// in objectTagKeyOpenState, go to objectTagKeyCloseState and down to startState and return real "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in startState, see "}", go to objectTagCloseState return real "}"
+	// in startState, see "}", go up to objectTagKeyCloseState return real "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 
-	// in objectTagCloseState, go up and return fake "}"
+	// in objectTagKeyCloseState, go up and return fake "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 
-	// in startState, see "}", go to objectTagCloseState return real "}"
+	// in startState, see "}", go up to objectTagKeyCloseState return real "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 
-	// in objectTagCloseState, go up and return fake "}"
+	// in objectTagKeyCloseState, go up and return fake "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 	// in objectTagCloseState, at top of stack return EOF
-	if _, err := p.Next(); err != io.EOF {
-		t.Fatalf("expected EOF, but got %v", err)
-	}
+	expect.EOF(t, p)
 }
 
 func TestTagObjectForNonEmptyObjectWithNonEmptyObjectValue(t *testing.T) {
@@ -136,11 +129,11 @@ func TestTagObjectForNonEmptyObjectWithNonEmptyObjectValue(t *testing.T) {
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in objectTagOpenState, go to objectTagKeyState and return fake key "object"
+	// in objectTagOpenState, go to objectTagKeyOpenState and return fake key "object"
 	expect.Hint(t, p, parse.KeyHint)
 	expect.Tag(t, p, "object")
 
-	// in objectTagKeyState, go to startState return real "{"
+	// in objectTagKeyOpenState, go to objectTagKeyCloseState and down to startState and return real "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
 	// in startState, see "mykey"
@@ -150,11 +143,11 @@ func TestTagObjectForNonEmptyObjectWithNonEmptyObjectValue(t *testing.T) {
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in objectTagOpenState, go to objectTagKeyState and return fake key "object"
+	// in objectTagOpenState, go to objectTagKeyOpenState and return fake key "object"
 	expect.Hint(t, p, parse.KeyHint)
 	expect.Tag(t, p, "object")
 
-	// in objectTagKeyState, go to startState return real "{"
+	// in objectTagKeyOpenState, go to objectTagKeyCloseState and down to startState and return real "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
 	// in startState, see "mykey"
@@ -164,32 +157,30 @@ func TestTagObjectForNonEmptyObjectWithNonEmptyObjectValue(t *testing.T) {
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in objectTagOpenState, go to objectTagKeyState and return fake key "object"
+	// in objectTagOpenState, go to objectTagKeyOpenState and return fake key "object"
 	expect.Hint(t, p, parse.KeyHint)
 	expect.Tag(t, p, "object")
 
-	// in objectTagKeyState, go to startState return real "{"
+	// in objectTagKeyOpenState, go to objectTagKeyCloseState and down to startState and return real "{"
 	expect.Hint(t, p, parse.ObjectOpenHint)
 
-	// in startState, see "}", go to objectTagCloseState return real "}"
+	// in startState, see "}", go up to objectTagKeyCloseState return real "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 
-	// in objectTagCloseState, go up and return fake "}"
+	// in objectTagKeyCloseState, go up and return fake "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 
-	// in startState, see "}", go to objectTagCloseState return real "}"
+	// in startState, see "}", go up to objectTagKeyCloseState return real "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 
-	// in objectTagCloseState, go up and return fake "}"
+	// in objectTagKeyCloseState, go up and return fake "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 
-	// in startState, see "}", go to objectTagCloseState return real "}"
+	// in startState, see "}", go up to objectTagKeyCloseState return real "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 
-	// in objectTagCloseState, go up and return fake "}"
+	// in objectTagKeyCloseState, go up and return fake "}"
 	expect.Hint(t, p, parse.ObjectCloseHint)
 	// in objectTagCloseState, at top of stack return EOF
-	if _, err := p.Next(); err != io.EOF {
-		t.Fatalf("expected EOF, but got %v", err)
-	}
+	expect.EOF(t, p)
 }

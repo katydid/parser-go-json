@@ -37,7 +37,7 @@ func TestParseExample(t *testing.T) {
 
 	expect.Hint(t, p, parse.ArrayOpenHint)
 
-	expect.Hint(t, p, parse.ValueHint)
+	expect.Hint(t, p, parse.ValueHint) // null
 
 	expect.Hint(t, p, parse.ValueHint)
 	expect.False(t, p)
@@ -45,7 +45,7 @@ func TestParseExample(t *testing.T) {
 	expect.Hint(t, p, parse.ValueHint)
 	expect.True(t, p)
 
-	expect.NoErr(t, p.Skip)
+	expect.NoErr(t, p.Skip) // skip 1,2]
 
 	expect.Hint(t, p, parse.KeyHint)
 	expect.String(t, p, "obj")
