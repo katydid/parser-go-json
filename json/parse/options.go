@@ -46,6 +46,7 @@ func WithTags() func(*options) {
 
 // WithIndexes tags each array item with an index:
 // for example `["a", "b"]` is parsed as `[0: "a", 1: "b"]`.
+// Requires WithTags to also be passed as an option.
 func WithIndexes() func(*options) {
 	return func(o *options) {
 		o.index = true

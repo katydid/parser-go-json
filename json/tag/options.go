@@ -28,6 +28,7 @@ func WithTags() func(*tagger) {
 
 // WithIndexes tags each array item with an index:
 // for example `["a", "b"]` is parsed as `[0: "a", 1: "b"]`.
+// Requires WithTags to also be passed as an option.
 func WithIndexes() func(*tagger) {
 	return func(t *tagger) {
 		t.index = true

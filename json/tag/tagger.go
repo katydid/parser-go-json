@@ -62,6 +62,9 @@ func NewTagger(p Parser, opts ...Option) Parser {
 	for _, opt := range opts {
 		opt(t)
 	}
+	if !t.tag && t.index {
+		panic("unsupported options: WithIndexes requires WithTags")
+	}
 	return t
 }
 
