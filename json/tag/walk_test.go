@@ -18,7 +18,6 @@ import (
 	"errors"
 	"io"
 
-	jsonparse "github.com/katydid/parser-go-json/json/parse"
 	"github.com/katydid/parser-go-json/json/rand"
 	"github.com/katydid/parser-go/parse"
 )
@@ -29,7 +28,7 @@ var errExpectedBool = errors.New("expected bool")
 
 var errExpectedString = errors.New("expected string")
 
-func walkValue(t jsonparse.Parser) error {
+func walkValue(t parse.Parser) error {
 	_, _, err := t.Token()
 	if err != nil {
 		return err
@@ -37,11 +36,11 @@ func walkValue(t jsonparse.Parser) error {
 	return nil
 }
 
-func walk(p jsonparse.Parser) error {
+func walk(p parse.Parser) error {
 	kind, err := p.Next()
 	for err == nil {
 		switch kind {
-		case parse.ValueHint, parse.KeyHint:
+		case parse.ValueHint, parse.FieldHint:
 			if err := walkValue(p); err != nil {
 				return err
 			}
@@ -54,7 +53,7 @@ func walk(p jsonparse.Parser) error {
 	return nil
 }
 
-func randNext(r rand.Rand, p jsonparse.Parser) (parse.Hint, error) {
+func randNext(r rand.Rand, p parse.Parser) (parse.Hint, error) {
 	skip := r.Intn(2) == 0
 	for skip {
 		if err := p.Skip(); err != nil {
@@ -65,11 +64,11 @@ func randNext(r rand.Rand, p jsonparse.Parser) (parse.Hint, error) {
 	return p.Next()
 }
 
-func randWalk(r rand.Rand, p jsonparse.Parser) error {
+func randWalk(r rand.Rand, p parse.Parser) error {
 	hint, err := p.Next()
 	for err == nil {
 		switch hint {
-		case parse.ValueHint, parse.KeyHint:
+		case parse.ValueHint, parse.FieldHint:
 			if err := walkValue(p); err != nil {
 				return err
 			}

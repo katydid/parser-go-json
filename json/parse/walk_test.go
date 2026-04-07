@@ -18,7 +18,6 @@ import (
 	"io"
 
 	"github.com/katydid/parser-go-json/json/rand"
-	"github.com/katydid/parser-go/parse"
 )
 
 func walkValue(t Parser) error {
@@ -33,7 +32,7 @@ func walk(p Parser) error {
 	kind, err := p.Next()
 	for err == nil {
 		switch kind {
-		case parse.ValueHint, parse.KeyHint:
+		case ValueHint, KeyHint:
 			if err := walkValue(p); err != nil {
 				return err
 			}
@@ -46,11 +45,11 @@ func walk(p Parser) error {
 	return nil
 }
 
-func randNext(r rand.Rand, p Parser) (parse.Hint, error) {
+func randNext(r rand.Rand, p Parser) (Hint, error) {
 	skip := r.Intn(2) == 0
 	for skip {
 		if err := p.Skip(); err != nil {
-			return parse.UnknownHint, err
+			return UnknownHint, err
 		}
 		skip = r.Intn(2) == 0
 	}
@@ -61,7 +60,7 @@ func randWalk(r rand.Rand, p Parser) error {
 	hint, err := p.Next()
 	for err == nil {
 		switch hint {
-		case parse.ValueHint, parse.KeyHint:
+		case ValueHint, KeyHint:
 			if err := walkValue(p); err != nil {
 				return err
 			}

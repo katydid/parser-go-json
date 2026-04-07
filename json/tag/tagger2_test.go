@@ -12,11 +12,13 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-package parse
+package tag_test
 
 import (
 	"testing"
 
+	jsonparse "github.com/katydid/parser-go-json/json/parse"
+	"github.com/katydid/parser-go-json/json/tag"
 	"github.com/katydid/parser-go/expect"
 	"github.com/katydid/parser-go/parse"
 )
@@ -24,59 +26,59 @@ import (
 func TestTagMixObject(t *testing.T) {
 	s := `[{"mykey1":[{"mykey2":[]}]}]`
 	// will be parsed the same as : {"array":[{"object":{"mykey":{"array":[{"object":{"mykey2":{"array":[]}}}]}}}]}
-	p := NewParser(WithBuffer([]byte(s)), WithTags())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithTags())
 
 	// 1: first array
-	expect.Hint(t, p, parse.ObjectOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Tag(t, p, "array")
-	expect.Hint(t, p, parse.ArrayOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 
 	// 2: first object
-	expect.Hint(t, p, parse.ObjectOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Tag(t, p, "object")
-	expect.Hint(t, p, parse.ObjectOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.String(t, p, "mykey1")
 
 	// 3: second array
-	expect.Hint(t, p, parse.ObjectOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Tag(t, p, "array")
-	expect.Hint(t, p, parse.ArrayOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 
 	// 4: second object
-	expect.Hint(t, p, parse.ObjectOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Tag(t, p, "object")
-	expect.Hint(t, p, parse.ObjectOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.String(t, p, "mykey2")
 
 	// 5: third array
-	expect.Hint(t, p, parse.ObjectOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Tag(t, p, "array")
-	expect.Hint(t, p, parse.ArrayOpenHint)
-	expect.Hint(t, p, parse.ArrayCloseHint)
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
 
 	// 4: second object
-	expect.Hint(t, p, parse.ObjectCloseHint)
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
 
 	// 3: second array
-	expect.Hint(t, p, parse.ArrayCloseHint)
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
 
 	// 2: first object
-	expect.Hint(t, p, parse.ObjectCloseHint)
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
 
 	// 1: first array
-	expect.Hint(t, p, parse.ArrayCloseHint)
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
 	// in endState, at top of stack return EOF
 	expect.EOF(t, p)
 }
