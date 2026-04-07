@@ -19,53 +19,54 @@ import (
 	"testing"
 
 	jsonparse "github.com/katydid/parser-go-json/json/parse"
+	"github.com/katydid/parser-go-json/json/tag"
 	"github.com/katydid/parser-go/expect"
 	"github.com/katydid/parser-go/parse"
 )
 
 func TestSkipIndexOnlyUnknownObjectOpen(t *testing.T) {
 	str := `{}` // {}
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
 	expect.NoErr(t, p.Skip)
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 	expect.EOF(t, p)
 }
 
 func TestSkipIndexOnlyUnknownObjectAfterOpen(t *testing.T) {
 	str := `{}` // {}
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
 	expect.NoErr(t, p.Skip) // skip object close
 	expect.EOF(t, p)
 }
 
 func TestSkipIndexOnlyUnknownArrayOpen(t *testing.T) {
 	str := `[]` // []
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
 	expect.NoErr(t, p.Skip)
-	expect.Hint(t, p, parse.ArrayCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 	expect.EOF(t, p)
 }
 
 func TestSkipIndexOnlyUnknownArrayAfterOpen(t *testing.T) {
 	str := `[]` // []
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
-	expect.Hint(t, p, parse.ArrayOpenHint)
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
 	expect.NoErr(t, p.Skip)
 	expect.EOF(t, p)
 }
 
 func TestSkipIndexOnlySingletonArrayAfterOpen(t *testing.T) {
 	str := `[1]` // [0:1]
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
-	expect.Hint(t, p, parse.ArrayOpenHint)
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
 	expect.NoErr(t, p.Skip)
 	expect.EOF(t, p)
 }
 
 func TestSkipIndexOnlyUnknownString(t *testing.T) {
 	str := `"abc"` // "abc"
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
 	expect.NoErr(t, p.Skip)
 	expect.EOF(t, p)
 }
@@ -73,8 +74,8 @@ func TestSkipIndexOnlyUnknownString(t *testing.T) {
 // If the kind '[' was returned by Next, then the whole array is skipped.
 func TestSkipIndexOnlyArrayOpen(t *testing.T) {
 	str := `[1,2]` // [0:1, 1:2]
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
-	expect.Hint(t, p, parse.ArrayOpenHint)
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
 	expect.NoErr(t, p.Skip)
 	// skipped over 0:1,1:2]
 	expect.EOF(t, p)
@@ -82,42 +83,42 @@ func TestSkipIndexOnlyArrayOpen(t *testing.T) {
 
 func TestSkipIndexOnlyArrayFirst(t *testing.T) {
 	str := `[1,2]` // [0:1, 1:2]
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
-	expect.Hint(t, p, parse.ArrayOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Int(t, p, 0)
 	expect.NoErr(t, p.Skip)
 	// skipped over 1
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Int(t, p, 1)
 	expect.Hint(t, p, parse.ValueHint)
 	expect.Int(t, p, 2)
-	expect.Hint(t, p, parse.ArrayCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 	expect.EOF(t, p)
 }
 
 func TestSkipIndexOnlyArrayNestedOpen(t *testing.T) {
 	str := `[[1,2]]` // [0:[0:1, 1:2]]
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
-	expect.Hint(t, p, parse.ArrayOpenHint)
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
 
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Int(t, p, 0)
 
-	expect.Hint(t, p, parse.ArrayOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 
 	expect.NoErr(t, p.Skip)
 	// skipped over 0:1,1:2]
-	expect.Hint(t, p, parse.ArrayCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 	expect.EOF(t, p)
 }
 
 // If an array element was parsed, then the rest of the array is skipped.
 func TestSkipIndexOnlyArrayElement(t *testing.T) {
 	str := `[1,2,3]` // [0:1,1:2,2:3]
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
-	expect.Hint(t, p, parse.ArrayOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Int(t, p, 0)
 	expect.Hint(t, p, parse.ValueHint)
 	expect.Int(t, p, 1)
@@ -128,19 +129,19 @@ func TestSkipIndexOnlyArrayElement(t *testing.T) {
 
 func TestSkipIndexOnlyArrayNestedElement(t *testing.T) {
 	str := `[1,[2,3,4],5]` // [0:1, 1:[0:2,1:3,2:4], 1:5]
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
-	expect.Hint(t, p, parse.ArrayOpenHint)
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
 
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Int(t, p, 0)
 	expect.Hint(t, p, parse.ValueHint)
 	expect.Int(t, p, 1)
 
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Int(t, p, 1)
-	expect.Hint(t, p, parse.ArrayOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Int(t, p, 0)
 	expect.Hint(t, p, parse.ValueHint)
 	expect.Int(t, p, 2)
@@ -148,20 +149,20 @@ func TestSkipIndexOnlyArrayNestedElement(t *testing.T) {
 	expect.NoErr(t, p.Skip)
 	// skipped over 1:3,2:4]
 
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Int(t, p, 2)
 	expect.Hint(t, p, parse.ValueHint)
 	expect.Int(t, p, 5)
 
-	expect.Hint(t, p, parse.ArrayCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 	expect.EOF(t, p)
 }
 
 func TestSkipIndexOnlyArrayRecursiveElement(t *testing.T) {
 	str := `[1,[2,3],[[4,5,6]]]` // [0:1, 1:[0:2,1:3], 2:[0:[0:4,1:5,2:6]]]
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
-	expect.Hint(t, p, parse.ArrayOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Int(t, p, 0)
 	expect.Hint(t, p, parse.ValueHint)
 	expect.Int(t, p, 1)
@@ -173,8 +174,8 @@ func TestSkipIndexOnlyArrayRecursiveElement(t *testing.T) {
 // If the kind '{' was returned by Next, then the whole object is skipped.
 func TestSkipIndexOnlyObjectOpen(t *testing.T) {
 	str := `{"a":1,"b":2}` // {"a": 1, "b": 2}
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
 	expect.NoErr(t, p.Skip)
 	// skipped over "a":1,"b":2}
 	expect.EOF(t, p)
@@ -182,23 +183,23 @@ func TestSkipIndexOnlyObjectOpen(t *testing.T) {
 
 func TestSkipIndexOnlyObjectNestedOpen(t *testing.T) {
 	str := `{"a":{"b":1,"c":2}}` // {"a":{"b":1,"c":2}}
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
-	expect.Hint(t, p, parse.ObjectOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.String(t, p, "a")
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 	expect.NoErr(t, p.Skip)
 	// skipped over "b":1,"c":2}
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 	expect.EOF(t, p)
 }
 
 // If an object value was just parsed, then the rest of the object is skipped.
 func TestSkipIndexOnlyObjectKey(t *testing.T) {
 	str := `{"a":1,"b":2,"c":3}` // {"a":1,"b":2,"c":3}
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
-	expect.Hint(t, p, parse.ObjectOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.String(t, p, "a")
 	expect.Hint(t, p, parse.ValueHint)
 	expect.Int(t, p, 1)
@@ -209,101 +210,101 @@ func TestSkipIndexOnlyObjectKey(t *testing.T) {
 
 func TestSkipIndexOnlyObjectNestedKey(t *testing.T) {
 	str := `{"a":{"b":1,"c":2,"d":3}}` // {"a": {"b":1,"c":2,"d":3}}
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
-	expect.Hint(t, p, parse.ObjectOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.String(t, p, "a")
-	expect.Hint(t, p, parse.ObjectOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.String(t, p, "b")
 	expect.Hint(t, p, parse.ValueHint)
 	expect.Int(t, p, 1)
 	expect.NoErr(t, p.Skip)
 	// skipped over "c":2,"d":3}
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 	expect.EOF(t, p)
 }
 
 // If a object key was just parsed, then that key's value is skipped.
 func TestSkipIndexOnlyObjectValue(t *testing.T) {
 	str := `{"a":1,"b":2}` // {"a":1,"b":2}
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
-	expect.Hint(t, p, parse.ObjectOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.String(t, p, "a")
 	expect.NoErr(t, p.Skip)
 	// skipped over 1
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.String(t, p, "b")
 	expect.NoErr(t, p.Skip)
 	// skipped over 2
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 	expect.EOF(t, p)
 }
 
 func TestSkipIndexOnlyObjectRecursiveValue(t *testing.T) {
 	str := `{"a":1,"b":{"c":{"d":{"e":"f"},"g":[1,2]}}}`
 	// {"a":1, "b": {"c": {"d": {"e": "f"}, "g": [0:1, 1:2]}}
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
-	expect.Hint(t, p, parse.ObjectOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.String(t, p, "a")
 	expect.NoErr(t, p.Skip)
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.String(t, p, "b")
 	expect.NoErr(t, p.Skip)
 	// skipped over {"c": {"d": {"e": "f"}, "g": [0:1, 1:2]}
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 	expect.EOF(t, p)
 }
 
 func TestSkipIndexOnlyObjectDeepRecursiveValue(t *testing.T) {
 	str := `{"a":1,"b":{"c":{"d":{"e":"f"},"g":[1,2]}}}`
 	// {"a":1,"b":{"c":{"d":{"e":"f"},"g":[0:1,1:2]}}}
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(str)), jsonparse.WithIndexes())
-	expect.Hint(t, p, parse.ObjectOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.String(t, p, "a")
 	expect.NoErr(t, p.Skip)
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.String(t, p, "b")
-	expect.Hint(t, p, parse.ObjectOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.String(t, p, "c")
 	expect.NoErr(t, p.Skip)
 	// skipped over {"d":{"e":"f"},"g":[1,2]}
-	expect.Hint(t, p, parse.ObjectCloseHint)
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
 	expect.EOF(t, p)
 }
 
 func TestSkipIndexOnlyTagMixTwoObjectsWithIndexes(t *testing.T) {
 	s := `[{"mykey1":true}, {"mykey2":false}]`
 	// will be parsed the same as : [0: {"mykey1":true}, 1: {"mykey2":false}]
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(s)), jsonparse.WithIndexes())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithIndexes())
 
 	// 1: first array
-	expect.Hint(t, p, parse.ArrayOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 
 	// 2: first object
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Int(t, p, 0)
 	if err := p.Skip(); err != nil {
 		t.Fatal(err)
 	}
 
 	// 2: second object
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Int(t, p, 1)
-	expect.Hint(t, p, parse.ObjectOpenHint)
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.String(t, p, "mykey2")
 	expect.Hint(t, p, parse.ValueHint)
 	expect.False(t, p)
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 
 	// 1: first array
-	expect.Hint(t, p, parse.ArrayCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 	// in endState, at top of stack return EOF
 	if _, err := p.Next(); err != io.EOF {
 		t.Fatalf("expected EOF, but got %v", err)

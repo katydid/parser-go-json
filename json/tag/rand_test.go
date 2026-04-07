@@ -71,7 +71,7 @@ func TestRandomlyParseRandomValuesWithIndexesOnly(t *testing.T) {
 	for _, value := range values {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
-			tokenizer := parse.NewParser(parse.WithBuffer([]byte(value)), parse.WithIndexes())
+			tokenizer := tag.NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), tag.WithIndexes())
 			if err := randWalk(r, tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v using seed %v", err, r.Seed())
 			}
@@ -85,7 +85,7 @@ func TestParseRandomValuesWithIndexesOnly(t *testing.T) {
 	for _, value := range values {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
-			tokenizer := parse.NewParser(parse.WithBuffer([]byte(value)), parse.WithIndexes())
+			tokenizer := tag.NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), tag.WithIndexes())
 			if err := walk(tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v using seed %v", err, r.Seed())
 			}
