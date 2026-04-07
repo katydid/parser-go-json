@@ -60,9 +60,6 @@ func NewTagger(p jsonparse.Parser, opts ...Option) Parser {
 	for _, opt := range opts {
 		opt(t)
 	}
-	if !t.tag && t.index {
-		panic("unsupported options: WithIndexes requires WithTags")
-	}
 	return t
 }
 
@@ -87,6 +84,44 @@ func (t *tagger) Next() (parse.Hint, error) {
 				return parse.LeaveHint, nil
 			case jsonparse.ArrayOpenHint:
 				t.down(arrayTagOpenState)
+				return parse.EnterHint, nil
+			case jsonparse.ArrayCloseHint:
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
+				return parse.LeaveHint, nil
+			}
+		} else if t.index {
+			switch h {
+			case jsonparse.ObjectOpenHint:
+				t.down(startState)
+				return parse.EnterHint, nil
+			case jsonparse.ObjectCloseHint:
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
+				return parse.LeaveHint, nil
+			case jsonparse.ArrayOpenHint:
+				t.down(arrayTagIndexState)
+				return parse.EnterHint, nil
+			case jsonparse.ArrayCloseHint:
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
+				return parse.LeaveHint, nil
+			}
+		} else {
+			switch h {
+			case jsonparse.ObjectOpenHint:
+				t.down(startState)
+				return parse.EnterHint, nil
+			case jsonparse.ObjectCloseHint:
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
+				return parse.LeaveHint, nil
+			case jsonparse.ArrayOpenHint:
+				t.down(startState)
 				return parse.EnterHint, nil
 			case jsonparse.ArrayCloseHint:
 				if err := t.up(); err != nil {
@@ -166,6 +201,44 @@ func (t *tagger) Next() (parse.Hint, error) {
 				}
 				return parse.LeaveHint, nil
 			}
+		} else if t.index {
+			switch h {
+			case jsonparse.ObjectOpenHint:
+				t.down(startState)
+				return parse.EnterHint, nil
+			case jsonparse.ObjectCloseHint:
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
+				return parse.LeaveHint, nil
+			case jsonparse.ArrayOpenHint:
+				t.down(arrayTagIndexState)
+				return parse.EnterHint, nil
+			case jsonparse.ArrayCloseHint:
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
+				return parse.LeaveHint, nil
+			}
+		} else {
+			switch h {
+			case jsonparse.ObjectOpenHint:
+				t.down(startState)
+				return parse.EnterHint, nil
+			case jsonparse.ObjectCloseHint:
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
+				return parse.LeaveHint, nil
+			case jsonparse.ArrayOpenHint:
+				t.down(startState)
+				return parse.EnterHint, nil
+			case jsonparse.ArrayCloseHint:
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
+				return parse.LeaveHint, nil
+			}
 		}
 		return translateHint(h), nil
 	case endState:
@@ -177,12 +250,12 @@ func (t *tagger) Next() (parse.Hint, error) {
 func (t *tagger) Skip() error {
 	switch t.state.kind {
 	case startState:
-		if !t.tag {
-			return t.p.Skip()
-		}
 		if len(t.stack) == 0 {
 			_, err := t.Next()
 			return err
+		}
+		if !t.tag {
+			return t.p.Skip()
 		}
 		if t.state.hint != jsonparse.KeyHint {
 			// do not go up when it is an object value that needs to be skipped over
