@@ -62,9 +62,6 @@ func NewTagger(p Parser, opts ...Option) Parser {
 	for _, opt := range opts {
 		opt(t)
 	}
-	if !t.tag && t.index {
-		panic("unsupported options: WithIndexes requires WithTags")
-	}
 	return t
 }
 
@@ -90,6 +87,44 @@ func (t *tagger) Next() (parse.Hint, error) {
 			case parse.ArrayOpenHint:
 				t.down(arrayTagOpenState)
 				return parse.ObjectOpenHint, nil
+			case parse.ArrayCloseHint:
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
+				return parse.ArrayCloseHint, nil
+			}
+		} else if t.index {
+			switch h {
+			case parse.ObjectOpenHint:
+				t.down(startState)
+				return parse.ObjectOpenHint, nil
+			case parse.ObjectCloseHint:
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
+				return parse.ObjectCloseHint, nil
+			case parse.ArrayOpenHint:
+				t.down(arrayTagIndexState)
+				return parse.ArrayOpenHint, nil
+			case parse.ArrayCloseHint:
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
+				return parse.ArrayCloseHint, nil
+			}
+		} else {
+			switch h {
+			case parse.ObjectOpenHint:
+				t.down(startState)
+				return parse.ObjectOpenHint, nil
+			case parse.ObjectCloseHint:
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
+				return parse.ObjectCloseHint, nil
+			case parse.ArrayOpenHint:
+				t.down(startState)
+				return parse.ArrayOpenHint, nil
 			case parse.ArrayCloseHint:
 				if err := t.up(); err != nil {
 					return parse.UnknownHint, err
@@ -168,6 +203,44 @@ func (t *tagger) Next() (parse.Hint, error) {
 				}
 				return parse.ArrayCloseHint, nil
 			}
+		} else if t.index {
+			switch h {
+			case parse.ObjectOpenHint:
+				t.down(startState)
+				return parse.ObjectOpenHint, nil
+			case parse.ObjectCloseHint:
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
+				return parse.ObjectCloseHint, nil
+			case parse.ArrayOpenHint:
+				t.down(arrayTagIndexState)
+				return parse.ArrayOpenHint, nil
+			case parse.ArrayCloseHint:
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
+				return parse.ArrayCloseHint, nil
+			}
+		} else {
+			switch h {
+			case parse.ObjectOpenHint:
+				t.down(startState)
+				return parse.ObjectOpenHint, nil
+			case parse.ObjectCloseHint:
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
+				return parse.ObjectCloseHint, nil
+			case parse.ArrayOpenHint:
+				t.down(startState)
+				return parse.ArrayOpenHint, nil
+			case parse.ArrayCloseHint:
+				if err := t.up(); err != nil {
+					return parse.UnknownHint, err
+				}
+				return parse.ArrayCloseHint, nil
+			}
 		}
 		return h, nil
 	case endState:
@@ -179,12 +252,12 @@ func (t *tagger) Next() (parse.Hint, error) {
 func (t *tagger) Skip() error {
 	switch t.state.kind {
 	case startState:
-		if !t.tag {
-			return t.p.Skip()
-		}
 		if len(t.stack) == 0 {
 			_, err := t.Next()
 			return err
+		}
+		if !t.tag {
+			return t.p.Skip()
 		}
 		if t.state.hint != parse.KeyHint {
 			// do not go up when it is an object value that needs to be skipped over
