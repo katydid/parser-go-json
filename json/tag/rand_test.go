@@ -20,6 +20,7 @@ import (
 	"github.com/katydid/parser-go-json/json/internal/testrun"
 	"github.com/katydid/parser-go-json/json/parse"
 	"github.com/katydid/parser-go-json/json/rand"
+	"github.com/katydid/parser-go-json/json/tag"
 )
 
 func TestParseRandomValuesWithTagsAndIndexes(t *testing.T) {
@@ -28,7 +29,7 @@ func TestParseRandomValuesWithTagsAndIndexes(t *testing.T) {
 	for _, value := range values {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
-			tokenizer := parse.NewParser(parse.WithBuffer([]byte(value)), parse.WithTags(), parse.WithIndexes())
+			tokenizer := tag.NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), tag.WithTags(), tag.WithIndexes())
 			if err := walk(tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v using seed %v", err, r.Seed())
 			}
@@ -42,7 +43,7 @@ func TestRandomlyParseRandomValuesWithTagsAndIndexes(t *testing.T) {
 	for _, value := range values {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
-			tokenizer := parse.NewParser(parse.WithBuffer([]byte(value)), parse.WithTags(), parse.WithIndexes())
+			tokenizer := tag.NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), tag.WithTags(), tag.WithIndexes())
 			if err := randWalk(r, tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v using seed %v", err, r.Seed())
 			}
@@ -56,7 +57,7 @@ func TestParseRandomValuesWithTagsOnly(t *testing.T) {
 	for _, value := range values {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
-			tokenizer := parse.NewParser(parse.WithBuffer([]byte(value)), parse.WithTags())
+			tokenizer := tag.NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), tag.WithTags())
 			if err := walk(tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v using seed %v", err, r.Seed())
 			}
@@ -70,7 +71,7 @@ func TestRandomlyParseRandomValuesWithIndexesOnly(t *testing.T) {
 	for _, value := range values {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
-			tokenizer := parse.NewParser(parse.WithBuffer([]byte(value)), parse.WithIndexes())
+			tokenizer := tag.NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), tag.WithIndexes())
 			if err := randWalk(r, tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v using seed %v", err, r.Seed())
 			}
@@ -84,7 +85,7 @@ func TestParseRandomValuesWithIndexesOnly(t *testing.T) {
 	for _, value := range values {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
-			tokenizer := parse.NewParser(parse.WithBuffer([]byte(value)), parse.WithIndexes())
+			tokenizer := tag.NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), tag.WithIndexes())
 			if err := walk(tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v using seed %v", err, r.Seed())
 			}
@@ -98,7 +99,7 @@ func TestRandomlyParseRandomValuesWithTagsOnly(t *testing.T) {
 	for _, value := range values {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
-			tokenizer := parse.NewParser(parse.WithBuffer([]byte(value)), parse.WithTags())
+			tokenizer := tag.NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))), tag.WithTags())
 			if err := randWalk(r, tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v using seed %v", err, r.Seed())
 			}
@@ -112,7 +113,7 @@ func TestParseRandomValuesWithoutTagsAndIndexes(t *testing.T) {
 	for _, value := range values {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
-			tokenizer := parse.NewParser(parse.WithBuffer([]byte(value)))
+			tokenizer := tag.NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))))
 			if err := walk(tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v using seed %v", err, r.Seed())
 			}
@@ -126,7 +127,7 @@ func TestRandomlyParseRandomValuesWithoutTagsAndIndexes(t *testing.T) {
 	for _, value := range values {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
-			tokenizer := parse.NewParser(parse.WithBuffer([]byte(value)))
+			tokenizer := tag.NewTagger(parse.NewParser(parse.WithBuffer([]byte(value))))
 			if err := randWalk(r, tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v using seed %v", err, r.Seed())
 			}

@@ -207,7 +207,7 @@ func TestSkipDownUpUp(t *testing.T) {
 	expectEOF(t, p.Next)
 }
 
-func TestSkipUpUpUp(t *testing.T) {
+func TestSkipUpUpUpTwoFields(t *testing.T) {
 	str := `{
 		"A": [
 			{"a": "b", "c": "d"},
@@ -232,10 +232,12 @@ func TestSkipUpUpUp(t *testing.T) {
 	p.Down()
 	assertNoErr(t, p.Next)
 	expect(t, p.String, "b")
-	p.Up()
-	p.Up()
-	p.Up()
-	assertNoErr(t, p.Next)
+	p.Up()                 // back up to object
+	assertNoErr(t, p.Next) // go to "c"
+	p.Up()                 // skip over , `"c": "d"` and `}`,
+	assertNoErr(t, p.Next) // go to `1:b`
+	p.Up()                 // skip over `1:b, 2:c` and `]`
+	assertNoErr(t, p.Next) // go to `"B":1`
 	expect(t, p.String, "B")
 	expectEOF(t, p.Next)
 }
@@ -265,12 +267,47 @@ func TestSkipUpUpUpEndOfObject(t *testing.T) {
 	p.Down()
 	assertNoErr(t, p.Next)
 	expect(t, p.String, "b")
-	p.Up()
-	// expectEOF(t, p.Next)
-	p.Up()
-	// assertNoErr(t, p.Next)
-	p.Up()
+	p.Up()                 // back up to object
+	expectEOF(t, p.Next)   // go to "}"
+	p.Up()                 // skip over `}`,
+	assertNoErr(t, p.Next) // go to `1:b`
+	p.Up()                 // skip over `1:b, 2:c` and `]`
+	assertNoErr(t, p.Next) // go to `"B":1`
+	expect(t, p.String, "B")
+	expectEOF(t, p.Next)
+}
+
+func TestSkipUpUpUpOnlyObjects(t *testing.T) {
+	str := `{
+		"A": {
+			"0": {"a": "b", "c": "d"},
+			"1": "b",
+			"2": "c"
+		},
+		"B": 1
+	}`
+	p := NewParser()
+	if err := p.Init([]byte(str)); err != nil {
+		t.Fatal(err)
+	}
 	assertNoErr(t, p.Next)
+	expect(t, p.String, "A")
+
+	p.Down()
+	assertNoErr(t, p.Next)
+	expect(t, p.String, "0")
+	p.Down()
+	assertNoErr(t, p.Next)
+	expect(t, p.String, "a")
+	p.Down()
+	assertNoErr(t, p.Next)
+	expect(t, p.String, "b")
+	p.Up()                 // back up to object
+	assertNoErr(t, p.Next) // go to "c"
+	p.Up()                 // skip over , `"c": "d"` and `}`,
+	assertNoErr(t, p.Next) // go to `"1":b`
+	p.Up()                 // skip over `"1":b, "2":c` and `}`
+	assertNoErr(t, p.Next) // go to `"B":1`
 	expect(t, p.String, "B")
 	expectEOF(t, p.Next)
 }

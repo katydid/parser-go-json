@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	jsonparse "github.com/katydid/parser-go-json/json/parse"
+	"github.com/katydid/parser-go-json/json/tag"
 	"github.com/katydid/parser-go/expect"
 	"github.com/katydid/parser-go/parse"
 )
@@ -25,22 +26,22 @@ import (
 func TestTagObjectForEmptyObject(t *testing.T) {
 	s := `{}`
 	// will be parsed the same as : {"object": {}}
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(s)), jsonparse.WithTags(), jsonparse.WithIndexes())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithTags(), tag.WithIndexes())
 
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 
 	// in objectTagOpenState, go to objectTagKeyOpenState and return fake key "object"
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Tag(t, p, "object")
 
 	// in objectTagKeyOpenState, go to objectTagKeyCloseState and down to startState and return real "{"
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 	// in startState, see "}", go up to objectTagKeyCloseState return real "}"
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 
 	// in objectTagKeyCloseState, go up and return fake "}"
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 	// in endState, at top of stack return EOF
 	expect.EOF(t, p)
 }
@@ -48,20 +49,20 @@ func TestTagObjectForEmptyObject(t *testing.T) {
 func TestTagObjectForNonEmptyObject(t *testing.T) {
 	s := `{"mykey": "myvalue"}`
 	// will be parsed the same as : {"object": {"mykey": "myvalue"}}
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(s)), jsonparse.WithTags(), jsonparse.WithIndexes())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithTags(), tag.WithIndexes())
 
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 
 	// in objectTagOpenState, go to objectTagKeyOpenState and return fake key "object"
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Tag(t, p, "object")
 
 	// in objectTagKeyOpenState, go to objectTagKeyCloseState and down to startState and return real "{"
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 
 	// in startState, see "mykey"
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.String(t, p, "mykey")
 
 	// in startState, see "myvalue"
@@ -69,10 +70,10 @@ func TestTagObjectForNonEmptyObject(t *testing.T) {
 	expect.String(t, p, "myvalue")
 
 	// in startState, see "}", go up to objectTagKeyCloseState return real "}"
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 
 	// in objectTagKeyCloseState, go up and return fake "}"
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 	// in endState, at top of stack return EOF
 	expect.EOF(t, p)
 }
@@ -80,43 +81,43 @@ func TestTagObjectForNonEmptyObject(t *testing.T) {
 func TestTagObjectForNonEmptyObjectWithEmptyObjectValue(t *testing.T) {
 	s := `{"mykey": {}}`
 	// will be parsed the same as : {"object": {"mykey": {"object": {}}}}
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(s)), jsonparse.WithTags(), jsonparse.WithIndexes())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithTags(), tag.WithIndexes())
 
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 
 	// in objectTagOpenState, go to objectTagKeyOpenState and return fake key "object"
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Tag(t, p, "object")
 
 	// in objectTagKeyOpenState, go to objectTagKeyCloseState and down to startState and return real "{"
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 
 	// in startState, see "mykey"
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.String(t, p, "mykey")
 
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 
 	// in objectTagOpenState, go to objectTagKeyOpenState and return fake key "object"
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Tag(t, p, "object")
 
 	// in objectTagKeyOpenState, go to objectTagKeyCloseState and down to startState and return real "{"
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 
 	// in startState, see "}", go up to objectTagKeyCloseState return real "}"
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 
 	// in objectTagKeyCloseState, go up and return fake "}"
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 
 	// in startState, see "}", go up to objectTagKeyCloseState return real "}"
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 
 	// in objectTagKeyCloseState, go up and return fake "}"
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 	// in objectTagCloseState, at top of stack return EOF
 	expect.EOF(t, p)
 }
@@ -124,63 +125,63 @@ func TestTagObjectForNonEmptyObjectWithEmptyObjectValue(t *testing.T) {
 func TestTagObjectForNonEmptyObjectWithNonEmptyObjectValue(t *testing.T) {
 	s := `{"mykey": {"mykey2": {}}}`
 	// will be parsed the same as : {"object": {"mykey": {"object": {"mykey2": {"object": {}}}}}}
-	p := jsonparse.NewParser(jsonparse.WithBuffer([]byte(s)), jsonparse.WithTags(), jsonparse.WithIndexes())
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(s))), tag.WithTags(), tag.WithIndexes())
 
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 
 	// in objectTagOpenState, go to objectTagKeyOpenState and return fake key "object"
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Tag(t, p, "object")
 
 	// in objectTagKeyOpenState, go to objectTagKeyCloseState and down to startState and return real "{"
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 
 	// in startState, see "mykey"
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.String(t, p, "mykey")
 
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 
 	// in objectTagOpenState, go to objectTagKeyOpenState and return fake key "object"
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Tag(t, p, "object")
 
 	// in objectTagKeyOpenState, go to objectTagKeyCloseState and down to startState and return real "{"
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 
 	// in startState, see "mykey"
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.String(t, p, "mykey2")
 
 	// in startState, see "{", go down to objectTagOpenState and return fake "{"
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 
 	// in objectTagOpenState, go to objectTagKeyOpenState and return fake key "object"
-	expect.Hint(t, p, parse.KeyHint)
+	expect.Hint(t, p, parse.FieldHint)
 	expect.Tag(t, p, "object")
 
 	// in objectTagKeyOpenState, go to objectTagKeyCloseState and down to startState and return real "{"
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	expect.Hint(t, p, parse.EnterHint)
 
 	// in startState, see "}", go up to objectTagKeyCloseState return real "}"
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 
 	// in objectTagKeyCloseState, go up and return fake "}"
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 
 	// in startState, see "}", go up to objectTagKeyCloseState return real "}"
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 
 	// in objectTagKeyCloseState, go up and return fake "}"
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 
 	// in startState, see "}", go up to objectTagKeyCloseState return real "}"
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 
 	// in objectTagKeyCloseState, go up and return fake "}"
-	expect.Hint(t, p, parse.ObjectCloseHint)
+	expect.Hint(t, p, parse.LeaveHint)
 	// in objectTagCloseState, at top of stack return EOF
 	expect.EOF(t, p)
 }

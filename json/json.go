@@ -17,6 +17,7 @@ package json
 
 import (
 	jsonparse "github.com/katydid/parser-go-json/json/parse"
+	"github.com/katydid/parser-go-json/json/tag"
 	"github.com/katydid/parser-go/compat/downgrade"
 	"github.com/katydid/parser-go/parser"
 	"github.com/katydid/parser-go/pool"
@@ -37,7 +38,7 @@ type jsonParser struct {
 // NewParser returns a new JSON parser.
 func NewParser() Interface {
 	p := pool.New()
-	j := jsonparse.NewParser(jsonparse.WithAllocator(p.Alloc))
+	j := tag.NewTagger(jsonparse.NewParser(jsonparse.WithAllocator(p.Alloc)), tag.WithAllocator(p.Alloc), tag.WithIndexes())
 	return &jsonParser{
 		Interface: downgrade.ParserWithInit(j),
 		pool:      p,

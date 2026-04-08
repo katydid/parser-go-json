@@ -16,55 +16,52 @@ package parse
 
 import (
 	"testing"
-
-	"github.com/katydid/parser-go/expect"
-	"github.com/katydid/parser-go/parse"
 )
 
 func TestParseExample(t *testing.T) {
 	s := `{"num":3.14,"arr":[null,false,true,1,2],"obj":{"k":"v","a":[1,2,3],"b":1,"c":2}}`
 	p := NewParser(WithBuffer([]byte(s)))
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	expectHint(t, p, ObjectOpenHint)
 
-	expect.Hint(t, p, parse.KeyHint)
-	expect.String(t, p, "num")
+	expectHint(t, p, KeyHint)
+	expectString(t, p, "num")
 
-	expect.Hint(t, p, parse.ValueHint)
-	expect.Float(t, p, 3.14)
+	expectHint(t, p, ValueHint)
+	expectFloat(t, p, 3.14)
 
-	expect.Hint(t, p, parse.KeyHint)
-	expect.String(t, p, "arr")
+	expectHint(t, p, KeyHint)
+	expectString(t, p, "arr")
 
-	expect.Hint(t, p, parse.ArrayOpenHint)
+	expectHint(t, p, ArrayOpenHint)
 
-	expect.Hint(t, p, parse.ValueHint) // null
+	expectHint(t, p, ValueHint) // null
 
-	expect.Hint(t, p, parse.ValueHint)
-	expect.False(t, p)
+	expectHint(t, p, ValueHint)
+	expectFalse(t, p)
 
-	expect.Hint(t, p, parse.ValueHint)
-	expect.True(t, p)
+	expectHint(t, p, ValueHint)
+	expectTrue(t, p)
 
-	expect.NoErr(t, p.Skip) // skip 1,2]
+	expectNoErr(t, p.Skip) // skip 1,2]
 
-	expect.Hint(t, p, parse.KeyHint)
-	expect.String(t, p, "obj")
+	expectHint(t, p, KeyHint)
+	expectString(t, p, "obj")
 
-	expect.Hint(t, p, parse.ObjectOpenHint)
+	expectHint(t, p, ObjectOpenHint)
 
-	expect.Hint(t, p, parse.KeyHint)
-	expect.String(t, p, "k")
+	expectHint(t, p, KeyHint)
+	expectString(t, p, "k")
 
-	expect.Hint(t, p, parse.ValueHint)
-	expect.String(t, p, "v")
+	expectHint(t, p, ValueHint)
+	expectString(t, p, "v")
 
-	expect.Hint(t, p, parse.KeyHint)
-	expect.String(t, p, "a")
+	expectHint(t, p, KeyHint)
+	expectString(t, p, "a")
 
-	expect.NoErr(t, p.Skip)
+	expectNoErr(t, p.Skip)
 
-	expect.NoErr(t, p.Skip)
+	expectNoErr(t, p.Skip)
 
-	expect.Hint(t, p, parse.ObjectCloseHint)
-	expect.EOF(t, p)
+	expectHint(t, p, ObjectCloseHint)
+	expectEOF(t, p)
 }

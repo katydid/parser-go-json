@@ -35,24 +35,6 @@ func newOptions(opts ...Option) *options {
 // Option is used set options when creating a new JSON Parser.
 type Option func(*options)
 
-// WithTags
-// 1. tags each object with an object key, for example `{"a": null}` is parsed as `{"object": {"a": null}}`.
-// 2. tags each array with an array key, for example `{"a": []}` is parsed as `{"a": {"array": []}}`.
-func WithTags() func(*options) {
-	return func(o *options) {
-		o.tags = true
-	}
-}
-
-// WithIndexes tags each array item with an index:
-// for example `["a", "b"]` is parsed as `[0: "a", 1: "b"]`.
-// Requires WithTags to also be passed as an option.
-func WithIndexes() func(*options) {
-	return func(o *options) {
-		o.index = true
-	}
-}
-
 // WithAllocator replaces the default `func(size int) []byte { return make([]byte, size) }` allocator
 // with a different allocator function.
 // Usually an allocator that uses a pool.
