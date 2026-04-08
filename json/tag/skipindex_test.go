@@ -405,13 +405,11 @@ func TestSkipIndexOnlyUpUpUpTwoFields(t *testing.T) {
 	expect.NoErr(t, p.Skip)
 	expect.NoErr(t, p.Skip)
 	expect.Hint(t, p, parse.FieldHint)
-	// expect.Hint(t, p, parse.ValueHint)
-	// expect.String(t, p, "b")
 
-	// p.Up()                 // skip over `1:b, 2:c` and `]`
+	// p.Up()                 // skip over `1:"b", 2:"c"` and `]`
 	// assertNoErr(t, p.Next) // go to `"B":1`
-	expect.NoErr(t, p.Skip) // skip over `"c": "d"}`
-	expect.NoErr(t, p.Skip) // skip over `1:"b", 2:"c"]`
+	expect.NoErr(t, p.Skip) // skip over `1:"b"`
+	expect.NoErr(t, p.Skip) // skip over `2:"c"]`
 	expect.Hint(t, p, parse.FieldHint)
 
 	// expect(t, p.String, "B")
@@ -462,12 +460,16 @@ func TestSkipIndexOnlyUpUpUpEndOfObject(t *testing.T) {
 
 	// p.Up()                 // back up to object
 	// expectEOF(t, p.Next)   // go to "}"
+	expect.Hint(t, p, parse.LeaveHint)
+
 	// p.Up()                 // skip over `}`,
 	// assertNoErr(t, p.Next) // go to `1:b`
+	expect.Hint(t, p, parse.FieldHint)
+
 	// p.Up()                 // skip over `1:b, 2:c` and `]`
 	// assertNoErr(t, p.Next) // go to `"B":1`
-	expect.NoErr(t, p.Skip) // skip over }`
-	expect.NoErr(t, p.Skip) // skip over `1:"b", 2:"c"]`
+	expect.NoErr(t, p.Skip) // skip over `1:"b"`
+	expect.NoErr(t, p.Skip) // skip over `2:"c"]`
 	expect.Hint(t, p, parse.FieldHint)
 
 	// expect(t, p.String, "B")
