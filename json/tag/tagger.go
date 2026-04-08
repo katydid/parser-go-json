@@ -68,7 +68,7 @@ func (t *tagger) Next() (parse.Hint, error) {
 	case startState:
 		h, err := t.p.Next()
 		if err != nil {
-			return translateHint(h), err
+			return parse.UnknownHint, err
 		}
 		// helps to skip over object values
 		t.state.hint = h
@@ -167,7 +167,7 @@ func (t *tagger) Next() (parse.Hint, error) {
 	case arrayTagIndexState:
 		h, err := t.p.Next()
 		if err != nil {
-			return translateHint(h), err
+			return parse.UnknownHint, err
 		}
 		t.state.hint = h
 		if t.state.hint == jsonparse.ArrayCloseHint {
@@ -254,15 +254,13 @@ func (t *tagger) Skip() error {
 			_, err := t.Next()
 			return err
 		}
-		if !t.tag {
-			return t.p.Skip()
-		}
 		if t.state.hint != jsonparse.KeyHint {
 			// do not go up when it is an object value that needs to be skipped over
 			if err := t.up(); err != nil {
 				return err
 			}
 		}
+		t.state.hint = jsonparse.UnknownHint
 		return t.p.Skip()
 	case objectTagOpenState:
 		if err := t.up(); err != nil {

@@ -16,9 +16,9 @@
 package json
 
 import (
-	"github.com/katydid/parser-go-json/json/internal/downgrade"
 	jsonparse "github.com/katydid/parser-go-json/json/parse"
 	"github.com/katydid/parser-go-json/json/tag"
+	"github.com/katydid/parser-go/compat/downgrade"
 	"github.com/katydid/parser-go/parser"
 	"github.com/katydid/parser-go/pool"
 )

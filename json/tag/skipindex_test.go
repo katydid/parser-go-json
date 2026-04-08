@@ -158,7 +158,7 @@ func TestSkipIndexOnlyArrayNestedElement(t *testing.T) {
 	expect.EOF(t, p)
 }
 
-func TestSkipIndexOnlyArrayRecursiveElement(t *testing.T) {
+func TestSkipIndexOnlyArrayRecursiveElement1(t *testing.T) {
 	str := `[1,[2,3],[[4,5,6]]]` // [0:1, 1:[0:2,1:3], 2:[0:[0:4,1:5,2:6]]]
 	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
 	expect.Hint(t, p, parse.EnterHint)
@@ -168,6 +168,54 @@ func TestSkipIndexOnlyArrayRecursiveElement(t *testing.T) {
 	expect.Int(t, p, 1)
 	expect.NoErr(t, p.Skip)
 	// skipped over 1:[0:2,1:3], 2:[0:[0:4,1:5,2:6]]]
+	expect.EOF(t, p)
+}
+
+func TestSkipIndexOnlyArrayRecursiveElement2(t *testing.T) {
+	str := `["a",["b","c"],[["d","e","f"]]]` // [0:"a", 1:[0:"b",1:"c"], 2:[0:[0:"d",1:"e",2:"f"]]]
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.Int(t, p, 0)
+	expect.Hint(t, p, parse.ValueHint)
+	expect.String(t, p, "a")
+	expect.Hint(t, p, parse.FieldHint)
+	expect.Int(t, p, 1)
+	expect.NoErr(t, p.Skip) // skip over [0:"b",1:"c"]
+	expect.NoErr(t, p.Skip) // skip over 2:[0:[0:"d",1:"e",2:"f"]]]
+	expect.EOF(t, p)
+}
+
+func TestSkipIndexOnlyObjectRecursiveElement2(t *testing.T) {
+	str := `{"0":"a", "1":{"0":"b","1":"c"}, "2":{"0":{"0":"d","1":"e","2":"f"}}}`
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "0")
+	expect.Hint(t, p, parse.ValueHint)
+	expect.String(t, p, "a")
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "1")
+	expect.NoErr(t, p.Skip) // skip over {"0":"b","1":"c"}
+	expect.NoErr(t, p.Skip) // skip over "2":{"0":{"0":"d","1":"e","2":"f"}}}
+	expect.EOF(t, p)
+}
+
+func TestSkipIndexOnlyArrayRecursiveElement3(t *testing.T) {
+	str := `["a",["b","c"],[["d","e","f"]]]` // [0:"a", 1:[0:"b",1:"c"], 2:[0:[0:"d",1:"e",2:"f"]]]
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.Int(t, p, 0)
+	expect.Hint(t, p, parse.ValueHint)
+	expect.String(t, p, "a")
+	expect.Hint(t, p, parse.FieldHint)
+	expect.Int(t, p, 1)
+	expect.NoErr(t, p.Skip) // skip over [0:"b",1:"c"]
+	expect.Hint(t, p, parse.FieldHint)
+	expect.Int(t, p, 2)
+	expect.NoErr(t, p.Skip) // skip over [0:[0:"d",1:"e",2:"f"]]
+	expect.Hint(t, p, parse.LeaveHint)
 	expect.EOF(t, p)
 }
 
@@ -309,4 +357,124 @@ func TestSkipIndexOnlyTagMixTwoObjectsWithIndexes(t *testing.T) {
 	if _, err := p.Next(); err != io.EOF {
 		t.Fatalf("expected EOF, but got %v", err)
 	}
+}
+
+func TestSkipIndexOnlyUpUpUpTwoFields(t *testing.T) {
+	str := `{
+		"A": [
+			{"a": "b", "c": "d"},
+			"b",
+			"c"
+		],
+		"B": 1
+	}`
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	// assertNoErr(t, p.Next)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	// expect(t, p.String, "A")
+	expect.String(t, p, "A")
+	// p.Down()
+	// assertNoErr(t, p.Next)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	// expect(t, p.Int, 0)
+	expect.Int(t, p, 0)
+
+	// p.Down()
+	// assertNoErr(t, p.Next)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+
+	// expect(t, p.String, "a")
+	expect.String(t, p, "a")
+
+	// p.Down()
+	// assertNoErr(t, p.Next)
+	expect.Hint(t, p, parse.ValueHint)
+
+	// expect(t, p.String, "b")
+	expect.String(t, p, "b")
+
+	// p.Up()                 // back up to object
+	// assertNoErr(t, p.Next) // go to "c"
+	expect.Hint(t, p, parse.FieldHint)
+
+	// p.Up()                 // skip over , `"c": "d"` and `}`,
+	// assertNoErr(t, p.Next) // go to `1:b`
+	expect.NoErr(t, p.Skip)
+	expect.NoErr(t, p.Skip)
+	expect.Hint(t, p, parse.FieldHint)
+	// expect.Hint(t, p, parse.ValueHint)
+	// expect.String(t, p, "b")
+
+	// p.Up()                 // skip over `1:b, 2:c` and `]`
+	// assertNoErr(t, p.Next) // go to `"B":1`
+	expect.NoErr(t, p.Skip) // skip over `"c": "d"}`
+	expect.NoErr(t, p.Skip) // skip over `1:"b", 2:"c"]`
+	expect.Hint(t, p, parse.FieldHint)
+
+	// expect(t, p.String, "B")
+	expect.String(t, p, "B")
+
+	// expectEOF(t, p.Next)
+	expect.NoErr(t, p.Skip) // skip over 1
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.EOF(t, p)
+}
+
+func TestSkipIndexOnlyUpUpUpEndOfObject(t *testing.T) {
+	str := `{
+		"A": [
+			{"a": "b"},
+			"b",
+			"c"
+		],
+		"B": 1
+	}`
+	p := tag.NewTagger(jsonparse.NewParser(jsonparse.WithBuffer([]byte(str))), tag.WithIndexes())
+	// assertNoErr(t, p.Next)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	// expect(t, p.String, "A")
+	expect.String(t, p, "A")
+	// p.Down()
+	// assertNoErr(t, p.Next)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	// expect(t, p.Int, 0)
+	expect.Int(t, p, 0)
+
+	// p.Down()
+	// assertNoErr(t, p.Next)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+
+	// expect(t, p.String, "a")
+	expect.String(t, p, "a")
+
+	// p.Down()
+	// assertNoErr(t, p.Next)
+	expect.Hint(t, p, parse.ValueHint)
+
+	// expect(t, p.String, "b")
+	expect.String(t, p, "b")
+
+	// p.Up()                 // back up to object
+	// expectEOF(t, p.Next)   // go to "}"
+	// p.Up()                 // skip over `}`,
+	// assertNoErr(t, p.Next) // go to `1:b`
+	// p.Up()                 // skip over `1:b, 2:c` and `]`
+	// assertNoErr(t, p.Next) // go to `"B":1`
+	expect.NoErr(t, p.Skip) // skip over }`
+	expect.NoErr(t, p.Skip) // skip over `1:"b", 2:"c"]`
+	expect.Hint(t, p, parse.FieldHint)
+
+	// expect(t, p.String, "B")
+	expect.String(t, p, "B")
+
+	// expectEOF(t, p.Next)
+	expect.NoErr(t, p.Skip) // skip over 1
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.EOF(t, p)
 }
