@@ -17,6 +17,7 @@ package parse
 import (
 	"io"
 
+	"github.com/katydid/parser-go-json/json/jsonschema"
 	"github.com/katydid/parser-go-json/json/scan"
 	"github.com/katydid/parser-go-json/json/token"
 	"github.com/katydid/parser-go/parse"
@@ -42,6 +43,8 @@ type Parser interface {
 
 	// Init restarts the parser with a new byte buffer, without allocating a new parser.
 	Init([]byte)
+
+	jsonschema.JSONSchemaAble
 }
 
 type parser struct {
@@ -269,6 +272,16 @@ func (p *parser) Next() (Hint, error) {
 
 func (p *parser) Token() (parse.Kind, []byte, error) {
 	return p.tokenizer.Token()
+}
+
+func (p *parser) JSONSchemaType() jsonschema.JSONSchemaType {
+	switch p.state {
+	case arrayOpenState:
+		return jsonschema.JSONSchemaTypeArray
+	case objectOpenState:
+		return jsonschema.JSONSchemaTypeObject
+	}
+	return jsonschema.JSONSchemaTypeUnknown
 }
 
 func (p *parser) Skip() error {

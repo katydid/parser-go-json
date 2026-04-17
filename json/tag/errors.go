@@ -17,3 +17,7 @@ package tag
 import "errors"
 
 var errUnexpectedClose = errors.New("unexpected `}` or `]`")
+
+var errExpectedTag = errors.New("expected tag")
+
+var errUnknownJSONSchemaType = errors.New("unknown json schema type")
