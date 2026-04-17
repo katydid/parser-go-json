@@ -24,22 +24,7 @@ import (
 )
 
 type Parser interface {
-	// Next returns the Hint of the token or an error.
-	Next() (Hint, error)
-
-	// Skip allows the user to skip over uninteresting parts of the parse tree.
-	// Based on the Hint skip has different intuitive behaviours.
-	// If the Hint was:
-	// * '{': the whole Map is skipped.
-	// * 'k': the key's value is skipped.
-	// * '[': the whole List is skipped.
-	// * 'v': the rest of the Map or List is skipped.
-	// * ']': same as calling Next and ignoring the Hint.
-	// * '}': same as calling Next and ignoring the Hint.
-	Skip() error
-
-	// Tokenize parses the current token.
-	Token() (parse.Kind, []byte, error)
+	parse.Parser
 
 	// Init restarts the parser with a new byte buffer, without allocating a new parser.
 	Init([]byte)
@@ -87,149 +72,154 @@ func (p *parser) nextToken() (scan.Kind, error) {
 	return scanKind, err
 }
 
-func (p *parser) assertValue(scanKind scan.Kind) (Hint, error) {
+func (p *parser) assertValue(scanKind scan.Kind) (parse.Hint, error) {
 	switch scanKind {
 	case scan.NullKind, scan.FalseKind, scan.TrueKind, scan.NumberKind, scan.StringKind:
-		return ValueHint, nil
+		return parse.ValueHint, nil
 	case scan.ArrayOpenKind:
-		return ArrayOpenHint, nil
+		return parse.EnterHint, nil
 	case scan.ObjectOpenKind:
-		return ObjectOpenHint, nil
+		return parse.EnterHint, nil
 	}
-	return UnknownHint, errExpectedValue
+	return parse.UnknownHint, errExpectedValue
 }
 
-func (p *parser) nextStart() (Hint, error) {
+func (p *parser) nextStart() (parse.Hint, error) {
 	scanKind, err := p.nextToken()
 	if err != nil {
-		return UnknownHint, err
+		return parse.UnknownHint, err
 	}
 	hint, err := p.assertValue(scanKind)
 	if err != nil {
-		return UnknownHint, err
+		return parse.UnknownHint, err
 	}
-	if hint == ObjectOpenHint {
-		p.state = objectOpenState
-		p.down(objectOpenState)
-	} else if hint == ArrayOpenHint {
-		p.state = arrayOpenState
-		p.down(arrayOpenState)
+	if hint == parse.EnterHint {
+		switch scanKind {
+		case scan.ArrayOpenKind:
+			p.state = arrayOpenState
+			p.down(arrayOpenState)
+		case scan.ObjectOpenKind:
+			p.state = objectOpenState
+			p.down(objectOpenState)
+		default:
+			panic("unreachable")
+		}
 	} else {
 		p.state = leafState
 	}
 	return hint, nil
 }
 
-func (p *parser) maybeDown(hint Hint) {
-	if hint == ObjectOpenHint {
-		p.down(objectOpenState)
-	}
-	if hint == ArrayOpenHint {
+func (p *parser) maybeDown(scanKind scan.Kind) {
+	switch scanKind {
+	case scan.ArrayOpenKind:
 		p.down(arrayOpenState)
+	case scan.ObjectOpenKind:
+		p.down(objectOpenState)
 	}
 }
 
-func (p *parser) nextValue() (Hint, error) {
+func (p *parser) nextValue() (parse.Hint, error) {
 	scanKind, err := p.nextToken()
 	if err != nil {
-		return UnknownHint, err
+		return parse.UnknownHint, err
 	}
 	hint, err := p.assertValue(scanKind)
 	if err != nil {
 		return hint, err
 	}
-	p.maybeDown(hint)
+	p.maybeDown(scanKind)
 	return hint, nil
 }
 
-func (p *parser) firstArrayElement() (Hint, error) {
+func (p *parser) firstArrayElement() (parse.Hint, error) {
 	scanKind, err := p.nextToken()
 	if err != nil {
-		return UnknownHint, err
+		return parse.UnknownHint, err
 	}
 	if scanKind == scan.ArrayCloseKind {
 		if err := p.up(); err != nil {
-			return UnknownHint, err
+			return parse.UnknownHint, err
 		}
-		return ArrayCloseHint, nil
+		return parse.LeaveHint, nil
 	}
 	hint, err := p.assertValue(scanKind)
 	if err != nil {
-		return UnknownHint, err
+		return parse.UnknownHint, err
 	}
 	p.state = arrayElementState
-	p.maybeDown(hint)
+	p.maybeDown(scanKind)
 	return hint, nil
 }
 
-func (p *parser) nextArrayElement() (Hint, error) {
+func (p *parser) nextArrayElement() (parse.Hint, error) {
 	scanKind, err := p.nextToken()
 	if err != nil {
-		return UnknownHint, err
+		return parse.UnknownHint, err
 	}
 	if scanKind == scan.ArrayCloseKind {
 		if err := p.up(); err != nil {
-			return UnknownHint, err
+			return parse.UnknownHint, err
 		}
-		return ArrayCloseHint, nil
+		return parse.LeaveHint, nil
 	}
 	if scanKind == scan.CommaKind {
 		return p.nextValue()
 	}
-	return UnknownHint, errExpectedCommaOrCloseBracket
+	return parse.UnknownHint, errExpectedCommaOrCloseBracket
 }
 
-func (p *parser) firstObjectKey() (Hint, error) {
+func (p *parser) firstObjectKey() (parse.Hint, error) {
 	scanKind, err := p.nextToken()
 	if err != nil {
-		return UnknownHint, err
+		return parse.UnknownHint, err
 	}
 	if scanKind == scan.ObjectCloseKind {
 		if err := p.up(); err != nil {
-			return UnknownHint, err
+			return parse.UnknownHint, err
 		}
-		return ObjectCloseHint, nil
+		return parse.LeaveHint, nil
 	}
 	if scanKind == scan.StringKind {
 		p.state = objectValueState
-		return KeyHint, nil
+		return parse.FieldHint, nil
 	}
-	return UnknownHint, errExpectedStringOrCloseCurly
+	return parse.UnknownHint, errExpectedStringOrCloseCurly
 }
 
-func (p *parser) nextObjectKey() (Hint, error) {
+func (p *parser) nextObjectKey() (parse.Hint, error) {
 	scanKind, err := p.nextToken()
 	if err != nil {
-		return UnknownHint, err
+		return parse.UnknownHint, err
 	}
 	if scanKind == scan.ObjectCloseKind {
 		if err := p.up(); err != nil {
-			return UnknownHint, err
+			return parse.UnknownHint, err
 		}
-		return ObjectCloseHint, nil
+		return parse.LeaveHint, nil
 	}
 	if scanKind == scan.CommaKind {
 		nextScanKind, err := p.nextToken()
 		if err != nil {
-			return UnknownHint, err
+			return parse.UnknownHint, err
 		}
 		if nextScanKind == scan.StringKind {
 			p.state = objectValueState
-			return KeyHint, nil
+			return parse.FieldHint, nil
 		} else {
-			return UnknownHint, errExpectedCommaOrCloseBracket
+			return parse.UnknownHint, errExpectedCommaOrCloseBracket
 		}
 	}
-	return UnknownHint, errExpectedCommaOrCloseBracket
+	return parse.UnknownHint, errExpectedCommaOrCloseBracket
 }
 
-func (p *parser) nextObjectValue() (Hint, error) {
+func (p *parser) nextObjectValue() (parse.Hint, error) {
 	scanKind, err := p.nextToken()
 	if err != nil {
-		return UnknownHint, err
+		return parse.UnknownHint, err
 	}
 	if scanKind != scan.ColonKind {
-		return UnknownHint, errExpectedColon
+		return parse.UnknownHint, errExpectedColon
 	}
 	p.state = objectKeyState
 	return p.nextValue()
@@ -246,13 +236,13 @@ func (p *parser) eof() error {
 	return io.ErrShortBuffer
 }
 
-func (p *parser) Next() (Hint, error) {
+func (p *parser) Next() (parse.Hint, error) {
 	switch p.state {
 	case startState:
 		return p.nextStart()
 	case leafState:
 		// leaf was already parsed, so there should be nothing left to parse
-		return UnknownHint, p.eof()
+		return parse.UnknownHint, p.eof()
 	case arrayOpenState:
 		return p.firstArrayElement()
 	case arrayElementState:
@@ -264,7 +254,7 @@ func (p *parser) Next() (Hint, error) {
 	case objectValueState:
 		return p.nextObjectValue()
 	case endState:
-		return UnknownHint, p.eof()
+		return parse.UnknownHint, p.eof()
 	default:
 		panic("unreachable")
 	}

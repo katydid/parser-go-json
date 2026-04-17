@@ -16,192 +16,195 @@ package parse
 
 import (
 	"testing"
+
+	"github.com/katydid/parser-go/expect"
+	"github.com/katydid/parser-go/parse"
 )
 
 func TestParseJustNumber(t *testing.T) {
 	s := `1`
 	p := NewParser(WithBuffer([]byte(s)))
-	expectHint(t, p, ValueHint)
-	expectInt(t, p, 1)
-	expectEOF(t, p)
+	expect.Hint(t, p, parse.ValueHint)
+	expect.Int(t, p, 1)
+	expect.EOF(t, p)
 }
 
 func TestParseInvalidObjectWithValue(t *testing.T) {
 	s := `{"a":1`
 	p := NewParser(WithBuffer([]byte(s)))
-	expectHint(t, p, ObjectOpenHint)
-	expectHint(t, p, KeyHint)
-	expectString(t, p, "a")
-	expectHint(t, p, ValueHint)
-	expectInt(t, p, 1)
-	expectErr(t, p.Next)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "a")
+	expect.Hint(t, p, parse.ValueHint)
+	expect.Int(t, p, 1)
+	expect.Err(t, p.Next)
 }
 
 func TestParseInvalidObjectWithOnlyKey(t *testing.T) {
 	s := `{"a"`
 	p := NewParser(WithBuffer([]byte(s)))
-	expectHint(t, p, ObjectOpenHint)
-	expectHint(t, p, KeyHint)
-	expectString(t, p, "a")
-	expectErr(t, p.Next)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "a")
+	expect.Err(t, p.Next)
 }
 
 func TestParseInvalidArrayWithComma(t *testing.T) {
 	s := `[1,`
 	p := NewParser(WithBuffer([]byte(s)))
-	expectHint(t, p, ArrayOpenHint)
-	expectHint(t, p, ValueHint)
-	expectInt(t, p, 1)
-	expectErr(t, p.Next)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.ValueHint)
+	expect.Int(t, p, 1)
+	expect.Err(t, p.Next)
 }
 
 func TestParseInvalidArrayWithoutComma(t *testing.T) {
 	s := `[1`
 	p := NewParser(WithBuffer([]byte(s)))
-	expectHint(t, p, ArrayOpenHint)
-	expectHint(t, p, ValueHint)
-	expectInt(t, p, 1)
-	expectErr(t, p.Next)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.ValueHint)
+	expect.Int(t, p, 1)
+	expect.Err(t, p.Next)
 }
 
 func TestParseValidArrayWithSuffixSpace(t *testing.T) {
 	s := `[1] `
 	p := NewParser(WithBuffer([]byte(s)))
-	expectHint(t, p, ArrayOpenHint)
-	expectHint(t, p, ValueHint)
-	expectInt(t, p, 1)
-	expectHint(t, p, ArrayCloseHint)
-	expectEOF(t, p)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.ValueHint)
+	expect.Int(t, p, 1)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.EOF(t, p)
 }
 
 func TestParseInvalidArrayWithSuffix(t *testing.T) {
 	s := `[1] [`
 	p := NewParser(WithBuffer([]byte(s)))
-	expectHint(t, p, ArrayOpenHint)
-	expectHint(t, p, ValueHint)
-	expectInt(t, p, 1)
-	expectHint(t, p, ArrayCloseHint)
-	expectErr(t, p.Next)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.ValueHint)
+	expect.Int(t, p, 1)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Err(t, p.Next)
 }
 
 func TestParseValidObjectWithSuffixSpace(t *testing.T) {
 	s := `{"a":1} `
 	p := NewParser(WithBuffer([]byte(s)))
-	expectHint(t, p, ObjectOpenHint)
-	expectHint(t, p, KeyHint)
-	expectString(t, p, "a")
-	expectHint(t, p, ValueHint)
-	expectInt(t, p, 1)
-	expectHint(t, p, ObjectCloseHint)
-	expectEOF(t, p)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "a")
+	expect.Hint(t, p, parse.ValueHint)
+	expect.Int(t, p, 1)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.EOF(t, p)
 }
 
 func TestParseInvalidObjectWithSuffix(t *testing.T) {
 	s := `{"a":1} {`
 	p := NewParser(WithBuffer([]byte(s)))
-	expectHint(t, p, ObjectOpenHint)
-	expectHint(t, p, KeyHint)
-	expectString(t, p, "a")
-	expectHint(t, p, ValueHint)
-	expectInt(t, p, 1)
-	expectHint(t, p, ObjectCloseHint)
-	expectErr(t, p.Next)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "a")
+	expect.Hint(t, p, parse.ValueHint)
+	expect.Int(t, p, 1)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Err(t, p.Next)
 }
 
 func TestParseValidNestedObject(t *testing.T) {
 	s := `{"a":{"b":{"c":{"d":{"e": 1}}}}}`
 	p := NewParser(WithBuffer([]byte(s)))
-	expectHint(t, p, ObjectOpenHint)
-	expectHint(t, p, KeyHint)
-	expectString(t, p, "a")
-	expectHint(t, p, ObjectOpenHint)
-	expectHint(t, p, KeyHint)
-	expectString(t, p, "b")
-	expectHint(t, p, ObjectOpenHint)
-	expectHint(t, p, KeyHint)
-	expectString(t, p, "c")
-	expectHint(t, p, ObjectOpenHint)
-	expectHint(t, p, KeyHint)
-	expectString(t, p, "d")
-	expectHint(t, p, ObjectOpenHint)
-	expectHint(t, p, KeyHint)
-	expectString(t, p, "e")
-	expectHint(t, p, ValueHint)
-	expectInt(t, p, 1)
-	expectHint(t, p, ObjectCloseHint)
-	expectHint(t, p, ObjectCloseHint)
-	expectHint(t, p, ObjectCloseHint)
-	expectHint(t, p, ObjectCloseHint)
-	expectHint(t, p, ObjectCloseHint)
-	expectEOF(t, p)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "a")
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "b")
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "c")
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "d")
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "e")
+	expect.Hint(t, p, parse.ValueHint)
+	expect.Int(t, p, 1)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.EOF(t, p)
 }
 
 func TestParseInvalidNestedObject(t *testing.T) {
 	s := `{"a":{"b":{"c":{"d":{"e": 1}}}}`
 	p := NewParser(WithBuffer([]byte(s)))
-	expectHint(t, p, ObjectOpenHint)
-	expectHint(t, p, KeyHint)
-	expectString(t, p, "a")
-	expectHint(t, p, ObjectOpenHint)
-	expectHint(t, p, KeyHint)
-	expectString(t, p, "b")
-	expectHint(t, p, ObjectOpenHint)
-	expectHint(t, p, KeyHint)
-	expectString(t, p, "c")
-	expectHint(t, p, ObjectOpenHint)
-	expectHint(t, p, KeyHint)
-	expectString(t, p, "d")
-	expectHint(t, p, ObjectOpenHint)
-	expectHint(t, p, KeyHint)
-	expectString(t, p, "e")
-	expectHint(t, p, ValueHint)
-	expectInt(t, p, 1)
-	expectHint(t, p, ObjectCloseHint)
-	expectHint(t, p, ObjectCloseHint)
-	expectHint(t, p, ObjectCloseHint)
-	expectHint(t, p, ObjectCloseHint)
-	expectErr(t, p.Next)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "a")
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "b")
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "c")
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "d")
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "e")
+	expect.Hint(t, p, parse.ValueHint)
+	expect.Int(t, p, 1)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Err(t, p.Next)
 }
 
 func TestParseValidNestedArray2(t *testing.T) {
 	s := `[[1]]`
 	p := NewParser(WithBuffer([]byte(s)))
-	expectHint(t, p, ArrayOpenHint)
-	expectHint(t, p, ArrayOpenHint)
-	expectHint(t, p, ValueHint)
-	expectInt(t, p, 1)
-	expectHint(t, p, ArrayCloseHint)
-	expectHint(t, p, ArrayCloseHint)
-	expectEOF(t, p)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.ValueHint)
+	expect.Int(t, p, 1)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.EOF(t, p)
 }
 
 func TestParseValidNestedArray4å(t *testing.T) {
 	s := `[[[[1]]]]`
 	p := NewParser(WithBuffer([]byte(s)))
-	expectHint(t, p, ArrayOpenHint)
-	expectHint(t, p, ArrayOpenHint)
-	expectHint(t, p, ArrayOpenHint)
-	expectHint(t, p, ArrayOpenHint)
-	expectHint(t, p, ValueHint)
-	expectInt(t, p, 1)
-	expectHint(t, p, ArrayCloseHint)
-	expectHint(t, p, ArrayCloseHint)
-	expectHint(t, p, ArrayCloseHint)
-	expectHint(t, p, ArrayCloseHint)
-	expectEOF(t, p)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.ValueHint)
+	expect.Int(t, p, 1)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.EOF(t, p)
 }
 
 func TestParseInvalidNestedArray(t *testing.T) {
 	s := `[[[[1]]]`
 	p := NewParser(WithBuffer([]byte(s)))
-	expectHint(t, p, ArrayOpenHint)
-	expectHint(t, p, ArrayOpenHint)
-	expectHint(t, p, ArrayOpenHint)
-	expectHint(t, p, ArrayOpenHint)
-	expectHint(t, p, ValueHint)
-	expectInt(t, p, 1)
-	expectHint(t, p, ArrayCloseHint)
-	expectHint(t, p, ArrayCloseHint)
-	expectHint(t, p, ArrayCloseHint)
-	expectErr(t, p.Next)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.ValueHint)
+	expect.Int(t, p, 1)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.Err(t, p.Next)
 }

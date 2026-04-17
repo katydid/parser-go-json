@@ -17,12 +17,12 @@ package tag
 import (
 	"fmt"
 
-	jsonparse "github.com/katydid/parser-go-json/json/parse"
+	"github.com/katydid/parser-go/parse"
 )
 
 type state struct {
 	kind       stateKind
-	hint       jsonparse.Hint
+	hint       parse.Hint
 	arrayIndex int64
 }
 
