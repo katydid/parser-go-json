@@ -28,6 +28,7 @@ type Parser interface {
 
 	// Init restarts the parser with a new byte buffer, without allocating a new parser.
 	Init([]byte)
+	Reset()
 
 	jsonschema.JSONSchemaAble
 }
@@ -54,6 +55,10 @@ func NewParser(opts ...Option) Parser {
 func (p *parser) Init(buf []byte) {
 	// Reset the tokenizer with the new buffer.
 	p.tokenizer.Init(buf)
+	p.Reset()
+}
+
+func (p *parser) Reset() {
 	// Reset the state.
 	p.state = startState
 	// Shrink the stack's length, but keep it's capacity,

@@ -32,21 +32,35 @@ type Interface interface {
 
 type jsonParser struct {
 	Interface
-	pool pool.Pool
+	underlying jsonparse.Parser
+	pool       pool.Pool
 }
 
 // NewParser returns a new JSON parser.
 func NewParser() Interface {
 	p := pool.New()
-	j := tag.NewTagger(jsonparse.NewParser(jsonparse.WithAllocator(p.Alloc)), tag.WithAllocator(p.Alloc), tag.WithIndexes())
+	underlyingParser := jsonparse.NewParser(jsonparse.WithAllocator(p.Alloc))
+	j := tag.NewTagger(underlyingParser, tag.WithAllocator(p.Alloc), tag.WithIndexes())
 	return &jsonParser{
-		Interface: downgrade.ParserWithInit(j),
-		pool:      p,
+		Interface:  downgrade.ParserWithInit(&resetInit{j}),
+		underlying: underlyingParser,
+		pool:       p,
 	}
 }
 
+type resetInit struct {
+	tag.Parser
+}
+
+func (r *resetInit) Init(buf []byte) {
+	r.Reset()
+}
+
 func (p *jsonParser) Init(buf []byte) error {
+	// This Init only resets the tagger and the downgrade parser.
 	p.Interface.Init(buf)
+	// This Init really inits the underlying parser with the new buffer.
+	p.underlying.Init(buf)
 	p.pool.FreeAll()
 	return nil
 }

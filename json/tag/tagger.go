@@ -19,18 +19,23 @@ import (
 	"io"
 
 	"github.com/katydid/parser-go-json/json/jsonschema"
-	jsonparse "github.com/katydid/parser-go-json/json/parse"
 	"github.com/katydid/parser-go/cast"
 	"github.com/katydid/parser-go/parse"
 )
 
 type Parser interface {
 	parse.Parser
-	Init([]byte)
+	Reset()
+}
+
+type JSONSchemaAbleParser interface {
+	parse.Parser
+	jsonschema.JSONSchemaAble
+	Reset()
 }
 
 type tagger struct {
-	p     jsonparse.Parser
+	p     JSONSchemaAbleParser
 	tag   bool
 	index bool
 	alloc func(size int) []byte
@@ -47,7 +52,7 @@ var arrayTagToken = []byte("array")
 // is parsed as: `{"object": {"a": {"array": []}}}`.
 // The kind returned from the Token method for
 // "object" and "array" will be parse.TagKind.
-func NewTagger(p jsonparse.Parser, opts ...Option) Parser {
+func NewTagger(p JSONSchemaAbleParser, opts ...Option) Parser {
 	t := &tagger{
 		p:     p,
 		tag:   false,
@@ -258,14 +263,14 @@ func (t *tagger) Token() (parse.Kind, []byte, error) {
 	return t.p.Token()
 }
 
-func (t *tagger) Init(buf []byte) {
+func (t *tagger) Reset() {
 	// Reset the state.
 	t.state.kind = startState
 	// Shrink the stack's length, but keep it's capacity,
 	// so we can reuse it on the next parse.
 	t.stack = t.stack[:0]
 	// Reset the parser too.
-	t.p.Init(buf)
+	t.p.Reset()
 }
 
 func (t *tagger) down(stateKind stateKind) {
