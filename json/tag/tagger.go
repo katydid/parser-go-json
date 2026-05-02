@@ -25,12 +25,14 @@ import (
 
 type Parser interface {
 	parse.Parser
+	Init([]byte)
 	Reset()
 }
 
 type JSONSchemaAbleParser interface {
 	parse.Parser
 	jsonschema.JSONSchemaAble
+	Init([]byte)
 	Reset()
 }
 
@@ -67,6 +69,12 @@ func NewTagger(p JSONSchemaAbleParser, opts ...Option) Parser {
 		opt(t)
 	}
 	return t
+}
+
+func (t *tagger) Init(bs []byte) {
+	t.state = state{}
+	t.stack = t.stack[:0]
+	t.p.Init(bs)
 }
 
 func (t *tagger) nextStart(h parse.Hint) (parse.Hint, error) {
