@@ -25,14 +25,12 @@ import (
 
 type Parser interface {
 	parse.Parser
-	Init([]byte)
 	Reset()
 }
 
 type JSONSchemaAbleParser interface {
 	parse.Parser
 	jsonschema.JSONSchemaAble
-	Init([]byte)
 	Reset()
 }
 
@@ -71,10 +69,14 @@ func NewTagger(p JSONSchemaAbleParser, opts ...Option) Parser {
 	return t
 }
 
-func (t *tagger) Init(bs []byte) {
+func (t *tagger) Reset() {
+	// Reset the state.
 	t.state = state{}
+	// Shrink the stack's length, but keep it's capacity,
+	// so we can reuse it on the next parse.
 	t.stack = t.stack[:0]
-	t.p.Init(bs)
+	// Reset the parser too.
+	t.p.Reset()
 }
 
 func (t *tagger) nextStart(h parse.Hint) (parse.Hint, error) {
@@ -269,16 +271,6 @@ func (t *tagger) Token() (parse.Kind, []byte, error) {
 		return parse.Int64Kind, cast.FromInt64(t.state.arrayIndex, t.alloc), nil
 	}
 	return t.p.Token()
-}
-
-func (t *tagger) Reset() {
-	// Reset the state.
-	t.state.kind = startState
-	// Shrink the stack's length, but keep it's capacity,
-	// so we can reuse it on the next parse.
-	t.stack = t.stack[:0]
-	// Reset the parser too.
-	t.p.Reset()
 }
 
 func (t *tagger) down(stateKind stateKind) {

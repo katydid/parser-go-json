@@ -24,14 +24,20 @@ import (
 
 type Parser interface {
 	goparse.Parser
+	Reset()
 	// Init restarts the parser with a new byte buffer, without allocating a new parser.
 	Init([]byte)
+}
+
+type parserWithReset interface {
+	goparse.Parser
 	Reset()
 }
 
 type jsonParser struct {
-	Parser
-	pool pool.Pool
+	parserWithReset
+	underlying Parser
+	pool       pool.Pool
 }
 
 // NewParser returns a new JSON parser with indexes.
@@ -39,8 +45,8 @@ type jsonParser struct {
 func NewParser() Parser {
 	p := pool.New()
 	underlyingParser := parse.NewParser(parse.WithAllocator(p.Alloc))
-	j := tag.NewTagger(underlyingParser, tag.WithAllocator(p.Alloc), tag.WithIndexes())
-	return &jsonParser{Parser: j, pool: p}
+	tagged := tag.NewTagger(underlyingParser, tag.WithAllocator(p.Alloc), tag.WithIndexes())
+	return &jsonParser{parserWithReset: tagged, underlying: underlyingParser, pool: p}
 }
 
 // NewJSONSchemaParser returns a new JSON parser that tags objects and arrays, so that the types can be checked by JSONSchema.
@@ -51,12 +57,13 @@ func NewJSONSchemaParser() Parser {
 	p := pool.New()
 	underlyingParser := parse.NewParser(parse.WithAllocator(p.Alloc))
 	j := tag.NewTagger(underlyingParser, tag.WithAllocator(p.Alloc), tag.WithIndexes(), tag.WithTags())
-	return &jsonParser{Parser: j, pool: p}
+	return &jsonParser{parserWithReset: j, pool: p}
 }
 
 func (p *jsonParser) Init(buf []byte) {
 	// This Init really inits the underlying parser with the new buffer.
-	p.Parser.Init(buf)
+	p.parserWithReset.Reset()
+	p.underlying.Init(buf)
 	p.pool.FreeAll()
 	return
 }
