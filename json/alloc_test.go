@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"github.com/katydid/parser-go-json/json/internal/testrun"
-	"github.com/katydid/parser-go/parser/debug"
+	"github.com/katydid/parser-go/parse/debug"
 	"github.com/katydid/parser-go/pool"
 )
 

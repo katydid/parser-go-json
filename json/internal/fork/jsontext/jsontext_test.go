@@ -5,7 +5,6 @@
 package jsontext
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/katydid/parser-go-json/json"
@@ -21,8 +20,8 @@ func TestWalk(t *testing.T) {
 
 func TestMoreValues(t *testing.T) {
 	p := json.NewParser()
-	testrun.EqualValue(t, p, ` null`, fmt.Sprintf("%v", []byte("null")))
-	testrun.EqualValue(t, p, ` null `, fmt.Sprintf("%v", []byte("null")))
+	testrun.EqualValue(t, p, ` null`, "<nil>")
+	testrun.EqualValue(t, p, ` null `, "<nil>")
 	testrun.SameValue(t, p, `0`)
 	testrun.EqualValue(t, p, `0.0`, "0")
 	testrun.SameValue(t, p, `123456789`)

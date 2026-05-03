@@ -16,51 +16,47 @@
 package json
 
 import (
-	jsonparse "github.com/katydid/parser-go-json/json/parse"
+	"github.com/katydid/parser-go-json/json/parse"
 	"github.com/katydid/parser-go-json/json/tag"
-	"github.com/katydid/parser-go/compat/downgrade"
-	"github.com/katydid/parser-go/parser"
+	goparse "github.com/katydid/parser-go/parse"
 	"github.com/katydid/parser-go/pool"
 )
 
-// Interface is a parser for JSON
-type Interface interface {
-	parser.Interface
-	//Init initialises the parser with a byte buffer containing JSON.
-	Init(buf []byte) error
+type Parser interface {
+	goparse.Parser
+	// Init restarts the parser with a new byte buffer, without allocating a new parser.
+	Init([]byte)
+	Reset()
 }
 
 type jsonParser struct {
-	Interface
-	underlying jsonparse.Parser
-	pool       pool.Pool
+	Parser
+	pool pool.Pool
 }
 
-// NewParser returns a new JSON parser.
-func NewParser() Interface {
+// NewParser returns a new JSON parser with indexes.
+// Use this parser with other Katydid tools, such as the validator.
+func NewParser() Parser {
 	p := pool.New()
-	underlyingParser := jsonparse.NewParser(jsonparse.WithAllocator(p.Alloc))
+	underlyingParser := parse.NewParser(parse.WithAllocator(p.Alloc))
 	j := tag.NewTagger(underlyingParser, tag.WithAllocator(p.Alloc), tag.WithIndexes())
-	return &jsonParser{
-		Interface:  downgrade.ParserWithInit(&resetInit{j}),
-		underlying: underlyingParser,
-		pool:       p,
-	}
+	return &jsonParser{Parser: j, pool: p}
 }
 
-type resetInit struct {
-	tag.Parser
+// NewJSONSchemaParser returns a new JSON parser that tags objects and arrays, so that the types can be checked by JSONSchema.
+// The following json: `{"a": []}`
+// is parsed as: `{"object": {"a": {"array": []}}}`.
+// The kind returned from the Token method for "object" and "array" will be parse.TagKind.
+func NewJSONSchemaParser() Parser {
+	p := pool.New()
+	underlyingParser := parse.NewParser(parse.WithAllocator(p.Alloc))
+	j := tag.NewTagger(underlyingParser, tag.WithAllocator(p.Alloc), tag.WithIndexes(), tag.WithTags())
+	return &jsonParser{Parser: j, pool: p}
 }
 
-func (r *resetInit) Init(buf []byte) {
-	r.Reset()
-}
-
-func (p *jsonParser) Init(buf []byte) error {
-	// This Init only resets the tagger and the downgrade parser.
-	p.Interface.Init(buf)
+func (p *jsonParser) Init(buf []byte) {
 	// This Init really inits the underlying parser with the new buffer.
-	p.underlying.Init(buf)
+	p.Parser.Init(buf)
 	p.pool.FreeAll()
-	return nil
+	return
 }

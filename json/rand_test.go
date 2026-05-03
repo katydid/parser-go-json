@@ -19,7 +19,7 @@ import (
 
 	"github.com/katydid/parser-go-json/json/internal/testrun"
 	"github.com/katydid/parser-go-json/json/rand"
-	"github.com/katydid/parser-go/parser/debug"
+	"github.com/katydid/parser-go/parse/debug"
 )
 
 func TestParseRandomValues(t *testing.T) {
@@ -31,9 +31,7 @@ func TestParseRandomValues(t *testing.T) {
 	for i := 0; i < numValues; i++ {
 		name := testrun.Name(values[i])
 		t.Run(name, func(t *testing.T) {
-			if err := p.Init(values[i]); err != nil {
-				t.Fatalf("seed = %v, err = %v, input = %v", r.Seed(), err, string(values[i]))
-			}
+			p.Init(values[i])
 			if err := debug.Walk(p); err != nil {
 				t.Fatalf("seed = %v, err = %v", r.Seed(), err)
 			}
@@ -50,9 +48,7 @@ func TestRandomlyParseRandomValues(t *testing.T) {
 	for i := 0; i < numValues; i++ {
 		name := testrun.Name(values[i])
 		t.Run(name, func(t *testing.T) {
-			if err := p.Init(values[i]); err != nil {
-				t.Fatalf("seed = %v, err = %v, input = %v", r.Seed(), err, string(values[i]))
-			}
+			p.Init(values[i])
 			if err := debug.RandomWalk(p, r, 2, 2); err != nil {
 				t.Fatalf("seed = %v, err = %v", r.Seed(), err)
 			}

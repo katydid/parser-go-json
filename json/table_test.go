@@ -15,7 +15,6 @@
 package json
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/katydid/parser-go-json/json/internal/testrun"
@@ -39,7 +38,7 @@ func TestValues(t *testing.T) {
 	testrun.EqualValue(t, p, `"\b"`, "\b")
 	testrun.EqualValue(t, p, `true`, "true")
 	testrun.EqualValue(t, p, `false`, "false")
-	testrun.EqualValue(t, p, `null`, fmt.Sprintf("%v", []byte("null")))
+	testrun.EqualValue(t, p, `null`, "<nil>")
 }
 
 func TestArray(t *testing.T) {

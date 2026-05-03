@@ -17,115 +17,91 @@ package json
 
 import (
 	"testing"
+
+	"github.com/katydid/parser-go/expect"
+	"github.com/katydid/parser-go/parse"
 )
 
 func TestSkipObjectValues(t *testing.T) {
 	str := `{"a":1, "b":{"c":3}, "d":4}`
 	p := NewParser()
-	if err := p.Init([]byte(str)); err != nil {
-		t.Fatal(err)
-	}
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "a")
+	p.Init([]byte(str))
 
-	p.Down()
-	assertNoErr(t, p.Next)
-	expect(t, p.Int, 1)
-	// expectEOF(t, p.Next)
-	p.Up()
+	expect.Hint(t, p, parse.EnterHint)
 
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "b")
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "a")
+	expect.Hint(t, p, parse.ValueHint)
+	expect.Int(t, p, 1)
 
-	p.Down()
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "c")
-	p.Down()
-	assertNoErr(t, p.Next)
-	// expect(t, p.Int, 3)
-	// expectEOF(t, p.Next)
-	p.Up()
-	expectEOF(t, p.Next)
-	p.Up()
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "b")
 
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "d")
-	expectEOF(t, p.Next)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "c")
+	expect.Hint(t, p, parse.ValueHint)
+	// do not tokenize 3
+	expect.Hint(t, p, parse.LeaveHint)
+
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "d")
+	expect.NoErr(t, p.Skip)
+
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.EOF(t, p)
 }
 
 func TestSkipArrayElements(t *testing.T) {
 	str := `["a", true, {"a":97}, [10,20]]`
 	p := NewParser()
-	if err := p.Init([]byte(str)); err != nil {
-		t.Fatal(err)
-	}
+	p.Init([]byte(str))
 
-	assertNoErr(t, p.Next)
-	expect(t, p.Int, 0)
-	p.Down()
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "a")
-	// expectEOF(t, p.Next)
-	p.Up()
+	expect.Hint(t, p, parse.EnterHint)
 
-	assertNoErr(t, p.Next)
-	expect(t, p.Int, 1)
-	p.Down()
-	assertNoErr(t, p.Next)
-	expect(t, p.Bool, true)
-	expectEOF(t, p.Next)
-	p.Up()
+	expect.Hint(t, p, parse.FieldHint)
+	expect.Int(t, p, 0)
+	expect.Hint(t, p, parse.ValueHint)
+	expect.String(t, p, "a")
 
-	assertNoErr(t, p.Next)
-	expect(t, p.Int, 2)
-	p.Down()
-	assertNoErr(t, p.Next)
-	// expect(t, p.String, "a")
-	// p.Down()
-	// assertNoErr(t, p.Next)
-	// expect(t, p.Int, 97)
-	// expectEOF(t, p.Next)
-	// p.Up()
-	// expectEOF(t, p.Next)
-	p.Up()
+	expect.Hint(t, p, parse.FieldHint)
+	expect.Int(t, p, 1)
+	expect.Hint(t, p, parse.ValueHint)
+	expect.True(t, p)
 
-	assertNoErr(t, p.Next)
-	expect(t, p.Int, 3)
-	p.Down()
-	assertNoErr(t, p.Next)
-	expect(t, p.Int, 0)
-	p.Down()
-	assertNoErr(t, p.Next)
-	// expect(t, p.Int, 10)
-	// expectEOF(t, p.Next)
-	p.Up()
-	assertNoErr(t, p.Next)
-	// expect(t, p.Int, 1)
-	// p.Down()
-	// assertNoErr(t, p.Next)
-	// expect(t, p.Int, 20)
-	// expectEOF(t, p.Next)
-	// p.Up()
-	// expectEOF(t, p.Next)
-	p.Up()
+	expect.Hint(t, p, parse.FieldHint)
+	expect.Int(t, p, 2)
+	expect.NoErr(t, p.Skip)
 
-	expectEOF(t, p.Next)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.Int(t, p, 3)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.Int(t, p, 0)
+	expect.NoErr(t, p.Skip)
+	expect.NoErr(t, p.Skip)
+
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.EOF(t, p)
 }
 
 func TestSkipArrayObjectElement(t *testing.T) {
 	str := `{"A":[{"a":97}],"B":2}`
 	p := NewParser()
-	if err := p.Init([]byte(str)); err != nil {
-		t.Fatal(err)
-	}
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "A")
-	p.Down()
-	assertNoErr(t, p.Next)
-	p.Up()
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "B")
-	expectEOF(t, p.Next)
+	p.Init([]byte(str))
+	expect.Hint(t, p, parse.EnterHint)
+
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "A")
+	expect.Hint(t, p, parse.EnterHint)
+	expect.NoErr(t, p.Skip)
+
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "B")
+	expect.NoErr(t, p.Skip)
+
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.EOF(t, p)
 }
 
 func TestSkipUpTwiceInARow(t *testing.T) {
@@ -137,21 +113,21 @@ func TestSkipUpTwiceInARow(t *testing.T) {
 		]
 	}`
 	p := NewParser()
-	if err := p.Init([]byte(str)); err != nil {
-		t.Fatal(err)
-	}
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "A")
+	p.Init([]byte(str))
+	expect.Hint(t, p, parse.EnterHint)
 
-	p.Down()
-	assertNoErr(t, p.Next)
-	expect(t, p.Int, 0)
-	p.Down()
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "a")
-	p.Up()
-	p.Up()
-	expectEOF(t, p.Next)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "A")
+
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.Int(t, p, 0)
+	expect.Hint(t, p, parse.ValueHint)
+	expect.String(t, p, "a")
+	expect.NoErr(t, p.Skip)
+
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.EOF(t, p)
 }
 
 func TestSkipDownUp(t *testing.T) {
@@ -163,21 +139,23 @@ func TestSkipDownUp(t *testing.T) {
 		]
 	}`
 	p := NewParser()
-	if err := p.Init([]byte(str)); err != nil {
-		t.Fatal(err)
-	}
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "A")
+	p.Init([]byte(str))
+	expect.Hint(t, p, parse.EnterHint)
 
-	p.Down()
-	assertNoErr(t, p.Next)
-	expect(t, p.Int, 0)
-	p.Down()
-	p.Up()
-	assertNoErr(t, p.Next)
-	expect(t, p.Int, 1)
-	p.Up()
-	expectEOF(t, p.Next)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "A")
+
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.Int(t, p, 0)
+	expect.NoErr(t, p.Skip)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.Int(t, p, 1)
+	expect.NoErr(t, p.Skip)
+	expect.NoErr(t, p.Skip)
+
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.EOF(t, p)
 }
 
 func TestSkipDownUpUp(t *testing.T) {
@@ -190,21 +168,23 @@ func TestSkipDownUpUp(t *testing.T) {
 		"B": 1
 	}`
 	p := NewParser()
-	if err := p.Init([]byte(str)); err != nil {
-		t.Fatal(err)
-	}
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "A")
+	p.Init([]byte(str))
+	expect.Hint(t, p, parse.EnterHint)
 
-	p.Down()
-	assertNoErr(t, p.Next)
-	expect(t, p.Int, 0)
-	p.Down()
-	p.Up()
-	p.Up()
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "B")
-	expectEOF(t, p.Next)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "A")
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.Int(t, p, 0)
+	expect.NoErr(t, p.Skip)
+	expect.NoErr(t, p.Skip)
+
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "B")
+	expect.NoErr(t, p.Skip)
+
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.EOF(t, p)
 }
 
 func TestSkipUpUpUpTwoFields(t *testing.T) {
@@ -217,29 +197,31 @@ func TestSkipUpUpUpTwoFields(t *testing.T) {
 		"B": 1
 	}`
 	p := NewParser()
-	if err := p.Init([]byte(str)); err != nil {
-		t.Fatal(err)
-	}
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "A")
+	p.Init([]byte(str))
+	expect.Hint(t, p, parse.EnterHint)
 
-	p.Down()
-	assertNoErr(t, p.Next)
-	expect(t, p.Int, 0)
-	p.Down()
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "a")
-	p.Down()
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "b")
-	p.Up()                 // back up to object
-	assertNoErr(t, p.Next) // go to "c"
-	p.Up()                 // skip over , `"c": "d"` and `}`,
-	assertNoErr(t, p.Next) // go to `1:b`
-	p.Up()                 // skip over `1:b, 2:c` and `]`
-	assertNoErr(t, p.Next) // go to `"B":1`
-	expect(t, p.String, "B")
-	expectEOF(t, p.Next)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "A")
+	expect.Hint(t, p, parse.EnterHint)
+
+	expect.Hint(t, p, parse.FieldHint)
+	expect.Int(t, p, 0)
+	expect.Hint(t, p, parse.EnterHint)
+
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "a")
+	expect.Hint(t, p, parse.ValueHint)
+	expect.String(t, p, "b")
+
+	expect.NoErr(t, p.Skip) // skip over , `"c": "d"` and `}`,
+	expect.NoErr(t, p.Skip) // skip over `1:b, 2:c` and `]`
+
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "B")
+	expect.NoErr(t, p.Skip)
+
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.EOF(t, p)
 }
 
 func TestSkipUpUpUpEndOfObject(t *testing.T) {
@@ -252,29 +234,31 @@ func TestSkipUpUpUpEndOfObject(t *testing.T) {
 		"B": 1
 	}`
 	p := NewParser()
-	if err := p.Init([]byte(str)); err != nil {
-		t.Fatal(err)
-	}
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "A")
+	p.Init([]byte(str))
+	expect.Hint(t, p, parse.EnterHint)
 
-	p.Down()
-	assertNoErr(t, p.Next)
-	expect(t, p.Int, 0)
-	p.Down()
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "a")
-	p.Down()
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "b")
-	p.Up()                 // back up to object
-	expectEOF(t, p.Next)   // go to "}"
-	p.Up()                 // skip over `}`,
-	assertNoErr(t, p.Next) // go to `1:b`
-	p.Up()                 // skip over `1:b, 2:c` and `]`
-	assertNoErr(t, p.Next) // go to `"B":1`
-	expect(t, p.String, "B")
-	expectEOF(t, p.Next)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "A")
+	expect.Hint(t, p, parse.EnterHint)
+
+	expect.Hint(t, p, parse.FieldHint)
+	expect.Int(t, p, 0)
+	expect.Hint(t, p, parse.EnterHint)
+
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "a")
+	expect.Hint(t, p, parse.ValueHint)
+	expect.String(t, p, "b")
+
+	expect.NoErr(t, p.Skip) // skip over `}`,
+	expect.NoErr(t, p.Skip) // skip over `1:b, 2:c` and `]`
+
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "B")
+	expect.NoErr(t, p.Skip)
+
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.EOF(t, p)
 }
 
 func TestSkipUpUpUpOnlyObjects(t *testing.T) {
@@ -287,27 +271,29 @@ func TestSkipUpUpUpOnlyObjects(t *testing.T) {
 		"B": 1
 	}`
 	p := NewParser()
-	if err := p.Init([]byte(str)); err != nil {
-		t.Fatal(err)
-	}
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "A")
+	p.Init([]byte(str))
+	expect.Hint(t, p, parse.EnterHint)
 
-	p.Down()
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "0")
-	p.Down()
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "a")
-	p.Down()
-	assertNoErr(t, p.Next)
-	expect(t, p.String, "b")
-	p.Up()                 // back up to object
-	assertNoErr(t, p.Next) // go to "c"
-	p.Up()                 // skip over , `"c": "d"` and `}`,
-	assertNoErr(t, p.Next) // go to `"1":b`
-	p.Up()                 // skip over `"1":b, "2":c` and `}`
-	assertNoErr(t, p.Next) // go to `"B":1`
-	expect(t, p.String, "B")
-	expectEOF(t, p.Next)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "A")
+	expect.Hint(t, p, parse.EnterHint)
+
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "0")
+	expect.Hint(t, p, parse.EnterHint)
+
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "a")
+	expect.Hint(t, p, parse.ValueHint)
+	expect.String(t, p, "b")
+
+	expect.NoErr(t, p.Skip) // skip over , `"c": "d"` and `}`,
+	expect.NoErr(t, p.Skip) // skip over `"1":"b", "2":"c"` and `}`
+
+	expect.Hint(t, p, parse.FieldHint)
+	expect.String(t, p, "B")
+	expect.NoErr(t, p.Skip)
+
+	expect.Hint(t, p, parse.LeaveHint)
+	expect.EOF(t, p)
 }

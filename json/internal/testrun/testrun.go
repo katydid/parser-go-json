@@ -18,26 +18,22 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/katydid/parser-go/parser"
-	"github.com/katydid/parser-go/parser/debug"
+	goparse "github.com/katydid/parser-go/parse"
+	"github.com/katydid/parser-go/parse/debug"
 )
 
 type InitParser interface {
-	parser.Interface
-	Init([]byte) error
+	goparse.Parser
+	Init([]byte)
 }
 
 func parse(parser InitParser, s string) (debug.Nodes, error) {
-	if err := parser.Init([]byte(s)); err != nil {
-		return nil, err
-	}
+	parser.Init([]byte(s))
 	return debug.Parse(parser)
 }
 
 func walk(parser InitParser, s string) error {
-	if err := parser.Init([]byte(s)); err != nil {
-		return err
-	}
+	parser.Init([]byte(s))
 	return debug.Walk(parser)
 }
 

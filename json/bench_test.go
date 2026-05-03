@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"github.com/katydid/parser-go-json/json/rand"
-	"github.com/katydid/parser-go/parser/debug"
+	"github.com/katydid/parser-go/parse/debug"
 	"github.com/katydid/parser-go/pool"
 )
 
@@ -33,18 +33,14 @@ func BenchmarkPoolDefault(b *testing.B) {
 		jparser := NewParser()
 		// exercise buffer pool
 		for i := 0; i < num; i++ {
-			if err := jparser.Init(values[i%num]); err != nil {
-				b.Fatalf("seed = %v, err = %v", r.Seed(), err)
-			}
+			jparser.Init(values[i%num])
 			if err := debug.Walk(jparser); err != nil {
 				b.Fatalf("seed = %v, err = %v", r.Seed(), err)
 			}
 		}
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
-			if err := jparser.Init(values[i%num]); err != nil {
-				b.Fatalf("seed = %v, err = %v", r.Seed(), err)
-			}
+			jparser.Init(values[i%num])
 			if err := debug.Walk(jparser); err != nil {
 				b.Fatalf("seed = %v, err = %v", r.Seed(), err)
 			}
@@ -57,9 +53,7 @@ func BenchmarkPoolDefault(b *testing.B) {
 		jparser.(*jsonParser).pool = pool.None()
 		b.ResetTimer()
 		for i := 0; i < b.N; i++ {
-			if err := jparser.Init(values[i%num]); err != nil {
-				b.Fatalf("seed = %v, err = %v", r.Seed(), err)
-			}
+			jparser.Init(values[i%num])
 			if err := debug.Walk(jparser); err != nil {
 				b.Fatalf("seed = %v, err = %v", r.Seed(), err)
 			}

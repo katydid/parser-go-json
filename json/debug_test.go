@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/katydid/parser-go/parser/debug"
+	"github.com/katydid/parser-go/parse/debug"
 	"github.com/katydid/parser-go/pool"
 )
 
@@ -29,9 +29,7 @@ func TestDebugParse(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := p.Init(data); err != nil {
-		t.Fatal(err)
-	}
+	p.Init(data)
 	m, err := debug.Parse(p)
 	if err != nil {
 		t.Fatal(err)
@@ -50,9 +48,7 @@ func TestDebugRandomWalk(t *testing.T) {
 	}
 	for i := 0; i < 10; i++ {
 		t.Run(fmt.Sprintf("%d", i), func(t *testing.T) {
-			if err := p.Init(data); err != nil {
-				t.Fatal(err)
-			}
+			p.Init(data)
 			l := debug.NewLogger(p, debug.NewLineLogger())
 			if err := debug.RandomWalk(l, debug.NewRand(), 10, 3); err != nil {
 				t.Fatal(err)
