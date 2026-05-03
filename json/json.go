@@ -50,8 +50,8 @@ func NewParser() Parser {
 }
 
 // NewJSONSchemaParser returns a new JSON parser that tags objects and arrays, so that the types can be checked by JSONSchema.
-// The following json: `{"a": []}`
-// is parsed as: `{"object": {"a": {"array": []}}}`.
+// The following json: `{"a": ["b", "c"]}`
+// is parsed as: `{"object": {"a": {"array": {0: "b", 1: "c"}}}}`.
 // The kind returned from the Token method for "object" and "array" will be parse.TagKind.
 func NewJSONSchemaParser() Parser {
 	p := pool.New()

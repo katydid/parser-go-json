@@ -8,7 +8,7 @@ We can parse json without unmarshaling it into a Go `struct` using the [Parser i
 import "github.com/katydid/parser-go-json/json"
 
 func main() {
-    jsonString := `{"otherfield": 123, "myfield": "myvalue"}`
+	jsonString := `{"otherfield": 123, "myfield": "myvalue"}`
 	jsonParser := json.NewParser()
 	jsonParser.Init([]byte(jsonString))
 	myvalue, err := GetMyField(jsonParser)
