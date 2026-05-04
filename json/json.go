@@ -56,8 +56,8 @@ func NewParser() Parser {
 func NewJSONSchemaParser() Parser {
 	p := pool.New()
 	underlyingParser := parse.NewParser(parse.WithAllocator(p.Alloc))
-	j := tag.NewTagger(underlyingParser, tag.WithAllocator(p.Alloc), tag.WithIndexes(), tag.WithTags())
-	return &jsonParser{parserWithReset: j, pool: p}
+	tagged := tag.NewTagger(underlyingParser, tag.WithAllocator(p.Alloc), tag.WithIndexes(), tag.WithTags())
+	return &jsonParser{parserWithReset: tagged, underlying: underlyingParser, pool: p}
 }
 
 func (p *jsonParser) Init(buf []byte) {
