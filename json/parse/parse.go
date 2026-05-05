@@ -81,9 +81,7 @@ func (p *parser) assertValue(scanKind scan.Kind) (parse.Hint, error) {
 	switch scanKind {
 	case scan.NullKind, scan.FalseKind, scan.TrueKind, scan.NumberKind, scan.StringKind:
 		return parse.ValueHint, nil
-	case scan.ArrayOpenKind:
-		return parse.EnterHint, nil
-	case scan.ObjectOpenKind:
+	case scan.ArrayOpenKind, scan.ObjectOpenKind:
 		return parse.EnterHint, nil
 	}
 	return parse.UnknownHint, errExpectedValue

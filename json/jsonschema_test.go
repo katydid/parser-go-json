@@ -78,3 +78,15 @@ func TestJSONSchema(t *testing.T) {
 	expect.Hint(t, p, parse.LeaveHint)
 	expect.EOF(t, p)
 }
+
+func TestJSONSchemaFloatPointZero(t *testing.T) {
+	s := `{"num":1.0}`
+	p := NewJSONSchemaParser()
+	p.Init([]byte(s))
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.Hint(t, p, parse.EnterHint)
+	expect.Hint(t, p, parse.FieldHint)
+	expect.Hint(t, p, parse.ValueHint)
+	expect.Float(t, p, 1.0)
+}

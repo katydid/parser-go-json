@@ -23,6 +23,27 @@ import (
 	"github.com/katydid/parser-go/parse"
 )
 
+func TestFloatPointZero(t *testing.T) {
+	input := "1.0"
+	var want float64 = 1.0
+	tzer := NewTokenizer([]byte(input))
+	_, err := tzer.Next()
+	if err != nil {
+		t.Fatal(err)
+	}
+	kind, gotbs, err := tzer.Token()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if kind != parse.Float64Kind {
+		t.Fatalf("expected float not %s", kind)
+	}
+	got := cast.ToFloat64(gotbs)
+	if got != want {
+		t.Fatalf("got %v, want %v", got, want)
+	}
+}
+
 func TestNumbersMaxInt64(t *testing.T) {
 	input := "9223372036854775807" // math.MaxInt64
 	var want int64 = math.MaxInt64
