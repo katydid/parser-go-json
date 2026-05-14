@@ -22,24 +22,36 @@ import (
 )
 
 func TestNoAllocsOnAverage(t *testing.T) {
+	allEmpty := true
 	pool := pool.New()
 	tzer := NewTokenizerWithCustomAllocator(nil, pool.Alloc)
 	testrun.NoAllocsOnAverage(t, func(input []byte) {
 		tzer.Init(input)
-		if err := walk(tzer); err != nil {
-			t.Fatalf("expected EOF, but got %v", err)
+		if l, err := walk(tzer); err != nil {
+			t.Fatalf("expected EOF, but got %v or no tokens", err)
+		} else if l > 0 {
+			allEmpty = false
 		}
 		pool.FreeAll()
 	})
+	if allEmpty {
+		t.Fatalf("no real values were walked")
+	}
 }
 
 func TestNotASingleAllocAfterWarmUp(t *testing.T) {
+	allEmpty := true
 	pool := pool.New()
 	tzer := NewTokenizerWithCustomAllocator(nil, pool.Alloc)
 	testrun.NotASingleAllocAfterWarmUp(t, pool, func(bs []byte) {
 		tzer.Init(bs)
-		if err := walk(tzer); err != nil {
-			t.Fatalf("expected EOF, but got %v", err)
+		if l, err := walk(tzer); err != nil {
+			t.Fatalf("expected EOF, but got %v or no tokens", err)
+		} else if l > 0 {
+			allEmpty = false
 		}
 	})
+	if allEmpty {
+		t.Fatalf("no real values were walked")
+	}
 }

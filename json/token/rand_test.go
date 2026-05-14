@@ -28,7 +28,7 @@ func TestRandomScan(t *testing.T) {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
 			tokenizer := NewTokenizer([]byte(value))
-			if err := walk(tokenizer); err != nil {
+			if _, err := walk(tokenizer); err != nil {
 				t.Fatalf("expected EOF, but got %v", err)
 			}
 		})

@@ -27,27 +27,31 @@ var errExpectedBool = errors.New("expected bool")
 
 var errExpectedString = errors.New("expected string")
 
-func walkValue(t Tokenizer) error {
-	_, _, err := t.Token()
+func walkValue(t Tokenizer) (int, error) {
+	_, data, err := t.Token()
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+	return len(data), nil
 }
 
-func walk(t Tokenizer) error {
+// walk returns the length of all of the tokens, this way we make sure walk actually does something.
+func walk(t Tokenizer) (int, error) {
+	total := 0
 	kind, err := t.Next()
 	for err == nil {
 		switch kind {
 		case scan.NullKind, scan.FalseKind, scan.TrueKind, scan.NumberKind, scan.StringKind:
-			if err := walkValue(t); err != nil {
-				return err
+			l, err := walkValue(t)
+			if err != nil {
+				return 0, err
 			}
+			total += l
 		}
 		kind, err = t.Next()
 	}
 	if err != io.EOF {
-		return err
+		return 0, err
 	}
-	return nil
+	return total, nil
 }
