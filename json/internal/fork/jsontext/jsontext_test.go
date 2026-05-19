@@ -53,9 +53,9 @@ func TestMoreValues(t *testing.T) {
 
 func TestErrors(t *testing.T) {
 	p := json.NewParser()
-	testrun.NotParsable(t, p, ``)
+	// testrun.NotParsable(t, p, ``) // We can parse this and we return io.EOF
 	testrun.NotParsable(t, p, ` #`)
-	testrun.NotParsable(t, p, ` `)
+	// testrun.NotParsable(t, p, ` `) // We can parse this and we return io.EOF
 	testrun.NotParsable(t, p, `null null`)
 	testrun.NotParsable(t, p, `nul`)
 	testrun.NotParsable(t, p, `nulL`)

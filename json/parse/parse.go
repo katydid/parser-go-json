@@ -77,6 +77,14 @@ func (p *parser) nextToken() (scan.Kind, error) {
 	return scanKind, err
 }
 
+func (p *parser) firstToken() (scan.Kind, error) {
+	scanKind, err := p.tokenizer.Next()
+	if err == nil {
+		return scanKind, nil
+	}
+	return scanKind, err
+}
+
 func (p *parser) assertValue(scanKind scan.Kind) (parse.Hint, error) {
 	switch scanKind {
 	case scan.NullKind, scan.FalseKind, scan.TrueKind, scan.NumberKind, scan.StringKind:
@@ -88,7 +96,13 @@ func (p *parser) assertValue(scanKind scan.Kind) (parse.Hint, error) {
 }
 
 func (p *parser) nextStart() (parse.Hint, error) {
-	scanKind, err := p.nextToken()
+	var scanKind scan.Kind
+	var err error
+	if len(p.stack) == 0 {
+		scanKind, err = p.firstToken()
+	} else {
+		scanKind, err = p.nextToken()
+	}
 	if err != nil {
 		return parse.UnknownHint, err
 	}
