@@ -17,9 +17,9 @@ package scan
 import "io"
 
 func walk(s Scanner) error {
-	_, _, err := s.Next()
+	_, _, err := Next(s)
 	for err == nil {
-		_, _, err = s.Next()
+		_, _, err = Next(s)
 	}
 	if err != io.EOF {
 		return err

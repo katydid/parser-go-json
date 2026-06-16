@@ -15,89 +15,118 @@
 package scan
 
 import (
+	"errors"
 	"io"
 )
 
-// Next returns the Kind and the start and end offset of the token or an error.
+// NextStart returns the Kind and the start offset of the token or an error.
 // The start is not always zero, since spaces can be skipped.
-func Next(buf []byte, offset int) (Kind, int, int, error) {
+func NextStart(buf []byte, offset int) (Kind, int, error) {
 	var err error
 	offset, err = skipSpace(buf, offset)
 	if err != nil {
-		return UnknownKind, offset, offset, err
+		return UnknownKind, offset, err
 	}
 	start := offset
 	if offset == len(buf) {
-		return UnknownKind, start, offset, io.EOF
+		return UnknownKind, start, io.EOF
 	}
 	c, err := look(buf, offset)
 	if err != nil {
-		return UnknownKind, start, offset, err
+		return UnknownKind, start, err
+	}
+	kind := getKind(c)
+	return kind, start, nil
+}
+
+// NextBegin returns the end offset of the token or an error.
+func NextEnd(buf []byte, offset int) (int, error) {
+	c, err := look(buf, offset)
+	if err != nil {
+		return offset, err
 	}
 	kind := getKind(c)
 	switch kind {
 	case ObjectOpenKind, ObjectCloseKind, ArrayOpenKind, ArrayCloseKind, ColonKind, CommaKind:
 		offset, err = incOffset(buf, offset, 1)
 		if err != nil {
-			return UnknownKind, start, offset, err
+			return offset, err
 		}
 	case StringKind:
 		offset, err = scanString(buf, offset)
 		if err != nil {
-			return UnknownKind, start, offset, err
+			return offset, err
 		}
 	case NumberKind:
 		offset, err = scanNumber(buf, offset)
 		if err != nil {
-			return UnknownKind, start, offset, err
+			return offset, err
 		}
 	case TrueKind:
 		offset, err = scanTrue(buf, offset)
 		if err != nil {
-			return UnknownKind, start, offset, err
+			return offset, err
 		}
 	case FalseKind:
 		offset, err = scanFalse(buf, offset)
 		if err != nil {
-			return UnknownKind, start, offset, err
+			return offset, err
 		}
 	case NullKind:
 		offset, err = scanNull(buf, offset)
 		if err != nil {
-			return UnknownKind, start, offset, err
+			return offset, err
 		}
 	}
-	return kind, start, offset, nil
+	return offset, nil
 }
 
-var kindMap = map[byte]Kind{
-	'{': ObjectOpenKind,
-	'}': ObjectCloseKind,
-	':': ColonKind,
-	'[': ArrayOpenKind,
-	']': ArrayCloseKind,
-	',': CommaKind,
-	'"': StringKind,
-	't': TrueKind,
-	'f': FalseKind,
-	'n': NullKind,
-	'-': NumberKind,
-	'0': NumberKind,
-	'1': NumberKind,
-	'2': NumberKind,
-	'3': NumberKind,
-	'4': NumberKind,
-	'5': NumberKind,
-	'6': NumberKind,
-	'7': NumberKind,
-	'8': NumberKind,
-	'9': NumberKind,
-}
+var errUnknownKind = errors.New("unknown kind")
 
 func getKind(b byte) Kind {
-	k, ok := kindMap[b]
-	if ok {
-		return k
+	switch b {
+	case '{':
+		return ObjectOpenKind
+	case '}':
+		return ObjectCloseKind
+	case ':':
+		return ColonKind
+	case '[':
+		return ArrayOpenKind
+	case ']':
+		return ArrayCloseKind
+	case ',':
+		return CommaKind
+	case '"':
+		return StringKind
+	case 't':
+		return TrueKind
+	case 'f':
+		return FalseKind
+	case 'n':
+		return NullKind
+	case '-':
+		return NumberKind
+	case '0':
+		return NumberKind
+	case '1':
+		return NumberKind
+	case '2':
+		return NumberKind
+	case '3':
+		return NumberKind
+	case '4':
+		return NumberKind
+	case '5':
+		return NumberKind
+	case '6':
+		return NumberKind
+	case '7':
+		return NumberKind
+	case '8':
+		return NumberKind
+	case '9':
+		return NumberKind
 	}
 	return UnknownKind
 }

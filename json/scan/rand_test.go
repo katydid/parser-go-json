@@ -29,9 +29,9 @@ func TestRandomScan(t *testing.T) {
 		name := testrun.Name(value)
 		t.Run(name, func(t *testing.T) {
 			s := NewScanner([]byte(value))
-			_, _, err := s.Next()
+			_, _, err := Next(s)
 			for err == nil {
-				_, _, err = s.Next()
+				_, _, err = Next(s)
 			}
 			if err != io.EOF {
 				t.Fatalf("expected EOF, but got %v", err)

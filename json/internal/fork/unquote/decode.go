@@ -33,19 +33,21 @@ func getu4(s []byte) rune {
 	return r
 }
 
-func unquoteBytes(alloc func(size int) []byte, s []byte) (t []byte, ok bool) {
-	if len(s) < 2 || s[0] != '"' || s[len(s)-1] != '"' {
-		return
+func unquoteBytes(alloc func(size int) []byte, s []byte) ([]byte, int, bool) {
+	if len(s) < 2 || s[0] != '"' {
+		return nil, 0, false
 	}
-	s = s[1 : len(s)-1]
 
 	// Check for unusual characters. If there are none,
 	// then no unquoting is needed, so return a slice of the
 	// original bytes.
-	r := 0
+	r := 1
 	for r < len(s) {
 		c := s[r]
-		if c == '\\' || c == '"' || c < ' ' {
+		if c == '"' {
+			return s[1:r], r + 1, true
+		}
+		if c == '\\' || c < ' ' {
 			break
 		}
 		if c < utf8.RuneSelf {
@@ -59,21 +61,21 @@ func unquoteBytes(alloc func(size int) []byte, s []byte) (t []byte, ok bool) {
 		r += size
 	}
 	if r == len(s) {
-		return s, true
+		return nil, 0, false
 	}
 
 	b := alloc(len(s) * utf8.UTFMax)
-	w := copy(b, s[0:r])
+	w := copy(b, s[1:r])
 	for r < len(s) {
 		switch c := s[r]; {
 		case c == '\\':
 			r++
 			if r >= len(s) {
-				return
+				return nil, 0, false
 			}
 			switch s[r] {
 			default:
-				return
+				return nil, 0, false
 			case '"', '\\', '/', '\'':
 				b[w] = s[r]
 				r++
@@ -102,7 +104,7 @@ func unquoteBytes(alloc func(size int) []byte, s []byte) (t []byte, ok bool) {
 				r--
 				rr := getu4(s[r:])
 				if rr < 0 {
-					return
+					return nil, 0, false
 				}
 				r += 6
 				if utf16.IsSurrogate(rr) {
@@ -119,9 +121,11 @@ func unquoteBytes(alloc func(size int) []byte, s []byte) (t []byte, ok bool) {
 				w += utf8.EncodeRune(b[w:], rr)
 			}
 
+		case c == '"':
+			return b[0:w], r + 1, true
 		// Quote, control characters are invalid.
-		case c == '"', c < ' ':
-			return
+		case c < ' ':
+			return nil, 0, false
 
 		// ASCII
 		case c < utf8.RuneSelf:
@@ -136,5 +140,5 @@ func unquoteBytes(alloc func(size int) []byte, s []byte) (t []byte, ok bool) {
 			w += utf8.EncodeRune(b[w:], rr)
 		}
 	}
-	return b[0:w], true
+	return nil, 0, false
 }

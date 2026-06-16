@@ -14,6 +14,6 @@
 
 package unquote
 
-func Unquote(alloc func(size int) []byte, s []byte) (t []byte, ok bool) {
+func Unquote(alloc func(size int) []byte, s []byte) (t []byte, offset int, ok bool) {
 	return unquoteBytes(alloc, s)
 }

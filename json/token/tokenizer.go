@@ -36,8 +36,9 @@ type tokenizer struct {
 	scanner scan.Scanner
 	alloc   func(size int) []byte
 
-	scanToken []byte
-	scanKind  scan.Kind
+	scanTokenStart []byte
+	skipped        bool
+	scanKind       scan.Kind
 
 	tokenized   bool
 	tokenKind   parse.Kind
@@ -58,28 +59,36 @@ func NewTokenizerWithCustomAllocator(buf []byte, alloc func(int) []byte) Tokeniz
 	return &tokenizer{
 		scanner: scan.NewScanner(buf),
 		alloc:   alloc,
+		skipped: true,
 	}
 }
 
 // Init restarts the tokenizer with a new byte buffer, without allocating a new tokenizer.
 func (t *tokenizer) Init(buf []byte) {
+	t.skipped = true
 	t.scanner.Init(buf)
 }
 
 // Next returns the Kind of the token or an error.
 func (t *tokenizer) Next() (scan.Kind, error) {
+	if !t.skipped {
+		if _, err := t.scanner.ScanToEnd(); err != nil {
+			return scan.UnknownKind, nil
+		}
+	}
 	t.tokenized = false
-	kind, token, err := t.scanner.Next()
+	kind, token, err := t.scanner.NextStart()
 	if err != nil {
 		return scan.UnknownKind, err
 	}
+	t.skipped = false
 	t.scanKind = kind
-	t.scanToken = token
+	t.scanTokenStart = token
 	return kind, nil
 }
 
-func (t *tokenizer) notParseableInteger() bool {
-	for _, b := range t.scanToken {
+func (t *tokenizer) notParseableInteger(token []byte) bool {
+	for _, b := range token {
 		if b == '.' || b == 'e' || b == 'E' {
 			return true
 		}
@@ -88,12 +97,16 @@ func (t *tokenizer) notParseableInteger() bool {
 }
 
 func (t *tokenizer) tokenizeNumber() error {
-	var err error
-	if t.notParseableInteger() {
-		t.tokenDouble, err = strconv.ParseFloat(t.scanToken)
+	token, err := t.scanner.ScanToEnd()
+	if err != nil {
+		return err
+	}
+	t.skipped = true
+	if t.notParseableInteger(token) {
+		t.tokenDouble, err = strconv.ParseFloat(token)
 		if err != nil {
 			t.tokenKind = parse.DecimalKind
-			t.tokenBytes = t.scanToken
+			t.tokenBytes = token
 			// scan already passed, so we know this is a valid number.
 			// The number is just too large represent in 64 float bits.
 			return nil
@@ -102,12 +115,12 @@ func (t *tokenizer) tokenizeNumber() error {
 		// This can only be a float, so we return and do not try others.
 		return nil
 	}
-	parsedInt, err := strconv.ParseInt(t.scanToken)
+	parsedInt, err := strconv.ParseInt(token)
 	if err != nil {
 		// scan already passed, so we know this is a valid number.
 		// The number is just too large represent in signed 64 bits.
 		t.tokenKind = parse.DecimalKind
-		t.tokenBytes = t.scanToken
+		t.tokenBytes = token
 		return nil
 	}
 	t.tokenKind = parse.Int64Kind
@@ -115,21 +128,23 @@ func (t *tokenizer) tokenizeNumber() error {
 	return nil
 }
 
-func unquoteBytes(alloc func(int) []byte, s []byte) ([]byte, error) {
-	var ok bool
-	var u []byte
-	u, ok = unquote.Unquote(alloc, s)
+func unquoteBytes(alloc func(int) []byte, s []byte) ([]byte, int, error) {
+	u, offset, ok := unquote.Unquote(alloc, s)
 	if !ok {
-		return nil, errUnquote
+		return nil, 0, errUnquote
 	}
-	return u, nil
+	return u, offset, nil
 }
 
 func (t *tokenizer) tokenizeString() error {
-	res, err := unquoteBytes(t.alloc, t.scanToken)
+	res, offset, err := unquoteBytes(t.alloc, t.scanTokenStart)
 	if err != nil {
 		return err
 	}
+	if err := t.scanner.Skip(offset); err != nil {
+		return err
+	}
+	t.skipped = true
 	t.tokenBytes = res
 	t.tokenKind = parse.StringKind
 	return nil

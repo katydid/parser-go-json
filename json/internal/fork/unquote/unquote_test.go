@@ -35,9 +35,13 @@ var unquotetests = []struct {
 func TestUnquote(t *testing.T) {
 	alloc := func(size int) []byte { return make([]byte, size) }
 	for _, test := range unquotetests {
-		got, gotOk := unquoteBytes(alloc, []byte(test.in))
+		got, offset, gotOk := unquoteBytes(alloc, []byte(test.in))
 		if !bytes.Equal(got, []byte(test.out)) || !gotOk {
-			t.Errorf("Unquote(%q) = (%q, %v), want (%q, %v)", test.in, got, gotOk, test.out, true)
+			t.Errorf("Unquote(%q) = (%q, %d, %v), want (%q, %v)", test.in, got, offset, gotOk, test.out, true)
+		}
+		got = []byte(test.in)[:offset]
+		if !bytes.Equal(got, []byte(test.in)) {
+			t.Errorf("UnquoteOffset(%q) = (%q, %d, %v), want (%q, %v)", test.in, got, offset, gotOk, test.in, true)
 		}
 	}
 }
