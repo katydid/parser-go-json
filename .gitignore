@@ -2,5 +2,6 @@
 *.test
 _*
 mem.out
+cpu.out
 profile*.svg
 profile*.png

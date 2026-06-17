@@ -35,100 +35,54 @@ func NextStart(buf []byte, offset int) (Kind, int, error) {
 	if err != nil {
 		return UnknownKind, start, err
 	}
-	kind := getKind(c)
+	kind := kinds[c]
 	return kind, start, nil
 }
 
 // NextBegin returns the end offset of the token or an error.
-func NextEnd(buf []byte, offset int) (int, error) {
-	c, err := look(buf, offset)
-	if err != nil {
-		return offset, err
-	}
-	kind := getKind(c)
+func NextEnd(kind Kind, buf []byte, offset int) (int, error) {
 	switch kind {
 	case ObjectOpenKind, ObjectCloseKind, ArrayOpenKind, ArrayCloseKind, ColonKind, CommaKind:
-		offset, err = incOffset(buf, offset, 1)
-		if err != nil {
-			return offset, err
-		}
+		return incOffset(buf, offset, 1)
 	case StringKind:
-		offset, err = scanString(buf, offset)
-		if err != nil {
-			return offset, err
-		}
+		return scanString(buf, offset)
 	case NumberKind:
-		offset, err = scanNumber(buf, offset)
-		if err != nil {
-			return offset, err
-		}
+		return scanNumber(buf, offset)
 	case TrueKind:
-		offset, err = scanTrue(buf, offset)
-		if err != nil {
-			return offset, err
-		}
+		return scanTrue(buf, offset)
 	case FalseKind:
-		offset, err = scanFalse(buf, offset)
-		if err != nil {
-			return offset, err
-		}
+		return scanFalse(buf, offset)
 	case NullKind:
-		offset, err = scanNull(buf, offset)
-		if err != nil {
-			return offset, err
-		}
+		return scanNull(buf, offset)
 	}
 	return offset, nil
 }
 
 var errUnknownKind = errors.New("unknown kind")
 
-func getKind(b byte) Kind {
-	switch b {
-	case '{':
-		return ObjectOpenKind
-	case '}':
-		return ObjectCloseKind
-	case ':':
-		return ColonKind
-	case '[':
-		return ArrayOpenKind
-	case ']':
-		return ArrayCloseKind
-	case ',':
-		return CommaKind
-	case '"':
-		return StringKind
-	case 't':
-		return TrueKind
-	case 'f':
-		return FalseKind
-	case 'n':
-		return NullKind
-	case '-':
-		return NumberKind
-	case '0':
-		return NumberKind
-	case '1':
-		return NumberKind
-	case '2':
-		return NumberKind
-	case '3':
-		return NumberKind
-	case '4':
-		return NumberKind
-	case '5':
-		return NumberKind
-	case '6':
-		return NumberKind
-	case '7':
-		return NumberKind
-	case '8':
-		return NumberKind
-	case '9':
-		return NumberKind
-	}
-	return UnknownKind
+// looking up in an array is faster than a map.
+var kinds = [256]Kind{
+	'{': ObjectOpenKind,
+	'}': ObjectCloseKind,
+	':': ColonKind,
+	'[': ArrayOpenKind,
+	']': ArrayCloseKind,
+	',': CommaKind,
+	'"': StringKind,
+	't': TrueKind,
+	'f': FalseKind,
+	'n': NullKind,
+	'-': NumberKind,
+	'0': NumberKind,
+	'1': NumberKind,
+	'2': NumberKind,
+	'3': NumberKind,
+	'4': NumberKind,
+	'5': NumberKind,
+	'6': NumberKind,
+	'7': NumberKind,
+	'8': NumberKind,
+	'9': NumberKind,
 }
 
 func scanNull(buf []byte, offset int) (int, error) {

@@ -72,7 +72,7 @@ func (t *tokenizer) Init(buf []byte) {
 // Next returns the Kind of the token or an error.
 func (t *tokenizer) Next() (scan.Kind, error) {
 	if !t.skipped {
-		if _, err := t.scanner.ScanToEnd(); err != nil {
+		if _, err := t.scanner.ScanToEnd(t.scanKind); err != nil {
 			return scan.UnknownKind, nil
 		}
 	}
@@ -97,7 +97,7 @@ func (t *tokenizer) notParseableInteger(token []byte) bool {
 }
 
 func (t *tokenizer) tokenizeNumber() error {
-	token, err := t.scanner.ScanToEnd()
+	token, err := t.scanner.ScanToEnd(scan.NumberKind)
 	if err != nil {
 		return err
 	}
