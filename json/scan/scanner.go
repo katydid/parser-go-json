@@ -21,7 +21,7 @@ func Next(s Scanner) (Kind, []byte, error) {
 	if err != nil {
 		return k, nil, err
 	}
-	bs, err := s.ScanToEnd()
+	bs, err := s.ScanToEnd(k)
 	return k, bs, err
 }
 
@@ -34,7 +34,7 @@ type Scanner interface {
 	//   * call ScanToEnd to automatically Scan to the end of the that token and get the slice that contains only that token.
 	//   * call Skip to pass back the offset of the end of that token, since the client was able to scan it themselves.
 	NextStart() (Kind, []byte, error)
-	ScanToEnd() ([]byte, error)
+	ScanToEnd(Kind) ([]byte, error)
 	Skip(offset int) error
 }
 
@@ -75,9 +75,9 @@ func (s *scanner) Skip(offset int) error {
 	return nil
 }
 
-func (s *scanner) ScanToEnd() ([]byte, error) {
+func (s *scanner) ScanToEnd(k Kind) ([]byte, error) {
 	start := s.offset
-	end, err := NextEnd(s.buf, s.offset)
+	end, err := NextEnd(k, s.buf, s.offset)
 	if err != nil {
 		return nil, err
 	}

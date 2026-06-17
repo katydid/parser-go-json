@@ -35,6 +35,12 @@ memprofile:
 	go test -test.v -test.run=XXX -test.bench=BenchmarkAlloc -test.memprofile=mem.out ./json
 	go tool pprof -alloc_space -png mem.out
 
+cpuprofile:
+	rm cpu.out || true
+	rm profile*.* || true
+	go test -test.v -test.run=XXX -test.bench=BenchmarkPoolDefault -test.cpuprofile=cpu.out ./json
+	go tool pprof -png cpu.out
+
 noallocsprofile:
 	rm mem.out || true
 	rm profile*.* || true
