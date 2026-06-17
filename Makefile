@@ -38,7 +38,7 @@ memprofile:
 cpuprofile:
 	rm cpu.out || true
 	rm profile*.* || true
-	go test -test.v -test.run=XXX -test.bench=BenchmarkPoolDefault -test.cpuprofile=cpu.out ./json
+	go test -test.v -test.run=XXX -test.bench=BenchmarkDefault -test.cpuprofile=cpu.out ./json
 	go tool pprof -png cpu.out
 
 noallocsprofile:
