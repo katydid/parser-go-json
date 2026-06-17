@@ -22,7 +22,7 @@ var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\r': 1, ' ': 1}
 // If there are no spaces in the prefix, then Space returns 0
 func Space(buf []byte) int {
 	for i, c := range buf {
-		if asciiSpace[c] != 1 {
+		if asciiSpace[c] == 0 {
 			return i
 		}
 	}

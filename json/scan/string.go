@@ -23,45 +23,68 @@ package scan
 // escape := '"' | '\' | '/' | 'b' | 'f' | 'n' | 'r' | 't' | 'u' hex hex hex hex
 // hex := digit | 'A' . 'F' | 'a' . 'f'
 func String(buf []byte) (int, error) {
-	escaped := false
-	udigits := -1
 	if len(buf) == 0 || buf[0] != '"' {
 		return 0, errScanString
 	}
-	for i, c := range buf[1:] {
-		if escaped {
-			switch c {
-			case 'b', 'f', 'n', 'r', 't', '\\', '/', '"':
-				escaped = false
-				continue
-			case 'u':
-				udigits = 0
-				escaped = false
-				continue
-			}
-			return 0, errScanString
-		}
-		if udigits >= 0 {
-			if '0' <= c && c <= '9' || 'a' <= c && c <= 'f' || 'A' <= c && c <= 'F' {
-				udigits++
-			} else {
+	i := 1
+	for i < len(buf) {
+		switch buf[i] {
+		case '\\':
+			i++
+			if i >= len(buf) {
 				return 0, errScanString
 			}
-			if udigits == 4 {
-				udigits = -1
+			switch buf[i] {
+			case 'b', 'f', 'n', 'r', 't', '\\', '/', '"':
+				i++
+			case 'u':
+				if i+4 >= len(buf) {
+					return 0, errScanString
+				}
+				c4 := buf[i+4]
+				c3 := buf[i+3]
+				c2 := buf[i+2]
+				c1 := buf[i+1]
+				i += 4
+				if !hextable[c1] || !hextable[c2] || !hextable[c3] || !hextable[c4] {
+					return 0, errScanString
+				}
+			default:
+				return 0, errScanString
 			}
-			continue
-		}
-		if c == '"' {
-			return i + 2, nil
-		}
-		if c == '\\' {
-			escaped = true
-			continue
-		}
-		if c < 0x20 {
-			return 0, errScanString
+		case '"':
+			return i + 1, nil
+		default:
+			if buf[i] < 0x20 {
+				return 0, errScanString
+			}
+			i++
 		}
 	}
 	return 0, errScanString
+}
+
+var hextable = [256]bool{
+	'0': true,
+	'1': true,
+	'2': true,
+	'3': true,
+	'4': true,
+	'5': true,
+	'6': true,
+	'7': true,
+	'8': true,
+	'9': true,
+	'a': true,
+	'b': true,
+	'c': true,
+	'd': true,
+	'e': true,
+	'f': true,
+	'A': true,
+	'B': true,
+	'C': true,
+	'D': true,
+	'E': true,
+	'F': true,
 }

@@ -64,7 +64,7 @@ func BenchmarkPoolDefault(b *testing.B) {
 
 func BenchmarkDefault(b *testing.B) {
 	// generate random jsons
-	num := 1000
+	num := 10000
 	r := rand.NewRand()
 	values := rand.Values(r, num)
 
