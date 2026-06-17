@@ -28,9 +28,13 @@ func String(buf []byte) (int, error) {
 	}
 	i := 1
 	for i < len(buf) {
-		switch buf[i] {
-		case '\\':
-			i++
+		c := buf[i]
+		i++
+		isplain := plaintable[c]
+		if isplain == 0 {
+			continue
+		}
+		if c == '\\' {
 			if i >= len(buf) {
 				return 0, errScanString
 			}
@@ -38,30 +42,38 @@ func String(buf []byte) (int, error) {
 			case 'b', 'f', 'n', 'r', 't', '\\', '/', '"':
 				i++
 			case 'u':
-				if i+4 >= len(buf) {
+				i += 4
+				if i >= len(buf) {
 					return 0, errScanString
 				}
-				c4 := buf[i+4]
-				c3 := buf[i+3]
-				c2 := buf[i+2]
-				c1 := buf[i+1]
-				i += 4
+				c4 := buf[i]
+				c3 := buf[i-1]
+				c2 := buf[i-2]
+				c1 := buf[i-3]
 				if !hextable[c1] || !hextable[c2] || !hextable[c3] || !hextable[c4] {
 					return 0, errScanString
 				}
 			default:
 				return 0, errScanString
 			}
-		case '"':
-			return i + 1, nil
-		default:
-			if buf[i] < 0x20 {
-				return 0, errScanString
-			}
-			i++
+			continue
 		}
+		if c == '"' {
+			return i, nil
+		}
+		return 0, errScanString
 	}
 	return 0, errScanString
+}
+
+var plaintable = [256]byte{}
+
+func init() {
+	for i := range 0x20 {
+		plaintable[i] = 1
+	}
+	plaintable['"'] = 1
+	plaintable['\\'] = 1
 }
 
 var hextable = [256]bool{
