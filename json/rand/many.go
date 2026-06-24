@@ -18,8 +18,7 @@ package rand
 // atleast specifies the minimum number to generate.
 // The kinds are object, array, number, string, true, false and null.
 func Values(r Rand, atleast int, opts ...Option) [][]byte {
-	c := newConfig(opts...)
-	_, vs := values(r, atleast, c)
+	_, vs := values(r, atleast, opts...)
 	bs := make([][]byte, len(vs))
 	for i := range vs {
 		bs[i] = []byte(vs[i])
@@ -27,17 +26,18 @@ func Values(r Rand, atleast int, opts ...Option) [][]byte {
 	return bs
 }
 
-func values(r Rand, atleast int, c *config) (map[byte]int, []string) {
+func values(r Rand, atleast int, opts ...Option) (map[byte]int, []string) {
 	// kinds is used to track that at least all kinds were generated
 	kinds := allKinds()
 	ss := []string{}
+	c := newConfig(opts...)
 	if c.terminalsAreNumbers {
 		for k := range kinds {
 			kinds[k] = 1
 		}
 	}
 	for !(eachKindHasNonZero(kinds) && len(ss) >= atleast) {
-		s := randValue(r, c)
+		s := Value(r, opts...)
 		ss = append(ss, s)
 		kinds[whichKind(s)] += 1
 	}

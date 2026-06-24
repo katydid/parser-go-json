@@ -32,13 +32,14 @@ type Option func(*config)
 func newConfig(opts ...Option) *config {
 	// default Config
 	c := &config{
-		maxDepth:           5,
-		maxObjectFields:    10,
-		maxArrayLength:     10,
-		maxStringLength:    100,
-		numberEdgeCases:    defaultNumberEdgeCases,
-		numberEdgeCaseOdds: 100,
-		maxSpaces:          5,
+		maxDepth:            5,
+		maxObjectFields:     10,
+		maxArrayLength:      10,
+		maxStringLength:     100,
+		numberEdgeCases:     defaultNumberEdgeCases,
+		numberEdgeCaseOdds:  100,
+		maxSpaces:           5,
+		terminalsAreNumbers: false,
 	}
 	// apply options
 	for _, o := range opts {
