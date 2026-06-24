@@ -27,101 +27,186 @@ import "github.com/katydid/parser-go-json/json/internal/fork/strconv"
 // exponent := "" | 'E' sign digits | 'e' sign digits
 // sign := "" | '+' | '-'
 func Number(buf []byte) (int, error) {
-	state := 's' // start
+	state := StateStart // start
 	offset := 0
-	for _, c := range buf[offset:] {
-		offset += 1
-		switch state {
-		case 's': // start
-			switch c {
-			case '0':
-				state = '0'
-			case '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				state = '1'
-			case '-':
-				state = '-'
-			default:
-				return 0, errScanNumber
-			}
-		case '-': // negative number started
-			switch c {
-			case '0':
-				state = '0'
-			case '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				state = '1'
-			default:
-				return 0, errScanNumber
-			}
-		case '0': // integer complete
-			switch c {
-			case '.':
-				state = '.'
-			case 'e', 'E':
-				state = 'e'
-			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				return 0, errScanNumber
-			default:
-				return offset - 1, nil // zero
-			}
-		case '1':
-			switch c {
-			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			case '.':
-				state = '.'
-			case 'e', 'E':
-				state = 'e'
-			default:
-				return offset - 1, nil // integer
-			}
-		case '.': // fraction started
-			switch c {
-			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				state = '/'
-			case 'e', 'E':
-				state = 'e'
-			default:
-				return 0, errScanNumber // number does not end in a .
-			}
-		case '/': // fraction ongoing
-			switch c {
-			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			case 'e', 'E':
-				state = 'e'
-			case '.':
-				return 0, errScanNumber // fraction does not contain a .
-			default:
-				return offset - 1, nil // integer with fraction
-			}
-		case 'e': // exponent started
-			switch c {
-			case '-', '+':
-				state = 'f'
-			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				state = 'g'
-			default:
-				return 0, errScanNumber // number does not end in a e or E
-			}
-		case 'f': // exponent with sign started
-			switch c {
-			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				state = 'g'
-			default:
-				return 0, errScanNumber // number does not end in '+' or '-'
-			}
-		case 'g': // exponent ongoing
-			switch c {
-			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-			default:
-				return offset - 1, nil
-			}
-		default:
-			panic("unreachable")
+	for offset < len(buf) {
+		c := buf[offset]
+		state = machine[state][c].state
+		if state == StateError || state == StateSuccess {
+			break
 		}
+		offset += 1
 	}
-	if state == 's' || state == '-' || state == '.' || state == 'e' || state == 'f' {
+	if isFailState[state] {
 		return 0, errScanNumber
 	}
 	return offset, nil
+}
+
+var isFailState = [256]bool{'s': true, '-': true, '.': true, 'e': true, 'f': true, StateError: true}
+
+type dst struct {
+	state  byte
+	action byte
+}
+
+const StateSuccess = byte(0)
+const StateError = byte(255)
+
+const StateStart = byte('s')
+const StateIntegerComplete = byte('0')
+const StateIntegerContinue = byte('1')
+const StateIntegerNegative = byte('-')
+const StateFractionStarted = byte('.')
+const StateFractionOngoing = byte('/')
+const StateExponentStarted = byte('e')
+const StateExponentWithSign = byte('f')
+const StateExponentOngoing = byte('g')
+
+const ActionNothing = 0
+const ActionIntMatinsa = 1      // if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+const ActionFracMatinsa = 2     // if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+const ActionSetSignNegative = 3 // sign = -1
+const ActionSetExponentSign = 4 // expsign = -1
+const ActionExpPart = 5         // if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+
+var machine = [256][256]dst{
+	// start
+	StateStart: { // default is error, see init below
+		'0': {StateIntegerComplete, ActionIntMatinsa},      // state = '0'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'1': {StateIntegerContinue, ActionIntMatinsa},      // state = '1'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'2': {StateIntegerContinue, ActionIntMatinsa},      // state = '1'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'3': {StateIntegerContinue, ActionIntMatinsa},      // state = '1'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'4': {StateIntegerContinue, ActionIntMatinsa},      // state = '1'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'5': {StateIntegerContinue, ActionIntMatinsa},      // state = '1'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'6': {StateIntegerContinue, ActionIntMatinsa},      // state = '1'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'7': {StateIntegerContinue, ActionIntMatinsa},      // state = '1'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'8': {StateIntegerContinue, ActionIntMatinsa},      // state = '1'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'9': {StateIntegerContinue, ActionIntMatinsa},      // state = '1'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'-': {StateIntegerNegative, ActionSetSignNegative}, // state = '-'; sign = -1
+	},
+	StateIntegerNegative: { // default is error, see init below
+		'0': {StateIntegerComplete, ActionIntMatinsa}, // state = '0'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'1': {StateIntegerContinue, ActionIntMatinsa}, // state = '1'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'2': {StateIntegerContinue, ActionIntMatinsa}, // state = '1'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'3': {StateIntegerContinue, ActionIntMatinsa}, // state = '1'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'4': {StateIntegerContinue, ActionIntMatinsa}, // state = '1'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'5': {StateIntegerContinue, ActionIntMatinsa}, // state = '1'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'6': {StateIntegerContinue, ActionIntMatinsa}, // state = '1'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'7': {StateIntegerContinue, ActionIntMatinsa}, // state = '1'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'8': {StateIntegerContinue, ActionIntMatinsa}, // state = '1'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'9': {StateIntegerContinue, ActionIntMatinsa}, // state = '1'; if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+	},
+	StateIntegerComplete: { // default is success
+		'.': {StateFractionStarted, ActionNothing}, // state = '.'
+		'e': {StateExponentStarted, ActionNothing}, // state = 'e'
+		'E': {StateExponentStarted, ActionNothing}, // state = 'e'
+		'0': {StateError, ActionNothing},           // return // ERROR: the integer was complete, for example 0, the number does not continue
+		'1': {StateError, ActionNothing},           // return // ERROR: the integer was complete, for example 0, the number does not continue
+		'2': {StateError, ActionNothing},           // return // ERROR: the integer was complete, for example 0, the number does not continue
+		'3': {StateError, ActionNothing},           // return // ERROR: the integer was complete, for example 0, the number does not continue
+		'4': {StateError, ActionNothing},           // return // ERROR: the integer was complete, for example 0, the number does not continue
+		'5': {StateError, ActionNothing},           // return // ERROR: the integer was complete, for example 0, the number does not continue
+		'6': {StateError, ActionNothing},           // return // ERROR: the integer was complete, for example 0, the number does not continue
+		'7': {StateError, ActionNothing},           // return // ERROR: the integer was complete, for example 0, the number does not continue
+		'8': {StateError, ActionNothing},           // return // ERROR: the integer was complete, for example 0, the number does not continue
+		'9': {StateError, ActionNothing},           // return // ERROR: the integer was complete, for example 0, the number does not continue
+	},
+	StateIntegerContinue: { // default is success
+		'0': {StateIntegerContinue, ActionIntMatinsa}, // if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'1': {StateIntegerContinue, ActionIntMatinsa}, // if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'2': {StateIntegerContinue, ActionIntMatinsa}, // if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'3': {StateIntegerContinue, ActionIntMatinsa}, // if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'4': {StateIntegerContinue, ActionIntMatinsa}, // if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'5': {StateIntegerContinue, ActionIntMatinsa}, // if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'6': {StateIntegerContinue, ActionIntMatinsa}, // if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'7': {StateIntegerContinue, ActionIntMatinsa}, // if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'8': {StateIntegerContinue, ActionIntMatinsa}, // if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'9': {StateIntegerContinue, ActionIntMatinsa}, // if intdigits < maxMantDigits  { mantissa = (mantissa * 10) + uint64(c-'0') }; intdigits++
+		'.': {StateFractionStarted, ActionNothing},    // state = '.'
+		'e': {StateExponentStarted, ActionNothing},    // state = 'e'
+		'E': {StateExponentStarted, ActionNothing},    // state = 'e'
+	},
+	StateFractionStarted: { // default is error, see init below
+		'0': {StateFractionOngoing, ActionFracMatinsa}, // state = '/'; if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'1': {StateFractionOngoing, ActionFracMatinsa}, // state = '/'; if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'2': {StateFractionOngoing, ActionFracMatinsa}, // state = '/'; if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'3': {StateFractionOngoing, ActionFracMatinsa}, // state = '/'; if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'4': {StateFractionOngoing, ActionFracMatinsa}, // state = '/'; if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'5': {StateFractionOngoing, ActionFracMatinsa}, // state = '/'; if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'6': {StateFractionOngoing, ActionFracMatinsa}, // state = '/'; if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'7': {StateFractionOngoing, ActionFracMatinsa}, // state = '/'; if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'8': {StateFractionOngoing, ActionFracMatinsa}, // state = '/'; if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'9': {StateFractionOngoing, ActionFracMatinsa}, // state = '/'; if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'e': {StateExponentStarted, ActionNothing},     // state = 'e'
+		'E': {StateExponentStarted, ActionNothing},     // state = 'e'
+	},
+	StateFractionOngoing: { // default is success
+		'0': {StateFractionOngoing, ActionFracMatinsa}, // if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'1': {StateFractionOngoing, ActionFracMatinsa}, // if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'2': {StateFractionOngoing, ActionFracMatinsa}, // if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'3': {StateFractionOngoing, ActionFracMatinsa}, // if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'4': {StateFractionOngoing, ActionFracMatinsa}, // if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'5': {StateFractionOngoing, ActionFracMatinsa}, // if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'6': {StateFractionOngoing, ActionFracMatinsa}, // if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'7': {StateFractionOngoing, ActionFracMatinsa}, // if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'8': {StateFractionOngoing, ActionFracMatinsa}, // if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'9': {StateFractionOngoing, ActionFracMatinsa}, // if fracdigits+intdigits < maxMantDigits { mantissa = (mantissa * 10) + uint64(c-'0') }; fracdigits++
+		'e': {StateExponentStarted, ActionNothing},     // state = 'e'
+		'E': {StateExponentStarted, ActionNothing},     // state = 'e'
+		'.': {StateError, ActionNothing},               // return // ERROR: fraction does not contain a .
+	},
+	StateExponentStarted: { // default is error, see init below
+		'-': {StateExponentWithSign, ActionSetExponentSign}, // state = 'f'; expsign = -1
+		'+': {StateExponentWithSign, ActionNothing},         // state = 'f'
+		'0': {StateExponentOngoing, ActionExpPart},          // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'1': {StateExponentOngoing, ActionExpPart},          // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'2': {StateExponentOngoing, ActionExpPart},          // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'3': {StateExponentOngoing, ActionExpPart},          // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'4': {StateExponentOngoing, ActionExpPart},          // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'5': {StateExponentOngoing, ActionExpPart},          // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'6': {StateExponentOngoing, ActionExpPart},          // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'7': {StateExponentOngoing, ActionExpPart},          // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'8': {StateExponentOngoing, ActionExpPart},          // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'9': {StateExponentOngoing, ActionExpPart},          // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+	},
+	StateExponentWithSign: { // default is error, see init below
+		'0': {StateExponentOngoing, ActionExpPart}, // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'1': {StateExponentOngoing, ActionExpPart}, // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'2': {StateExponentOngoing, ActionExpPart}, // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'3': {StateExponentOngoing, ActionExpPart}, // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'4': {StateExponentOngoing, ActionExpPart}, // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'5': {StateExponentOngoing, ActionExpPart}, // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'6': {StateExponentOngoing, ActionExpPart}, // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'7': {StateExponentOngoing, ActionExpPart}, // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'8': {StateExponentOngoing, ActionExpPart}, // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'9': {StateExponentOngoing, ActionExpPart}, // state = 'g'; if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+	},
+	StateExponentOngoing: { // default is success
+		'0': {StateExponentOngoing, ActionExpPart}, // if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'1': {StateExponentOngoing, ActionExpPart}, // if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'2': {StateExponentOngoing, ActionExpPart}, // if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'3': {StateExponentOngoing, ActionExpPart}, // if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'4': {StateExponentOngoing, ActionExpPart}, // if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'5': {StateExponentOngoing, ActionExpPart}, // if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'6': {StateExponentOngoing, ActionExpPart}, // if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'7': {StateExponentOngoing, ActionExpPart}, // if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'8': {StateExponentOngoing, ActionExpPart}, // if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+		'9': {StateExponentOngoing, ActionExpPart}, // if exppart < 10000 { exppart = (exppart * 10) + int(c-'0') }; expdigits++
+	},
+}
+
+func init() {
+	// set the default states to error for some states.
+	zerodst := dst{state: 0, action: 0}
+	defaultIsError := []byte{StateStart, StateIntegerNegative, StateFractionStarted, StateExponentStarted, StateExponentWithSign}
+	for _, s := range defaultIsError {
+		for c, v := range machine[s] {
+			if v == zerodst {
+				machine[s][c] = dst{state: StateError}
+			}
+		}
+	}
 }
 
 // Number returns the offset after the prefix of a valid number.
@@ -135,7 +220,6 @@ func Number(buf []byte) (int, error) {
 // exponent := "" | 'E' sign digits | 'e' sign digits
 // sign := "" | '+' | '-'
 func ParseNumber(buf []byte) (offset int, intres int64, intok bool, floatres float64, floatok bool, decimalok bool) {
-	state := 's' // start
 	sign := int64(1)
 	expsign := 1
 	var mantissa uint64
@@ -144,139 +228,38 @@ func ParseNumber(buf []byte) (offset int, intres int64, intok bool, floatres flo
 	var exppart int
 	var expdigits int
 	maxMantDigits := 19 // 10^19 fits in uint64
-	done := false
+	state := StateStart // start
 	for _, c := range buf {
-		offset += 1
-		switch state {
-		case 's': // start
-			switch c {
-			case '0':
-				state = '0'
-				intdigits++
-			case '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				state = '1'
-				if intdigits < maxMantDigits {
-					mantissa = (mantissa * 10) + uint64(c-'0')
-				}
-				intdigits++
-			case '-':
-				state = '-'
-				sign = -1
-			default:
-				return // ERROR: number starts with a digit or '-'
+		dst := machine[state][c]
+		state = dst.state
+		switch dst.action {
+		case ActionNothing:
+		case ActionIntMatinsa:
+			if intdigits < maxMantDigits {
+				mantissa = (mantissa * 10) + uint64(c-'0')
 			}
-		case '-': // negative number started
-			switch c {
-			case '0':
-				state = '0'
-				intdigits++
-			case '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				state = '1'
-				if intdigits < maxMantDigits {
-					mantissa = (mantissa * 10) + uint64(c-'0')
-				}
-				intdigits++
-			default:
-				return // ERROR: negative numbers starts with a digit
+			intdigits++
+		case ActionFracMatinsa:
+			if intdigits+fracdigits < maxMantDigits {
+				mantissa = (mantissa * 10) + uint64(c-'0')
 			}
-		case '0': // integer complete
-			switch c {
-			case '.':
-				state = '.'
-			case 'e', 'E':
-				state = 'e'
-			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				return // ERROR: the integer was complete, for example 0, the number does not continue
-			default:
-				done = true // SUCCESS zero
+			fracdigits++
+		case ActionSetSignNegative:
+			sign = -1
+		case ActionSetExponentSign:
+			expsign = -1
+		case ActionExpPart:
+			if exppart < 10000 {
+				exppart = (exppart * 10) + int(c-'0')
 			}
-		case '1':
-			switch c {
-			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				if intdigits < maxMantDigits {
-					mantissa = (mantissa * 10) + uint64(c-'0')
-				}
-				intdigits++
-			case '.':
-				state = '.'
-			case 'e', 'E':
-				state = 'e'
-			default:
-				done = true // SUCCESS integer
-			}
-		case '.': // fraction started
-			switch c {
-			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				state = '/'
-				if fracdigits+intdigits < maxMantDigits {
-					mantissa = (mantissa * 10) + uint64(c-'0')
-				}
-				fracdigits++
-			case 'e', 'E':
-				state = 'e'
-			default:
-				return // ERROR: number does not end in a .
-			}
-		case '/': // fraction ongoing
-			switch c {
-			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				if fracdigits+intdigits < maxMantDigits {
-					mantissa = (mantissa * 10) + uint64(c-'0')
-				}
-				fracdigits++
-			case 'e', 'E':
-				state = 'e'
-			case '.':
-				return // ERROR: fraction does not contain a .
-			default:
-				done = true // SUCCESS
-			}
-		case 'e': // exponent started
-			switch c {
-			case '-':
-				state = 'f'
-				expsign = -1
-			case '+':
-				state = 'f'
-			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				state = 'g'
-				if exppart < 10000 {
-					exppart = (exppart * 10) + int(c-'0')
-				}
-				expdigits++
-			default:
-				return // ERROR: number does not end in a e or E
-			}
-		case 'f': // exponent with sign started
-			switch c {
-			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				state = 'g'
-				if exppart < 10000 {
-					exppart = (exppart * 10) + int(c-'0')
-				}
-				expdigits++
-			default:
-				return // ERROR: number does not end in '+' or '-'
-			}
-		case 'g': // exponent ongoing
-			switch c {
-			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-				if exppart < 10000 {
-					exppart = (exppart * 10) + int(c-'0')
-				}
-				expdigits++
-			default:
-				done = true // SUCCESS
-			}
-		default:
-			panic("unreachable")
+			expdigits++
 		}
-		if done {
-			offset = offset - 1
+		if state == StateError || state == StateSuccess {
 			break
 		}
+		offset++
 	}
-	if state == 's' || state == '-' || state == '.' || state == 'e' || state == 'f' {
+	if isFailState[state] {
 		return // ERROR: these are not accepting states
 	}
 
