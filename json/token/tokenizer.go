@@ -88,23 +88,26 @@ func (t *tokenizer) Next() (scan.Kind, error) {
 
 func (t *tokenizer) tokenizeNumber() error {
 	offset, intval, intok, floatval, floatok, decimalok := scan.ParseNumber(t.scanTokenStart)
-	t.skipped = true
 	if err := t.scanner.Skip(offset); err != nil {
 		return err
 	}
+	t.skipped = true
 	if intok {
 		t.tokenKind = parse.Int64Kind
 		t.tokenInt = intval
-	} else if floatok {
+		return nil
+	}
+	if floatok {
 		t.tokenKind = parse.Float64Kind
 		t.tokenDouble = floatval
-	} else if decimalok {
+		return nil
+	}
+	if decimalok {
 		t.tokenKind = parse.DecimalKind
 		t.tokenBytes = t.scanTokenStart[:offset]
-	} else {
-		return ErrNotNumber
+		return nil
 	}
-	return nil
+	return ErrNotNumber
 }
 
 func unquoteBytes(alloc func(int) []byte, s []byte) ([]byte, int, error) {
