@@ -41,6 +41,12 @@ cpuprofile:
 	go test -test.v -test.run=XXX -test.bench=BenchmarkDefault -test.cpuprofile=cpu.out ./json
 	go tool pprof -png cpu.out
 
+cpuprofile-numbers:
+	rm cpu.out || true
+	rm profile*.* || true
+	go test -test.v -test.run=XXX -test.bench=BenchmarkNumbers -test.cpuprofile=cpu.out ./json
+	go tool pprof -png cpu.out
+
 noallocsprofile:
 	rm mem.out || true
 	rm profile*.* || true

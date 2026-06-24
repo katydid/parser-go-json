@@ -50,6 +50,9 @@ func randValue(r Rand, c *config) string {
 // randTerminator generates a random json value that cannot recurse into generating more json values.
 // More specifically, it generates either null, false, true, number or a string and does not generate an array or object.
 func randTerminator(r Rand, c *config) string {
+	if c.terminalsAreNumbers {
+		return randNumber(r, c)
+	}
 	switch r.Intn(5) {
 	case 0:
 		return "null"

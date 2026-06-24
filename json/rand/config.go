@@ -22,8 +22,9 @@ type config struct {
 	maxStringLength int
 	numberEdgeCases []string
 	// r.Intn(c.numberEdgeCaseOdds) == 0 will result in a random edge case being generated.
-	numberEdgeCaseOdds int
-	maxSpaces          int
+	numberEdgeCaseOdds  int
+	maxSpaces           int
+	terminalsAreNumbers bool
 }
 
 type Option func(*config)
@@ -86,5 +87,11 @@ func WithMaxStringLength(maxStringLength int) Option {
 func WithMaxSpaces(maxSpaces int) Option {
 	return func(c *config) {
 		c.maxSpaces = maxSpaces
+	}
+}
+
+func WithTerminalsAreNumbers() Option {
+	return func(c *config) {
+		c.terminalsAreNumbers = true
 	}
 }

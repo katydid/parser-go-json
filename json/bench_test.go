@@ -86,3 +86,28 @@ func BenchmarkDefault(b *testing.B) {
 	}
 	b.ReportAllocs()
 }
+
+func BenchmarkNumbers(b *testing.B) {
+	// generate random jsons
+	num := 10000
+	r := rand.NewRand()
+	values := rand.Values(r, num, rand.WithTerminalsAreNumbers())
+
+	// initialise pool
+	jparser := NewParser()
+	// exercise buffer pool
+	for i := 0; i < num; i++ {
+		jparser.Init(values[i%num])
+		if err := debug.Walk(jparser); err != nil {
+			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
+		}
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		jparser.Init(values[i%num])
+		if err := debug.Walk(jparser); err != nil {
+			b.Fatalf("seed = %v, err = %v", r.Seed(), err)
+		}
+	}
+	b.ReportAllocs()
+}
