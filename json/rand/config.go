@@ -25,6 +25,7 @@ type config struct {
 	numberEdgeCaseOdds  int
 	maxSpaces           int
 	terminalsAreNumbers bool
+	numbersAreFractions bool
 }
 
 type Option func(*config)
@@ -40,6 +41,7 @@ func newConfig(opts ...Option) *config {
 		numberEdgeCaseOdds:  100,
 		maxSpaces:           5,
 		terminalsAreNumbers: false,
+		numbersAreFractions: false,
 	}
 	// apply options
 	for _, o := range opts {
@@ -94,5 +96,11 @@ func WithMaxSpaces(maxSpaces int) Option {
 func WithTerminalsAreNumbers() Option {
 	return func(c *config) {
 		c.terminalsAreNumbers = true
+	}
+}
+
+func WithNumbersAreFractions() Option {
+	return func(c *config) {
+		c.numbersAreFractions = true
 	}
 }
