@@ -185,6 +185,9 @@ func Number(r Rand, opts ...Option) string {
 // number BNF:
 // number := integer fraction exponent
 func randNumber(r Rand, c *config) string {
+	if c.numbersAreFractions {
+		return randInteger(r) + randFraction(r)
+	}
 	// Sometimes generate an edge case
 	if r.Intn(c.numberEdgeCaseOdds) == 0 {
 		return c.numberEdgeCases[r.Intn(len(c.numberEdgeCases))]
