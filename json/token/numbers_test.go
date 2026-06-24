@@ -55,9 +55,12 @@ func TestNumbersMaxInt64(t *testing.T) {
 	if !kind.IsNumber() {
 		t.Fatal("expected number")
 	}
-	_, got, err := tzer.Token()
+	tokenKind, got, err := tzer.Token()
 	if err != nil {
 		t.Fatal(err)
+	}
+	if tokenKind != parse.Int64Kind {
+		t.Fatalf("expected decimal, got %v", tokenKind)
 	}
 	goti := cast.ToInt64(got)
 	if goti != want {
@@ -80,11 +83,104 @@ func TestNumbersMaxInt64Plus1(t *testing.T) {
 		t.Fatal(err)
 	}
 	if tokenKind != parse.DecimalKind {
-		t.Fatalf("expected decimal")
+		t.Fatalf("expected decimal, got %v", tokenKind)
 	}
 	var want string = input
 	if string(got) != want {
 		t.Fatalf("got %v, but want %v", string(got), want)
+	}
+}
+
+func TestNumbersMaxInt64Plus2(t *testing.T) {
+	input := "9223372036854775809" // math.MaxInt64 + 2
+	tzer := NewTokenizer([]byte(input))
+	kind, err := tzer.Next()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !kind.IsNumber() {
+		t.Fatal("expected number")
+	}
+	tokenKind, got, err := tzer.Token()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tokenKind != parse.DecimalKind {
+		t.Fatalf("expected decimal, got %v", tokenKind)
+	}
+	var want string = input
+	if string(got) != want {
+		t.Fatalf("got %v, but want %v", string(got), want)
+	}
+}
+
+func TestNumbersMaxInt64Plus3(t *testing.T) {
+	input := "9223372036854775810" // math.MaxInt64 + 3
+	tzer := NewTokenizer([]byte(input))
+	kind, err := tzer.Next()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !kind.IsNumber() {
+		t.Fatal("expected number")
+	}
+	tokenKind, got, err := tzer.Token()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tokenKind != parse.DecimalKind {
+		t.Fatalf("expected decimal, got %v", tokenKind)
+	}
+	var want string = input
+	if string(got) != want {
+		t.Fatalf("got %v, but want %v", string(got), want)
+	}
+}
+
+func TestNumbersMaxInt64PlusADigit(t *testing.T) {
+	input := "92233720368547758071" // math.MaxInt64 + another digit
+	tzer := NewTokenizer([]byte(input))
+	kind, err := tzer.Next()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !kind.IsNumber() {
+		t.Fatal("expected number")
+	}
+	tokenKind, got, err := tzer.Token()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tokenKind != parse.DecimalKind {
+		t.Fatalf("expected decimal, got %v", tokenKind)
+	}
+	var want string = input
+	if string(got) != want {
+		t.Fatalf("got %v, but want %v", string(got), want)
+	}
+}
+
+func TestNumbersMinInt64Plus1(t *testing.T) {
+	input := "-9223372036854775807" // math.MinInt64 + 1
+	var want int64 = math.MinInt64 + 1
+	tzer := NewTokenizer([]byte(input))
+	kind, err := tzer.Next()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !kind.IsNumber() {
+		t.Fatal("expected number")
+	}
+	tokenKind, got, err := tzer.Token()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tokenKind != parse.Int64Kind {
+		t.Fatalf("expected int64, but got %v", tokenKind)
+	}
+	goti := cast.ToInt64(got)
+	if goti != want {
+		t.Fatalf("got %v, but want %v", goti, want)
 	}
 }
 
@@ -99,9 +195,12 @@ func TestNumbersMinInt64(t *testing.T) {
 	if !kind.IsNumber() {
 		t.Fatal("expected number")
 	}
-	_, got, err := tzer.Token()
+	tokenKind, got, err := tzer.Token()
 	if err != nil {
 		t.Fatal(err)
+	}
+	if tokenKind != parse.Int64Kind {
+		t.Fatalf("expected int64, but got %v", tokenKind)
 	}
 	goti := cast.ToInt64(got)
 	if goti != want {
@@ -124,7 +223,7 @@ func TestNumbersMinInt64Min1(t *testing.T) {
 		t.Fatal(err)
 	}
 	if tokenKind != parse.DecimalKind {
-		t.Fatalf("expected decimal")
+		t.Fatalf("expected decimal, but got %v", tokenKind)
 	}
 	want := input
 	got := string(gotb)
@@ -144,9 +243,12 @@ func TestNumbersMaxUint64(t *testing.T) {
 	if !kind.IsNumber() {
 		t.Fatal("expected number")
 	}
-	_, got, err := tzer.Token()
+	tokenKind, got, err := tzer.Token()
 	if err != nil {
 		t.Fatal(err)
+	}
+	if tokenKind != parse.DecimalKind {
+		t.Fatalf("expected decimal")
 	}
 	if string(got) != want {
 		t.Fatalf("got %v, but want %v", string(got), want)
@@ -168,7 +270,7 @@ func TestNumbersMaxUint64Plus1(t *testing.T) {
 		t.Fatal(err)
 	}
 	if tokenKind != parse.DecimalKind {
-		t.Fatalf("expected decimal")
+		t.Fatalf("expected decimal, but got %v", tokenKind)
 	}
 	want := input
 	got := string(gotb)
@@ -189,8 +291,11 @@ func TestNumbersMaxFloat64(t *testing.T) {
 		t.Fatal("expected number")
 	}
 	tokenKind, got, err := tzer.Token()
+	if err != nil {
+		t.Fatal(err)
+	}
 	if tokenKind != parse.Float64Kind {
-		t.Fatalf("expected float64")
+		t.Fatalf("expected float64, but got %v", tokenKind)
 	}
 	gotf := cast.ToFloat64(got)
 	if gotf != want {
@@ -213,7 +318,7 @@ func TestNumbersLargerThanMaxFloat64(t *testing.T) {
 		t.Fatal(err)
 	}
 	if tokenKind != parse.DecimalKind {
-		t.Fatal("expected decimal")
+		t.Fatalf("expected decimal, but got %v", tokenKind)
 	}
 	want := input
 	got := string(gotb)
@@ -238,7 +343,7 @@ func TestNumbersSmallestNonZeroFloat64(t *testing.T) {
 		t.Fatal(err)
 	}
 	if tokenKind != parse.Float64Kind {
-		t.Fatal("expected float64")
+		t.Fatalf("expected float64, but got %v", tokenKind)
 	}
 	gotf := cast.ToFloat64(got)
 	if gotf != want {
@@ -269,7 +374,7 @@ func TestNumbersIntOutsideOfFloatingPointPrecision(t *testing.T) {
 				t.Fatal(err)
 			}
 			if tokenKind != parse.Int64Kind {
-				t.Fatal("expected int64")
+				t.Fatalf("expected int64, but got %v", tokenKind)
 			}
 			goti := cast.ToInt64(gotb)
 			got := fmt.Sprintf("%v", goti)
@@ -303,7 +408,7 @@ func TestNumbersUintOutsideOfFloatingPointPrecision(t *testing.T) {
 				t.Fatal(err)
 			}
 			if tokenKind != parse.Int64Kind {
-				t.Fatal("expected int64")
+				t.Fatalf("expected int64, but got %v", tokenKind)
 			}
 			goti := cast.ToInt64(gotb)
 			got := fmt.Sprintf("%v", goti)

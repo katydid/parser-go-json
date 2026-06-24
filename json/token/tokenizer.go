@@ -15,7 +15,6 @@
 package token
 
 import (
-	"github.com/katydid/parser-go-json/json/internal/fork/strconv"
 	"github.com/katydid/parser-go-json/json/internal/fork/unquote"
 	"github.com/katydid/parser-go-json/json/scan"
 	"github.com/katydid/parser-go/cast"
@@ -87,44 +86,24 @@ func (t *tokenizer) Next() (scan.Kind, error) {
 	return kind, nil
 }
 
-func (t *tokenizer) notParseableInteger(token []byte) bool {
-	for _, b := range token {
-		if b == '.' || b == 'e' || b == 'E' {
-			return true
-		}
-	}
-	return false
-}
-
 func (t *tokenizer) tokenizeNumber() error {
-	token, err := t.scanner.ScanToEnd(scan.NumberKind)
-	if err != nil {
+	offset, intval, intok, floatval, floatok, decimalok := scan.ParseNumber(t.scanTokenStart)
+	t.skipped = true
+	if err := t.scanner.Skip(offset); err != nil {
 		return err
 	}
-	t.skipped = true
-	if t.notParseableInteger(token) {
-		t.tokenDouble, err = strconv.ParseFloat(token)
-		if err != nil {
-			t.tokenKind = parse.DecimalKind
-			t.tokenBytes = token
-			// scan already passed, so we know this is a valid number.
-			// The number is just too large represent in 64 float bits.
-			return nil
-		}
+	if intok {
+		t.tokenKind = parse.Int64Kind
+		t.tokenInt = intval
+	} else if floatok {
 		t.tokenKind = parse.Float64Kind
-		// This can only be a float, so we return and do not try others.
-		return nil
-	}
-	parsedInt, err := strconv.ParseInt(token)
-	if err != nil {
-		// scan already passed, so we know this is a valid number.
-		// The number is just too large represent in signed 64 bits.
+		t.tokenDouble = floatval
+	} else if decimalok {
 		t.tokenKind = parse.DecimalKind
-		t.tokenBytes = token
-		return nil
+		t.tokenBytes = t.scanTokenStart[:offset]
+	} else {
+		return ErrNotNumber
 	}
-	t.tokenKind = parse.Int64Kind
-	t.tokenInt = parsedInt
 	return nil
 }
 
