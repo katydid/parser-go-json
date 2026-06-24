@@ -15,8 +15,10 @@
 package scan
 
 import (
+	"fmt"
 	"testing"
 
+	"github.com/katydid/parser-go-json/json/internal/fork/strconv"
 	"github.com/katydid/parser-go-json/json/rand"
 )
 
@@ -82,4 +84,66 @@ func TestRandNumber(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestParseRandomNumber(t *testing.T) {
+	r := rand.NewRand()
+	for i := 0; i < 1000; i++ {
+		s := rand.Number(r)
+		t.Run(s, func(t *testing.T) {
+			buf := []byte(s)
+			if err := checkNumber(buf); err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
+func notParseableInteger(token []byte) bool {
+	for _, b := range token {
+		if b == '.' || b == 'e' || b == 'E' {
+			return true
+		}
+	}
+	return false
+}
+
+func checkNumber(token []byte) error {
+	offset, intval, intok, floatval, floatok, decok := ParseNumber(token)
+	if notParseableInteger(token) {
+		slowFloatVal, err := strconv.ParseFloat(token)
+		if err != nil {
+			if !decok {
+				return fmt.Errorf("expected decimal, since we could not parse the float and it is not an integer, but %v is not a decimal", string(token))
+			}
+			if offset != len(token) {
+				return fmt.Errorf("expected decimal %s to parse to end %d, but only parsed up to %d", string(token), len(token), offset)
+			}
+			return nil
+		}
+		if !floatok {
+			return fmt.Errorf("expected float, since we could parse the float and it is not an integer, but %v is not a float", string(token))
+		}
+		if slowFloatVal != floatval {
+			return fmt.Errorf("want %v got %v", slowFloatVal, floatval)
+		}
+		return nil
+	}
+	slowIntVal, err := strconv.ParseInt(token)
+	if err != nil {
+		if !decok {
+			return fmt.Errorf("expected decimal, since we could not parse the integer, but %v is not a decimal", string(token))
+		}
+		if offset != len(token) {
+			return fmt.Errorf("expected decimal %s to parse to end %d, but only parsed up to %d", string(token), len(token), offset)
+		}
+		return nil
+	}
+	if !intok {
+		return fmt.Errorf("expected float, since we could parse the float and it is not an integer, but %v is not a float", string(token))
+	}
+	if slowIntVal != intval {
+		return fmt.Errorf("want %v got %v", slowIntVal, intval)
+	}
+	return nil
 }

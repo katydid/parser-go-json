@@ -18,6 +18,9 @@ import (
 	"errors"
 )
 
+// ErrNotNumber is an error that represents a type error.
+var ErrNotNumber = errors.New("value is not a number")
+
 // ErrNotDouble is an error that represents a type error.
 var ErrNotDouble = errors.New("value is not a double")
 
