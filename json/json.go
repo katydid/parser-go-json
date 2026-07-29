@@ -17,9 +17,9 @@ package json
 
 import (
 	"github.com/katydid/parser-go-json/json/parse"
-	"github.com/katydid/parser-go-json/json/tag"
 	goparse "github.com/katydid/parser-go/parse"
 	"github.com/katydid/parser-go/pool"
+	"github.com/katydid/parser-go/tag"
 )
 
 type Parser interface {

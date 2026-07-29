@@ -2,4 +2,4 @@ module github.com/katydid/parser-go-json
 
 go 1.26.3
 
-require github.com/katydid/parser-go v0.8.8
+require github.com/katydid/parser-go v0.9.0

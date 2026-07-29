@@ -20,14 +20,14 @@ import (
 
 	"github.com/katydid/parser-go/cast"
 	"github.com/katydid/parser-go/expect"
+	"github.com/katydid/parser-go/hedge"
 	"github.com/katydid/parser-go/parse"
-	"github.com/katydid/parser-go/parse/debug"
 )
 
-func parseString(s string) (debug.Nodes, error) {
+func parseString(s string) (hedge.Hedge, error) {
 	parser := NewParser()
 	parser.Init([]byte(s))
-	return debug.Parse(parser)
+	return hedge.ParseInto(parser)
 }
 
 func TestEscapedChar(t *testing.T) {

@@ -19,9 +19,9 @@ import (
 	"testing"
 
 	jsonparse "github.com/katydid/parser-go-json/json/parse"
-	"github.com/katydid/parser-go-json/json/tag"
 	"github.com/katydid/parser-go/expect"
 	"github.com/katydid/parser-go/parse"
+	"github.com/katydid/parser-go/tag"
 )
 
 // Skip returns an error if nothing has been parsed yet.

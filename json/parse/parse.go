@@ -17,9 +17,9 @@ package parse
 import (
 	"io"
 
-	"github.com/katydid/parser-go-json/json/jsonschema"
 	"github.com/katydid/parser-go-json/json/scan"
 	"github.com/katydid/parser-go-json/json/token"
+	"github.com/katydid/parser-go/jsonschema"
 	"github.com/katydid/parser-go/parse"
 )
 

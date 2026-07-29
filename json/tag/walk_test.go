@@ -18,8 +18,8 @@ import (
 	"errors"
 	"io"
 
-	"github.com/katydid/parser-go-json/json/rand"
 	"github.com/katydid/parser-go/parse"
+	"github.com/katydid/parser-go/rand"
 )
 
 var errUnknownToken = errors.New("unknown token")

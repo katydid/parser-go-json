@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/katydid/parser-go/hedge"
 	goparse "github.com/katydid/parser-go/parse"
 	"github.com/katydid/parser-go/parse/debug"
 )
@@ -27,9 +28,9 @@ type InitParser interface {
 	Init([]byte)
 }
 
-func parse(parser InitParser, s string) (debug.Nodes, error) {
+func parse(parser InitParser, s string) (hedge.Hedge, error) {
 	parser.Init([]byte(s))
-	return debug.Parse(parser)
+	return hedge.ParseInto(parser)
 }
 
 func walk(parser InitParser, s string) error {
