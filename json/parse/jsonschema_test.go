@@ -17,9 +17,9 @@ package parse
 import (
 	"testing"
 
-	"github.com/katydid/parser-go/expect"
-	"github.com/katydid/parser-go/jsonschema"
-	"github.com/katydid/parser-go/parse"
+	"katydid.org.za/go/parser-go/expect"
+	"katydid.org.za/go/parser-go/jsonschema"
+	"katydid.org.za/go/parser-go/parse"
 )
 
 func TestJSONSchemaExample(t *testing.T) {

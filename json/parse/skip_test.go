@@ -17,8 +17,8 @@ package parse
 import (
 	"testing"
 
-	"github.com/katydid/parser-go/expect"
-	"github.com/katydid/parser-go/parse"
+	"katydid.org.za/go/parser-go/expect"
+	"katydid.org.za/go/parser-go/parse"
 )
 
 // Skip returns an error if nothing has been parsed yet.

@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/katydid/parser-go-json/json/rand"
-	"github.com/katydid/parser-go/pool"
+	"katydid.org.za/go/parser-go/pool"
 )
 
 func NoAllocsOnAverage(t *testing.T, f func(bs []byte)) {

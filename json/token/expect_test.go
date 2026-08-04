@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/katydid/parser-go/cast"
-	"github.com/katydid/parser-go/parse"
+	"katydid.org.za/go/parser-go/cast"
+	"katydid.org.za/go/parser-go/parse"
 )
 
 func expect[A comparable](t *testing.T, f func() (A, error), want A) {

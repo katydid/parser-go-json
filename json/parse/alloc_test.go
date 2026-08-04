@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"github.com/katydid/parser-go-json/json/internal/testrun"
-	"github.com/katydid/parser-go/pool"
+	"katydid.org.za/go/parser-go/pool"
 )
 
 func TestNoAllocsOnAverage(t *testing.T) {

@@ -17,8 +17,8 @@ package token
 import (
 	"github.com/katydid/parser-go-json/json/internal/fork/unquote"
 	"github.com/katydid/parser-go-json/json/scan"
-	"github.com/katydid/parser-go/cast"
-	"github.com/katydid/parser-go/parse"
+	"katydid.org.za/go/parser-go/cast"
+	"katydid.org.za/go/parser-go/parse"
 )
 
 // Tokenizer is a scanner that provides the ability to buffers returned by the scanner into native Go types.

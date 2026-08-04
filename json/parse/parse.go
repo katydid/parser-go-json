@@ -19,8 +19,8 @@ import (
 
 	"github.com/katydid/parser-go-json/json/scan"
 	"github.com/katydid/parser-go-json/json/token"
-	"github.com/katydid/parser-go/jsonschema"
-	"github.com/katydid/parser-go/parse"
+	"katydid.org.za/go/parser-go/jsonschema"
+	"katydid.org.za/go/parser-go/parse"
 )
 
 type Parser interface {

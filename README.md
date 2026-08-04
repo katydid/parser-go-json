@@ -23,8 +23,8 @@ We can then use the parser to decode only `myfield` and skip over other fields a
 
 ```go
 import (
-	"github.com/katydid/parser-go/cast"
-	"github.com/katydid/parser-go/parse"
+	"katydid.org.za/go/parser-go/cast"
+	"katydid.org.za/go/parser-go/parse"
 )
 
 

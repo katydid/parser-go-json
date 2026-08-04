@@ -18,8 +18,8 @@ import (
 	"testing"
 
 	"github.com/katydid/parser-go-json/json/rand"
-	"github.com/katydid/parser-go/parse/debug"
-	"github.com/katydid/parser-go/pool"
+	"katydid.org.za/go/parser-go/parse/debug"
+	"katydid.org.za/go/parser-go/pool"
 )
 
 func BenchmarkPoolDefault(b *testing.B) {

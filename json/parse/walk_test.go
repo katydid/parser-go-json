@@ -17,7 +17,7 @@ package parse
 import (
 	"io"
 
-	"github.com/katydid/parser-go/parse"
+	"katydid.org.za/go/parser-go/parse"
 
 	"github.com/katydid/parser-go-json/json/rand"
 )

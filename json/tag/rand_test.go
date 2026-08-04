@@ -20,7 +20,7 @@ import (
 	"github.com/katydid/parser-go-json/json/internal/testrun"
 	"github.com/katydid/parser-go-json/json/parse"
 	"github.com/katydid/parser-go-json/json/rand"
-	"github.com/katydid/parser-go/tag"
+	"katydid.org.za/go/parser-go/tag"
 )
 
 func TestParseRandomValuesWithTagsAndIndexes(t *testing.T) {

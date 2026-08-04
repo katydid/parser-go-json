@@ -19,10 +19,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/katydid/parser-go/hedge"
-	"github.com/katydid/parser-go/parse/debug"
-	"github.com/katydid/parser-go/pool"
-	"github.com/katydid/parser-go/rand"
+	"katydid.org.za/go/parser-go/hedge"
+	"katydid.org.za/go/parser-go/parse/debug"
+	"katydid.org.za/go/parser-go/pool"
+	"katydid.org.za/go/parser-go/rand"
 )
 
 func TestDebugParse(t *testing.T) {

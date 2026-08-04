@@ -18,9 +18,9 @@ import (
 	"testing"
 
 	jsonparse "github.com/katydid/parser-go-json/json/parse"
-	"github.com/katydid/parser-go/expect"
-	"github.com/katydid/parser-go/parse"
-	"github.com/katydid/parser-go/tag"
+	"katydid.org.za/go/parser-go/expect"
+	"katydid.org.za/go/parser-go/parse"
+	"katydid.org.za/go/parser-go/tag"
 )
 
 func TestTagArrayForEmptyArrayWithIndex(t *testing.T) {
