@@ -16,7 +16,7 @@
 package json
 
 import (
-	"github.com/katydid/parser-go-json/json/parse"
+	"katydid.org.za/go/parser-go-json/json/parse"
 	goparse "katydid.org.za/go/parser-go/parse"
 	"katydid.org.za/go/parser-go/pool"
 	"katydid.org.za/go/parser-go/tag"

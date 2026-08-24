@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/katydid/parser-go-json/json/rand"
+	"katydid.org.za/go/parser-go-json/json/rand"
 	"katydid.org.za/go/parser-go/pool"
 )
 

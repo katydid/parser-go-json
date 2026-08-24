@@ -19,7 +19,7 @@ import (
 
 	"katydid.org.za/go/parser-go/parse"
 
-	"github.com/katydid/parser-go-json/json/rand"
+	"katydid.org.za/go/parser-go-json/json/rand"
 )
 
 func walkValue(t Parser) error {

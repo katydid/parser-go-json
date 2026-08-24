@@ -18,7 +18,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/katydid/parser-go-json/json"
+	"katydid.org.za/go/parser-go-json/json"
 	"katydid.org.za/go/parser-go/cast"
 	"katydid.org.za/go/parser-go/parse"
 )

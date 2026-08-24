@@ -7,8 +7,8 @@ package jsontext
 import (
 	"testing"
 
-	"github.com/katydid/parser-go-json/json"
-	"github.com/katydid/parser-go-json/json/internal/testrun"
+	"katydid.org.za/go/parser-go-json/json"
+	"katydid.org.za/go/parser-go-json/json/internal/testrun"
 )
 
 func TestWalk(t *testing.T) {

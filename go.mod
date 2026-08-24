@@ -1,4 +1,4 @@
-module github.com/katydid/parser-go-json
+module katydid.org.za/go/parser-go-json
 
 go 1.26.3
 

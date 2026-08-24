@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/katydid/parser-go-json/json/internal/fork/strconv"
-	"github.com/katydid/parser-go-json/json/rand"
+	"katydid.org.za/go/parser-go-json/json/internal/fork/strconv"
+	"katydid.org.za/go/parser-go-json/json/rand"
 )
 
 func TestNumber(t *testing.T) {

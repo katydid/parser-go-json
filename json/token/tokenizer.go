@@ -15,8 +15,8 @@
 package token
 
 import (
-	"github.com/katydid/parser-go-json/json/internal/fork/unquote"
-	"github.com/katydid/parser-go-json/json/scan"
+	"katydid.org.za/go/parser-go-json/json/internal/fork/unquote"
+	"katydid.org.za/go/parser-go-json/json/scan"
 	"katydid.org.za/go/parser-go/cast"
 	"katydid.org.za/go/parser-go/parse"
 )

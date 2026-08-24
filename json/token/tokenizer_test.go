@@ -17,7 +17,7 @@ package token
 import (
 	"testing"
 
-	"github.com/katydid/parser-go-json/json/scan"
+	"katydid.org.za/go/parser-go-json/json/scan"
 )
 
 func TestTokenizerExample(t *testing.T) {

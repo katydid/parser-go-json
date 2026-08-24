@@ -17,7 +17,7 @@ package json
 import (
 	"testing"
 
-	"github.com/katydid/parser-go-json/json/internal/testrun"
+	"katydid.org.za/go/parser-go-json/json/internal/testrun"
 	"katydid.org.za/go/parser-go/parse/debug"
 	"katydid.org.za/go/parser-go/pool"
 )

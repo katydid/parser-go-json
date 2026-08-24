@@ -18,7 +18,7 @@ import (
 	"io"
 	"testing"
 
-	jsonparse "github.com/katydid/parser-go-json/json/parse"
+	jsonparse "katydid.org.za/go/parser-go-json/json/parse"
 	"katydid.org.za/go/parser-go/expect"
 	"katydid.org.za/go/parser-go/parse"
 	"katydid.org.za/go/parser-go/tag"
