@@ -16,7 +16,7 @@ jobs:
         go-version: 1.26
     - name: Fetch dependencies
       run: |
-        cd gopath/ggit.katydid.org.za/go/parser-go-json
+        cd gopath/git.katydid.org.za/go/parser-go-json
         go mod download -x
     - name: env
       run: env && go env && pwd
@@ -24,22 +24,22 @@ jobs:
       run: tree
     - name: Build
       run: |
-        cd gopath/ggit.katydid.org.za/go/parser-go-json
+        cd gopath/git.katydid.org.za/go/parser-go-json
         make build
     - name: Test
       run: |
-        cd gopath/ggit.katydid.org.za/go/parser-go-json
+        cd gopath/git.katydid.org.za/go/parser-go-json
         make test
     - name: Test PureGo
       run: |
-        cd gopath/ggit.katydid.org.za/go/parser-go-json
+        cd gopath/git.katydid.org.za/go/parser-go-json
         make test-purego
     - name: Checklicencse
       uses: awalterschulze/checklicense@v1.0.6
       with:
-        path: gopath/ggit.katydid.org.za/go/parser-go-json
+        path: gopath/git.katydid.org.za/go/parser-go-json
         ignores: doc.go .png .svg .txt
     - name: Diff
       run: |
-        cd gopath/ggit.katydid.org.za/go/parser-go-json
+        cd gopath/git.katydid.org.za/go/parser-go-json
         make diff
