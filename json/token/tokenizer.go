@@ -15,6 +15,8 @@
 package token
 
 import (
+	"math"
+
 	"katydid.org.za/go/parser-go-json/json/internal/fork/unquote"
 	"katydid.org.za/go/parser-go-json/json/scan"
 	"katydid.org.za/go/parser-go/cast"
@@ -39,12 +41,12 @@ type tokenizer struct {
 	skipped        bool
 	scanKind       scan.Kind
 
-	tokenized   bool
-	tokenKind   parse.Kind
-	tokenErr    error
-	tokenDouble float64
-	tokenInt    int64
-	tokenBytes  []byte
+	tokenized       bool
+	tokenKind       parse.Kind
+	tokenErr        error
+	tokenDoubleBits uint64
+	tokenInt        int64
+	tokenBytes      []byte
 }
 
 func NewTokenizer(buf []byte) Tokenizer {
@@ -99,7 +101,7 @@ func (t *tokenizer) tokenizeNumber() error {
 	}
 	if floatok {
 		t.tokenKind = parse.Float64Kind
-		t.tokenDouble = floatval
+		t.tokenDoubleBits = math.Float64bits(floatval)
 		return nil
 	}
 	if decimalok {
@@ -137,10 +139,10 @@ func (t *tokenizer) Token() (parse.Kind, []byte, error) {
 		return parse.UnknownKind, nil, err
 	}
 	if t.tokenKind == parse.Int64Kind {
-		return t.tokenKind, cast.FromInt64(t.tokenInt, t.alloc), nil
+		return t.tokenKind, cast.FromInt64Ptr(&t.tokenInt, t.alloc), nil
 	}
 	if t.tokenKind == parse.Float64Kind {
-		return t.tokenKind, cast.FromFloat64(t.tokenDouble, t.alloc), nil
+		return t.tokenKind, cast.FromFloat64BitsPtr(&t.tokenDoubleBits, t.alloc), nil
 	}
 	return t.tokenKind, t.tokenBytes, nil
 }
@@ -161,7 +163,7 @@ func (t *tokenizer) Int() (int64, error) {
 
 func (t *tokenizer) Double() (float64, error) {
 	if t.tokenKind == parse.Float64Kind {
-		return t.tokenDouble, nil
+		return math.Float64frombits(t.tokenDoubleBits), nil
 	}
 	return 0, ErrNotDouble
 }

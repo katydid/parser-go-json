@@ -38,7 +38,7 @@ func walk(parser InitParser, s string) error {
 	return debug.Walk(parser)
 }
 
-func parseValue(parser InitParser, input string) (string, error) {
+func parseIntoString(parser InitParser, input string) (string, error) {
 	jout, err := parse(parser, input)
 	if err != nil {
 		return "", fmt.Errorf("walk error: %v", err)
@@ -49,7 +49,7 @@ func parseValue(parser InitParser, input string) (string, error) {
 	if len(jout[0].Children) != 0 {
 		return "", fmt.Errorf("did not expected any children")
 	}
-	return jout[0].Label, nil
+	return jout[0].Label.String(), nil
 }
 
 func Parsable(t *testing.T, parser InitParser, s string) {
@@ -78,7 +78,7 @@ func EqualValue(t *testing.T, parser InitParser, input, output string) {
 	t.Helper()
 	t.Run("EqualValue("+input+","+output+")", func(t *testing.T) {
 		t.Helper()
-		res, err := parseValue(parser, input)
+		res, err := parseIntoString(parser, input)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -92,7 +92,7 @@ func SameValue(t *testing.T, parser InitParser, input string) {
 	t.Helper()
 	t.Run("SameValue("+input+")", func(t *testing.T) {
 		t.Helper()
-		res, err := parseValue(parser, input)
+		res, err := parseIntoString(parser, input)
 		if err != nil {
 			t.Fatal(err)
 		}

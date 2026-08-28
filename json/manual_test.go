@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"katydid.org.za/go/parser-go/cast"
+	"katydid.org.za/go/parser-go/cp"
 	"katydid.org.za/go/parser-go/expect"
 	"katydid.org.za/go/parser-go/hedge"
 	"katydid.org.za/go/parser-go/parse"
@@ -44,8 +44,9 @@ func TestEscapedChar(t *testing.T) {
 		t.Fatal(err)
 	}
 	name := m[0].Label
-	if name != `a\"` {
-		t.Fatalf("wrong escaped name %s", name)
+	want := hedge.NewStringToken(`a\"`)
+	if !name.Equal(want) {
+		t.Fatalf("wrong escaped name %v", name)
 	}
 }
 
@@ -85,7 +86,7 @@ func TestTooLargeNumber(t *testing.T) {
 	if kind != parse.DecimalKind {
 		t.Fatalf("want DecimalKind, but got %v", kind)
 	}
-	got := cast.ToString(val)
+	got := cp.ToString(val)
 	if want != got {
 		t.Fatalf("want %s got %s", want, got)
 	}

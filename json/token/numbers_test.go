@@ -19,7 +19,7 @@ import (
 	"math"
 	"testing"
 
-	"katydid.org.za/go/parser-go/cast"
+	"katydid.org.za/go/parser-go/cp"
 	"katydid.org.za/go/parser-go/parse"
 )
 
@@ -38,7 +38,7 @@ func TestFloatPointZero(t *testing.T) {
 	if kind != parse.Float64Kind {
 		t.Fatalf("expected float not %s", kind)
 	}
-	got := cast.ToFloat64(gotbs)
+	got := cp.ToFloat64(gotbs)
 	if got != want {
 		t.Fatalf("got %v, want %v", got, want)
 	}
@@ -62,7 +62,7 @@ func TestNumbersMaxInt64(t *testing.T) {
 	if tokenKind != parse.Int64Kind {
 		t.Fatalf("expected decimal, got %v", tokenKind)
 	}
-	goti := cast.ToInt64(got)
+	goti := cp.ToInt64(got)
 	if goti != want {
 		t.Fatalf("got %v, but want %v", goti, want)
 	}
@@ -178,7 +178,7 @@ func TestNumbersMinInt64Plus1(t *testing.T) {
 	if tokenKind != parse.Int64Kind {
 		t.Fatalf("expected int64, but got %v", tokenKind)
 	}
-	goti := cast.ToInt64(got)
+	goti := cp.ToInt64(got)
 	if goti != want {
 		t.Fatalf("got %v, but want %v", goti, want)
 	}
@@ -202,7 +202,7 @@ func TestNumbersMinInt64(t *testing.T) {
 	if tokenKind != parse.Int64Kind {
 		t.Fatalf("expected int64, but got %v", tokenKind)
 	}
-	goti := cast.ToInt64(got)
+	goti := cp.ToInt64(got)
 	if goti != want {
 		t.Fatalf("got %v, but want %v", goti, want)
 	}
@@ -297,7 +297,7 @@ func TestNumbersMaxFloat64(t *testing.T) {
 	if tokenKind != parse.Float64Kind {
 		t.Fatalf("expected float64, but got %v", tokenKind)
 	}
-	gotf := cast.ToFloat64(got)
+	gotf := cp.ToFloat64(got)
 	if gotf != want {
 		t.Fatalf("got %v, but want %v", gotf, want)
 	}
@@ -345,7 +345,7 @@ func TestNumbersSmallestNonZeroFloat64(t *testing.T) {
 	if tokenKind != parse.Float64Kind {
 		t.Fatalf("expected float64, but got %v", tokenKind)
 	}
-	gotf := cast.ToFloat64(got)
+	gotf := cp.ToFloat64(got)
 	if gotf != want {
 		t.Fatalf("got %v, but want %v", gotf, want)
 	}
@@ -376,7 +376,7 @@ func TestNumbersIntOutsideOfFloatingPointPrecision(t *testing.T) {
 			if tokenKind != parse.Int64Kind {
 				t.Fatalf("expected int64, but got %v", tokenKind)
 			}
-			goti := cast.ToInt64(gotb)
+			goti := cp.ToInt64(gotb)
 			got := fmt.Sprintf("%v", goti)
 			if got != want {
 				t.Fatalf("got %v, but want %v", got, want)
@@ -410,7 +410,7 @@ func TestNumbersUintOutsideOfFloatingPointPrecision(t *testing.T) {
 			if tokenKind != parse.Int64Kind {
 				t.Fatalf("expected int64, but got %v", tokenKind)
 			}
-			goti := cast.ToInt64(gotb)
+			goti := cp.ToInt64(gotb)
 			got := fmt.Sprintf("%v", goti)
 			if got != want {
 				t.Fatalf("got %v, but want %v", got, want)

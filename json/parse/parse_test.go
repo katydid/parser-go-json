@@ -23,7 +23,7 @@ import (
 
 func TestParseExample(t *testing.T) {
 	s := `{"num":3.14,"arr":[null,false,true,1,2],"obj":{"k":"v","a":[1,2,3],"b":1,"c":2}}`
-	p := NewParser(WithBuffer([]byte(s)))
+	var p parse.Parser = NewParser(WithBuffer([]byte(s)))
 	expect.Hint(t, p, parse.EnterHint)
 
 	expect.Hint(t, p, parse.FieldHint)

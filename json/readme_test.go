@@ -20,6 +20,7 @@ import (
 
 	"katydid.org.za/go/parser-go-json/json"
 	"katydid.org.za/go/parser-go/cast"
+	"katydid.org.za/go/parser-go/cp"
 	"katydid.org.za/go/parser-go/parse"
 )
 
@@ -55,14 +56,16 @@ func GetMyField(p parse.Parser) (string, error) {
 		if hint != parse.FieldHint {
 			return "", errors.New("expected field")
 		}
-		kind, fieldName, err := p.Token()
+		kind, fieldNameBytes, err := p.Token()
 		if err != nil {
 			return "", err
 		}
 		if kind != parse.StringKind {
 			return "", errors.New("expected string")
 		}
-		if cast.ToString(fieldName) == "myfield" {
+		var fieldName string
+		cast.ToStringPtr(fieldNameBytes, &fieldName)
+		if fieldName == "myfield" {
 			hint, err = p.Next()
 			if err != nil {
 				return "", err
@@ -77,7 +80,7 @@ func GetMyField(p parse.Parser) (string, error) {
 			if kind != parse.StringKind {
 				return "", errors.New("expected string")
 			}
-			return cast.ToString(val), nil
+			return cp.ToString(val), nil
 		} else {
 			p.Skip()
 		}
