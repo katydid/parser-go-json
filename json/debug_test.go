@@ -30,6 +30,7 @@ import (
 
 func TestDebugParse(t *testing.T) {
 	var p parse.ParserWithInit = NewParser()
+	p = log.WrapParserWithInit(p)
 	data, err := json.Marshal(example.Input)
 	if err != nil {
 		t.Fatal(err)
