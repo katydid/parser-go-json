@@ -19,11 +19,11 @@ import (
 	"fmt"
 	"testing"
 
+	"katydid.org.za/go/parser-go/debug"
+	"katydid.org.za/go/parser-go/example"
 	"katydid.org.za/go/parser-go/hedge"
+	"katydid.org.za/go/parser-go/log"
 	"katydid.org.za/go/parser-go/parse"
-	"katydid.org.za/go/parser-go/parse/debug"
-	"katydid.org.za/go/parser-go/parse/example"
-	"katydid.org.za/go/parser-go/parse/log"
 	"katydid.org.za/go/parser-go/pool"
 	"katydid.org.za/go/parser-go/rand"
 )

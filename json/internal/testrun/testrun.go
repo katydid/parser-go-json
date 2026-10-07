@@ -18,9 +18,9 @@ import (
 	"fmt"
 	"testing"
 
+	"katydid.org.za/go/parser-go/debug"
 	"katydid.org.za/go/parser-go/hedge"
 	goparse "katydid.org.za/go/parser-go/parse"
-	"katydid.org.za/go/parser-go/parse/debug"
 )
 
 type InitParser interface {

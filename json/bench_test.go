@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"katydid.org.za/go/parser-go-json/json/rand"
-	"katydid.org.za/go/parser-go/parse/debug"
+	"katydid.org.za/go/parser-go/debug"
 	"katydid.org.za/go/parser-go/pool"
 )
 
