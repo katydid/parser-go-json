@@ -18,7 +18,7 @@ import (
 	"errors"
 	"io"
 
-	"katydid.org.za/go/parser-go-json/json/scan"
+	"go.katydid.org.za/parser-go-json/json/scan"
 )
 
 var errUnknownToken = errors.New("unknown token")

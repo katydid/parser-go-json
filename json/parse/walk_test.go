@@ -17,9 +17,9 @@ package parse
 import (
 	"io"
 
-	"katydid.org.za/go/parser-go/parse"
+	"go.katydid.org.za/parser-go/parse"
 
-	"katydid.org.za/go/parser-go-json/json/rand"
+	"go.katydid.org.za/parser-go-json/json/rand"
 )
 
 func walkValue(t Parser) error {

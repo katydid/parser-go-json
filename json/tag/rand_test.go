@@ -17,10 +17,10 @@ package tag_test
 import (
 	"testing"
 
-	"katydid.org.za/go/parser-go-json/json/internal/testrun"
-	"katydid.org.za/go/parser-go-json/json/parse"
-	"katydid.org.za/go/parser-go-json/json/rand"
-	"katydid.org.za/go/parser-go/tag"
+	"go.katydid.org.za/parser-go-json/json/internal/testrun"
+	"go.katydid.org.za/parser-go-json/json/parse"
+	"go.katydid.org.za/parser-go-json/json/rand"
+	"go.katydid.org.za/parser-go/tag"
 )
 
 func TestParseRandomValuesWithTagsAndIndexes(t *testing.T) {

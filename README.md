@@ -5,7 +5,7 @@ Parser for JSON in Go, which tries to not allocate any memory.
 We can parse json without unmarshaling it into a Go `struct` using the [Parser interface](https://git.katydid.org.za/parser-go):
 
 ```go
-import "katydid.org.za/go/parser-go-json/json"
+import "go.katydid.org.za/parser-go-json/json"
 
 func main() {
 	jsonString := `{"otherfield": 123, "myfield": "myvalue"}`
@@ -23,9 +23,9 @@ We can then use the parser to decode only `myfield` and skip over other fields a
 
 ```go
 import (
-	"katydid.org.za/go/parser-go/cast"
-	"katydid.org.za/go/parser-go/cp"
-	"katydid.org.za/go/parser-go/parse"
+	"go.katydid.org.za/parser-go/cast"
+	"go.katydid.org.za/parser-go/cp"
+	"go.katydid.org.za/parser-go/parse"
 )
 
 

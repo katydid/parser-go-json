@@ -17,10 +17,10 @@ package tag_test
 import (
 	"testing"
 
-	jsonparse "katydid.org.za/go/parser-go-json/json/parse"
-	"katydid.org.za/go/parser-go/expect"
-	"katydid.org.za/go/parser-go/parse"
-	"katydid.org.za/go/parser-go/tag"
+	jsonparse "go.katydid.org.za/parser-go-json/json/parse"
+	"go.katydid.org.za/parser-go/expect"
+	"go.katydid.org.za/parser-go/parse"
+	"go.katydid.org.za/parser-go/tag"
 )
 
 func TestTagMixObject(t *testing.T) {

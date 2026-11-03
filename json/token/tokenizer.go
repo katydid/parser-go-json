@@ -17,10 +17,10 @@ package token
 import (
 	"math"
 
-	"katydid.org.za/go/parser-go-json/json/internal/fork/unquote"
-	"katydid.org.za/go/parser-go-json/json/scan"
-	"katydid.org.za/go/parser-go/cast"
-	"katydid.org.za/go/parser-go/parse"
+	"go.katydid.org.za/parser-go-json/json/internal/fork/unquote"
+	"go.katydid.org.za/parser-go-json/json/scan"
+	"go.katydid.org.za/parser-go/cast"
+	"go.katydid.org.za/parser-go/parse"
 )
 
 // Tokenizer is a scanner that provides the ability to buffers returned by the scanner into native Go types.

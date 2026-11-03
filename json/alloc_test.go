@@ -17,9 +17,9 @@ package json
 import (
 	"testing"
 
-	"katydid.org.za/go/parser-go-json/json/internal/testrun"
-	"katydid.org.za/go/parser-go/debug"
-	"katydid.org.za/go/parser-go/pool"
+	"go.katydid.org.za/parser-go-json/json/internal/testrun"
+	"go.katydid.org.za/parser-go/debug"
+	"go.katydid.org.za/parser-go/pool"
 )
 
 func TestNoAllocsOnAverage(t *testing.T) {

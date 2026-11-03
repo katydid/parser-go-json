@@ -17,10 +17,10 @@ package parse
 import (
 	"io"
 
-	"katydid.org.za/go/parser-go-json/json/scan"
-	"katydid.org.za/go/parser-go-json/json/token"
-	"katydid.org.za/go/parser-go/jsonschema"
-	"katydid.org.za/go/parser-go/parse"
+	"go.katydid.org.za/parser-go-json/json/scan"
+	"go.katydid.org.za/parser-go-json/json/token"
+	"go.katydid.org.za/parser-go/jsonschema"
+	"go.katydid.org.za/parser-go/parse"
 )
 
 type Parser interface {

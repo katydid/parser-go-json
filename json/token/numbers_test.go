@@ -19,8 +19,8 @@ import (
 	"math"
 	"testing"
 
-	"katydid.org.za/go/parser-go/cp"
-	"katydid.org.za/go/parser-go/parse"
+	"go.katydid.org.za/parser-go/cp"
+	"go.katydid.org.za/parser-go/parse"
 )
 
 func TestFloatPointZero(t *testing.T) {

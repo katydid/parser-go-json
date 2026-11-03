@@ -16,10 +16,10 @@
 package json
 
 import (
-	"katydid.org.za/go/parser-go-json/json/parse"
-	goparse "katydid.org.za/go/parser-go/parse"
-	"katydid.org.za/go/parser-go/pool"
-	"katydid.org.za/go/parser-go/tag"
+	"go.katydid.org.za/parser-go-json/json/parse"
+	goparse "go.katydid.org.za/parser-go/parse"
+	"go.katydid.org.za/parser-go/pool"
+	"go.katydid.org.za/parser-go/tag"
 )
 
 type Parser interface {

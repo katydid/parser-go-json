@@ -19,13 +19,13 @@ import (
 	"fmt"
 	"testing"
 
-	"katydid.org.za/go/parser-go/debug"
-	"katydid.org.za/go/parser-go/example"
-	"katydid.org.za/go/parser-go/hedge"
-	"katydid.org.za/go/parser-go/log"
-	"katydid.org.za/go/parser-go/parse"
-	"katydid.org.za/go/parser-go/pool"
-	"katydid.org.za/go/parser-go/rand"
+	"go.katydid.org.za/parser-go/debug"
+	"go.katydid.org.za/parser-go/example"
+	"go.katydid.org.za/parser-go/hedge"
+	"go.katydid.org.za/parser-go/log"
+	"go.katydid.org.za/parser-go/parse"
+	"go.katydid.org.za/parser-go/pool"
+	"go.katydid.org.za/parser-go/rand"
 )
 
 func TestDebugParse(t *testing.T) {

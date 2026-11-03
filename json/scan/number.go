@@ -14,7 +14,7 @@
 
 package scan
 
-import "katydid.org.za/go/parser-go-json/json/internal/fork/strconv"
+import "go.katydid.org.za/parser-go-json/json/internal/fork/strconv"
 
 // Number returns the offset after the prefix of a valid number.
 // The number BNF:

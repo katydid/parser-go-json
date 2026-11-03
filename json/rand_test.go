@@ -17,9 +17,9 @@ package json
 import (
 	"testing"
 
-	"katydid.org.za/go/parser-go-json/json/internal/testrun"
-	"katydid.org.za/go/parser-go-json/json/rand"
-	"katydid.org.za/go/parser-go/debug"
+	"go.katydid.org.za/parser-go-json/json/internal/testrun"
+	"go.katydid.org.za/parser-go-json/json/rand"
+	"go.katydid.org.za/parser-go/debug"
 )
 
 func TestParseRandomValues(t *testing.T) {
